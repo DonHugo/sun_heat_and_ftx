@@ -2,31 +2,32 @@
 
 try{
     node.status({fill:"blue",shape:"ring",text:"run"});    
-    
+    //=============Input values=============//
         var T1 = flow.get("RTD_1_1"); //Kollektor
         var T2 = flow.get("RTD_1_2"); //Tank_bottom
         var T3 = flow.get("RTD_1_8"); //Tank_top
+        var manuell_styrning = flow.get("solfangare_manuell_styrning");
+        var manuell_pump = flow.get("pump_solfangare");
+    //=============set variables=============//
         var set_temp_tank_1 = 65; // Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
         var dTStart_tank_1 = 7; // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
         var dTStop_tank_1 = 3; // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
-        var temp_kok = 150; // 
+        var kylning_kollektor = 95;
+        var temp_kok = 150; //
+    //=============process variables=============//
         var dT_temp_kok = (temp_kok - 10) 
-        var kylning_kollektor = 95;  
         var dT_kylning_kollektor = 5;
-        var main_state = flow.get("state")||0;
-        var sub_state = flow.get("sub_state")||0;
-        var mode = flow.get("mode"); //sammanslagning av main_state och sub_state 
-        var manuell_styrning = flow.get("solfangare_manuell_styrning"); // TODO: byta till manuell_styrning
-        var manuell_pump = flow.get("pump_solfangare");
         var dT_running;
-        var dT_running_nice;
-        
-        var overheated = false;
-    
         var dT = T1-T2;
+    //=============Output values=============//
+        var main_state = flow.get("main_state")||0;
+        var sub_state = flow.get("sub_state")||0;
+        var mode = flow.get("mode"); //sammanslagning av main_state och sub_state     
+        var dT_running_nice;
+        var overheated = false;
         var dT_nice = parseFloat(dT.toFixed(2));
         var pump = flow.get("pump")||false;
-    
+    //=============msg syntax=============//
         var msg1 = {};
         var msg2 = {};
         var msg3 = {};
@@ -46,21 +47,68 @@ try{
     //===============================================================//
     
         if (manuell_styrning == true) {
-            state = 1; // Manuell drift
+            main_state = 1; // Manuell drift
         }
-        else if(overheated == true ||  T1 > temp_kok || (pump == false && T1 > kylning_kollektor)){
-            state = 2; // överhettning
+        else if(overheated == true ||  T1 >= temp_kok || (pump == false && T1 >= kylning_kollektor)){
+            main_state = 2; // överhettning
         }
-        else if (condition) {
-            state = 3; // impulsdrift
+        else if (pump == false) {
+            main_state = 3; // impulsdrift
         }
-        else if (condition) {
-            state = 4; // normaldrift
+        else if (T1 > set_temp_tank_1 || pump == true) {
+            main_state = 4; // normaldrift
         }
         else{
-            state = 5; //out of bounds
+            main_state = 5; //out of bounds
         }
     
+        switch (main_state) {
+            case '1': // Manuell drift
+                if (manuell_pump === true){
+                    pump = true;
+                    plow.set("pump", pump)
+                    flow.set("mode", "11")
+                    flow.set(mode_string, "Manuell drift pump påslagen")
+                    flow.set("sub_state", 1)
+                    node.status({fill:"green",shape:"dot",text:"11 - Manuell drift pump påslagen"});
+                }
+                else{
+                    pump = false;
+                    flow.set("pump", pump);
+                    flow.set("mode", "12")
+                    flow.set(mode_string, "Manuell drift pump avslagen")
+                    flow.set("sub_state", 2)
+                    node.status({fill:"green",shape:"dot",text:"12 - Manuell drift pump avslagen"});
+                }
+                msg1.payload = pump;
+                msg2.payload = {
+                    "Pump": pump,
+                    "main_state": main_state,
+                    "sub_state": sub_state,
+                    "mode": mode,
+                    "mode_string": mode_string, 
+                    "overheated": overheated,
+                    };
+            break;
+         
+            case '2': // överhettning
+
+            break;
+
+            case '3': // impulsdrift
+
+            break;
+         
+            case '4': // normaldrift
+
+            break;
+
+            case '5': //out of bounds
+
+            break;
+        }
+
+
 
 
     //===============================================================//
@@ -174,28 +222,13 @@ try{
         
     
         msg1.payload = pump;
-    //	msg2.payload = {
-    //			"T1": T1,
-    //			"T2": T2,
-    //			"T3": T3,
-    //			"dT": dT_nice,
-    //			"dT_running": dT_running_nice,
-    //			"Pump": pump,
-    //			"set_temp_tank_1": set_temp_tank_1,
-    //			"dTStart_tank_1": dTStart_tank_1,
-    //			"dTStop_tank_1": dTStop_tank_1,
-    //			"main_state": main_state,
-    //			"sub_state": sub_state,
-    //			"temp_kok": temp_kok,
-    //	        "kylning_kollektor": kylning_kollektor,
-    //			
-    //}
-            msg2.payload = {
-                "Pump": pump,
-                "main_state": main_state,
-                "sub_state": sub_state,
-                "mode": mode,
-                "overheated": overheated,
+        msg2.payload = {
+            "Pump": pump,
+            "main_state": main_state,
+            "sub_state": sub_state,
+            "mode": mode,
+            "mode_string": mode_string, 
+            "overheated": overheated,
             };
         msg3.payload = dT_nice;
         msg4.payload = main_state;
@@ -208,4 +241,3 @@ try{
         node.error(err)
         node.status({fill:"red",shape:"ring",text:"error"});
     }
-    
