@@ -1,5 +1,3 @@
-
-
 try{
     node.status({fill:"blue",shape:"ring",text:"run"});    
     //=============Input values=============//
@@ -9,11 +7,11 @@ try{
         var manuell_styrning = flow.get("solfangare_manuell_styrning");
         var manuell_pump = flow.get("pump_solfangare");
     //=============set variables=============//
-        var set_temp_tank_1 = 65; // Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
-        var dTStart_tank_1 = 7; // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
-        var dTStop_tank_1 = 3; // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
-        var kylning_kollektor = 95;
-        var temp_kok = 150; //
+        var set_temp_tank_1 = flow.get("set_temp_tank_1"); // Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
+        var dTStart_tank_1 = flow.get("dTStart_tank_1"); // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
+        var dTStop_tank_1 = flow.get("dTStop_tank_1"); // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
+        var kylning_kollektor = flow.get("kylning_kollektor");
+        var temp_kok = flow.get("temp_kok"); //
     //=============process variables=============//
         var dT_temp_kok = 10;
         var reset_temp_kok =  temp_kok - dT_temp_kok;
@@ -58,21 +56,28 @@ try{
     
         if (manuell_styrning === true) {
             main_state = 1; // Manuell drift
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 1"});
         }
         else if(overheated === true ||  T1 >= temp_kok){
             main_state = 2; // avstängning pga överhettning i kollektor
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 2"});
+            
         }
         else if (pump === false || msg.payload.state == "impuls_delay_pump_on") {
             main_state = 3; // impulsdrift
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 3"});
         }
         else if (T1 > set_temp_tank_1 || pump === true) {
             main_state = 4; // normaldrift
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 4"});
         }
         else if ((pump === false && T1 >= kylning_kollektor) || cooling_kollektor === true) {
             main_state = 5; // nedkylning av kollektor
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 5"});
         }
         else{
             main_state = 6; //out of bounds
+            node.status({fill:"blue",shape:"ring",text:"run - main_state 6"});
         }
     
         switch (main_state) {
@@ -183,7 +188,6 @@ try{
                     "state": impuls_delay_pump_state,
                     "timer": impuls_delay_pump_timer,
                 };
-
             break;
          
             case '4': // normaldrift
