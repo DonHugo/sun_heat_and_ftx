@@ -15,24 +15,34 @@ try{
         var kylning_kollektor = 95;
         var temp_kok = 150; //
     //=============process variables=============//
-        var dT_temp_kok = (temp_kok - 10) 
+        var dT_temp_kok = 10;
+        var reset_temp_kok =  temp_kok - dT_temp_kok;
         var dT_kylning_kollektor = 5;
+        var reset_kylning_kollektor = kylning_kollektor - dT_kylning_kollektor;
+        var dT_set_temp_tank_1 = 5;
+        var reset_set_temp_tank_1 = set_temp_tank_1 - dT_set_temp_tank_1;
+        var normal_drift_nedkylning = false;
         var dT_running;
         var dT = T1-T2;
+        var sun = flow.get("sun");
+        var impuls_delay_pump_off = 300000; // 5min
+        var impuls_delay_pump_on = 60000; // 1min
+        var impuls_delay_pump_timer = 0;
+        var impuls_delay_pump_state = "impuls_delay_pump_off";
     //=============Output values=============//
         var main_state = flow.get("main_state")||0;
         var sub_state = flow.get("sub_state")||0;
         var mode = flow.get("mode"); //sammanslagning av main_state och sub_state     
         var dT_running_nice;
         var overheated = false;
+        var cooling_kollektor = false;
         var dT_nice = parseFloat(dT.toFixed(2));
         var pump = flow.get("pump")||false;
     //=============msg syntax=============//
         var msg1 = {};
         var msg2 = {};
         var msg3 = {};
-        var msg4 = {};
-        var msg5 = {};
+
         
     //===============================================================//
     //==skapar en entitet för att mäta energimängd när pumpen är på==//
@@ -46,20 +56,23 @@ try{
         }
     //===============================================================//
     
-        if (manuell_styrning == true) {
+        if (manuell_styrning === true) {
             main_state = 1; // Manuell drift
         }
-        else if(overheated == true ||  T1 >= temp_kok || (pump == false && T1 >= kylning_kollektor)){
-            main_state = 2; // överhettning
+        else if(overheated === true ||  T1 >= temp_kok){
+            main_state = 2; // avstängning pga överhettning i kollektor
         }
-        else if (pump == false) {
+        else if (pump === false || msg.payload.state == "impuls_delay_pump_on") {
             main_state = 3; // impulsdrift
         }
-        else if (T1 > set_temp_tank_1 || pump == true) {
+        else if (T1 > set_temp_tank_1 || pump === true) {
             main_state = 4; // normaldrift
         }
+        else if ((pump === false && T1 >= kylning_kollektor) || cooling_kollektor === true) {
+            main_state = 5; // nedkylning av kollektor
+        }
         else{
-            main_state = 5; //out of bounds
+            main_state = 6; //out of bounds
         }
     
         switch (main_state) {
@@ -75,9 +88,9 @@ try{
                 else{
                     pump = false;
                     flow.set("pump", pump);
-                    flow.set("mode", "12")
-                    flow.set(mode_string, "Manuell drift pump avslagen")
-                    flow.set("sub_state", 2)
+                    flow.set("mode", "12");
+                    flow.set(mode_string, "Manuell drift pump avslagen");
+                    flow.set("sub_state", 2);
                     node.status({fill:"green",shape:"dot",text:"12 - Manuell drift pump avslagen"});
                 }
                 msg1.payload = pump;
@@ -88,153 +101,190 @@ try{
                     "mode": mode,
                     "mode_string": mode_string, 
                     "overheated": overheated,
+                    "cooling_kollektor": cooling_kollektor,
                     };
             break;
          
-            case '2': // överhettning
-
+            case '2': // avstängning pga överhettning i kollektor
+                
+                if (T1 >= temp_kok && overheated === false) {
+                    pump = false;
+                    overheated = true;
+                    flow.set("pump", pump);
+                    flow.set("mode", "21");
+                    flow.set(mode_string, "Pump avslagen pga för hög temperatur i kollektor");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"21 - Pump avslagen pga för hög temperatur i kollektor"});
+                }
+                else if (overheated === true && T1 <= reset_temp_kok) {
+                    overheated = false;
+                    flow.set("mode", "22");
+                    flow.set(mode_string, "Temperatur i kollektor är under risknivå");
+                    flow.set("sub_state", 2);
+                    node.status({fill:"green",shape:"dot",text:"22 - Temperatur i kollektor är under risknivå"});
+                }
+                else{
+                    flow.set("mode", "23");
+                    flow.set(mode_string, "Out of Bounds");
+                    flow.set("sub_state", 3);
+                    node.status({fill:"red",shape:"dot",text:"23 - Out of Bounds"});
+                }
+                msg1.payload = pump;
+                msg2.payload = {
+                    "Pump": pump,
+                    "main_state": main_state,
+                    "sub_state": sub_state,
+                    "mode": mode,
+                    "mode_string": mode_string, 
+                    "overheated": overheated,
+                    "cooling_kollektor": cooling_kollektor,
+                    };
             break;
 
             case '3': // impulsdrift
+                if (sun == "above_horizon" && msg.payload.state == "impuls_delay_pump_off") {
+                    pump = true;
+                    impuls_delay_pump_state = "impuls_delay_pump_on"
+                    impuls_delay_pump_timer = impuls_delay_pump_on
+                    flow.set("pump", pump);
+                    flow.set("mode", "31");
+                    flow.set(mode_string, "Impulsdrift - Pump påslagen");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"31 - Impulsdrift - Pump påslagen"});
+                }
+                else if (sun == "above_horizon" && msg.payload.state == "impuls_delay_pump_on") {
+                    pump = false;
+                    impuls_delay_pump_state = "impuls_delay_pump_off"
+                    impuls_delay_pump_timer = impuls_delay_pump_off
+                    flow.set("pump", pump);
+                    flow.set("mode", "32");
+                    flow.set(mode_string, "Impulsdrift - Pump avslagen");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"32 - Impulsdrift - Pump avslagen"});
+                }
+                else{
+                    flow.set("mode", "33");
+                    flow.set(mode_string, "Out of bounds");
+                    flow.set("sub_state", 3);
+                    node.status({fill:"red",shape:"dot",text:"33 - Out of bounds"});
+                }
+                msg1.payload = pump;
+                msg2.payload = {
+                    "Pump": pump,
+                    "main_state": main_state,
+                    "sub_state": sub_state,
+                    "mode": mode,
+                    "mode_string": mode_string, 
+                    "overheated": overheated,
+                    "cooling_kollektor": cooling_kollektor,
+                };
+                msg3 = { delay: delay_on };
+                msg3.payload = {
+                    "state": impuls_delay_pump_state,
+                    "timer": impuls_delay_pump_timer,
+                };
 
             break;
          
             case '4': // normaldrift
+                if (T1 < set_temp_tank_1 && normal_drift_nedkylning === false) {
+                    pump = true;
+                    flow.set("pump", pump);
+                    flow.set("mode", "41");
+                    flow.set(mode_string, "Normaldrift - Pump påslagen");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"41 - Normaldrift - Pump påslagen"});
+                }
+                else if (T1 > set_temp_tank_1) {
+                    pump = false;
+                    normal_drift_nedkylning = true;
+                    flow.set("pump", pump);
+                    flow.set("mode", "42");
+                    flow.set(mode_string, "Normaldrift - Pump avslagen, fördröjning");
+                    flow.set("sub_state", 2);
+                    node.status({fill:"green",shape:"dot",text:"42 - Normaldrift - Pump avslagen, fördröjning"});
+                }
+                else if (T1 < reset_set_temp_tank_1 && normal_drift_nedkylning === true) {
+                    normal_drift_nedkylning = false;
+                    flow.set("mode", "43");
+                    flow.set(mode_string, "Normaldrift - Pump avslagen");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"43 - Normaldrift - Pump avslagen"});
+                }
+                else{
+                    flow.set("mode", "44");
+                    flow.set(mode_string, "Out of bounds");
+                    flow.set("sub_state", 4);
+                    node.status({fill:"red",shape:"dot",text:"44 - Out of bounds"});
+                }
+                msg1.payload = pump;
+                msg2.payload = {
+                    "Pump": pump,
+                    "main_state": main_state,
+                    "sub_state": sub_state,
+                    "mode": mode,
+                    "mode_string": mode_string, 
+                    "overheated": overheated,
+                    "cooling_kollektor": cooling_kollektor,
+                };
 
             break;
 
-            case '5': //out of bounds
+            case '5': //nedkylning av kollektor
+                if (pump === false && T1 >= kylning_kollektor && cooling_kollektor === false) {
+                    pump = true;
+                    cooling_kollektor = true;
+                    flow.set("pump", pump);
+                    flow.set("mode", "51");
+                    flow.set(mode_string, "Pump påslagen och kylning av kollektor pågår");
+                    flow.set("sub_state", 1);
+                    node.status({fill:"green",shape:"dot",text:"51 - Pump påslagen och kylning av kollektor pågår"});
+                }
+                else if (cooling_kollektor === true && T1 <= reset_kylning_kollektor) {
+                    pump = false;
+                    cooling_kollektor = false;
+                    flow.set("pump", pump);
+                    flow.set("mode", "52");
+                    flow.set(mode_string, "Pump avsalgen, kylning av kollektor är klar");
+                    flow.set("sub_state", 2);
+                    node.status({fill:"green",shape:"dot",text:"52 - Pump avsalgen, kylning av kollektor är klar"});
+                }
+                else{
+                    flow.set("mode", "53");
+                    flow.set(mode_string, "Out of bounds");
+                    flow.set("sub_state", 3);
+                    node.status({fill:"red",shape:"dot",text:"53 - Out of bounds"});
+                }
+                msg1.payload = pump;
+                msg2.payload = {
+                    "Pump": pump,
+                    "main_state": main_state,
+                    "sub_state": sub_state,
+                    "mode": mode,
+                    "mode_string": mode_string, 
+                    "overheated": overheated,
+                    "cooling_kollektor": cooling_kollektor,
+                };
 
             break;
-        }
 
-
-
-
-    //===============================================================//
-        if (T1 >= temp_kok ){
-            overheated = true;
-            flow.set("mode", "20");
-               flow.set("dT_temp_kok", dT_temp_kok);
-               flow.set("overheated", overheated);
-               node.status({fill:"green",shape:"dot",text:"20"});
-        }
-        else if(overheated == true && T1 < 140 ){
-            overheated = false;
-            flow.set("mode", "21")
-            flow.set("main_state", 0)
-            flow.set("dT_temp_kok", dT_temp_kok)
-            flow.set("overheated", overheated);
-            node.status({fill:"green",shape:"dot",text:"21"});    
-        }
-    //===============================================================//
-    
-    
-    //===============================================================//
-        if (manuell_styrning === true){
-            if (manuell_pump === true){
-                pump = true;
-                //mode = 06;
-                flow.set("mode", "06")
-                flow.set("main_state", 0)
-                flow.set("sub_state", 6)
-                node.status({fill:"green",shape:"dot",text:"06"});
-            }
-            else{
-                pump = false;
-                //mode = 07;
-                flow.set("mode", "07")
-                flow.set("pump", pump);
-                flow.set("main_state", 0)
-                flow.set("sub_state", 7)
-                node.status({fill:"green",shape:"dot",text:"07"});
-            }
-        }
-        else{
-               //Om pumpen är av(main_state 0) eller om pumpen är på pga "dra fram vatten impuls"  
-            if ((main_state == 0 && overheated === false) || (main_state == 1 && sub_state == 1 && overheated === false)){
-                node.status({fill:"green",shape:"ring",text:"1"});
-                //starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
-                if(dT >= dTStart_tank_1 && T2 <= set_temp_tank_1 ){
-                    pump = true;
-                    //mode = 12;
-                    flow.set("mode", "12")
-                    flow.set("pump", pump);
-                    flow.set("main_state", 1)
-                    flow.set("sub_state", 2)
-                    node.status({fill:"green",shape:"dot",text:"12"});
-                }
-                //starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
-                else if(T1 >= kylning_kollektor){
-                    pump = true;
-                    //mode = 13;
-                    flow.set("mode", "13")
-                    flow.set("pump", pump);
-                    flow.set("main_state", 1)
-                    flow.set("sub_state", 3)
-                    node.status({fill:"green",shape:"dot",text:"13"});
-                }
-                else{
-                    node.status({fill:"green",shape:"dot",text:"pump av"});
-                }
-            }
-            //Om pumpen är på men inte om  "dra fram vatten impuls" är igång
-            if (main_state == 1 && !(main_state == 1 && sub_state == 1)){
-                node.status({fill:"green",shape:"ring",text:"0"});
-                //stoppa pumpen när dT går under satt nivå
-                if(dT <= dTStop_tank_1 ){
-                    pump = false;
-                    //mode = 02;
-                    flow.set("mode", "02")
-                    flow.set("pump", pump);
-                    flow.set("main_state", 0)
-                    flow.set("sub_state", 2)
-                    node.status({fill:"green",shape:"dot",text:"02"});
-                }
-                //stoppa pumpen när den nåt rätt nivå och kollektor inte är för varm
-                else if(T2 >= set_temp_tank_1+2 && T1 <= kylning_kollektor){
-                    pump = false;
-                    //mode = 03;
-                    flow.set("mode", "03")
-                    flow.set("pump", pump);
-                    flow.set("main_state", 0)
-                    flow.set("sub_state", 3)
-                    node.status({fill:"green",shape:"dot",text:"03"});
-                }
-                //stoppa pumpen när kollektor har börjat koka
-                else if(T1 >= temp_kok ){
-                    pump = false;
-                    //mode = 04;
-                    overheated = true;
-                    flow.set("overheated", overheated);
-                    flow.set("mode", "04")
-                    flow.set("pump", pump);
-                    flow.set("main_state", 0)
-                    flow.set("sub_state", 4)
-                    node.status({fill:"green",shape:"dot",text:"04"});
-                }
-                else{
-                    node.status({fill:"green",shape:"dot",text:"pump på"});
-                }
-            } 
-        }
-    
-        
-    
-        msg1.payload = pump;
-        msg2.payload = {
-            "Pump": pump,
-            "main_state": main_state,
-            "sub_state": sub_state,
-            "mode": mode,
-            "mode_string": mode_string, 
-            "overheated": overheated,
+            case '6': //out of bounds
+            flow.set("mode", "61");
+            flow.set(mode_string, "Out of bounds");
+            flow.set("sub_state", 1);
+            node.status({fill:"red",shape:"dot",text:"61 - Out of bounds"});
+            msg2.payload = {
+                "Pump": pump,
+                "main_state": main_state,
+                "sub_state": sub_state,
+                "mode": mode,
+                "mode_string": mode_string, 
+                "overheated": overheated,
+                "cooling_kollektor": cooling_kollektor,
             };
-        msg3.payload = dT_nice;
-        msg4.payload = main_state;
-        msg5.payload = sub_state;
-    
-        return [msg1,msg2,msg3,msg4,msg5];
+
+            break;
+        }
     }
     
     catch(err){
