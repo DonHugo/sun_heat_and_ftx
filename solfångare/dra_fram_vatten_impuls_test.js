@@ -11,6 +11,10 @@ try{
         var dTStop_tank_1 = flow.get("dTStop_tank_1"); // Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
         var temp_kok = flow.get("temp_kok");
         var overheated = flow.get("overheated")||false;
+        var impuls_delay_pump_state = flow.get("impuls_delay_pump_state")||"impuls_delay_pump_off";
+        var impuls_delay_pump_off = 10000 //300000; // 5min
+        var impuls_delay_pump_on = 5000 //60000; // 1min
+        var impuls_delay_pump_timer = 0;
         var msg1 = {};
         var msg2 = {};
         var msg3 = {};
@@ -19,7 +23,43 @@ try{
         var dT = T1-T2;
         var dT_nice = parseFloat(dT.toFixed(2));
         var mode = flow.get("mode");
+        
+        
+        if (msg.payload.state == "delay_off" ){
+            msg3 = { delay: impuls_delay_pump_off };
+            msg3.payload = {
+                "state": "delay_on",
+                "timer": impuls_delay_pump_off,
+
+            };
+            msg1.payload = pump;
+            msg2.payload = {
+                "Pump": pump,
+                "state": state,
+                "sub_state": sub_state,
+                "mode": mode,
+                };
+
     
+            return [msg1,msg2,msg3];
+        }
+        else if(msg.payload.state == "delay_on" ){
+            msg3 = { delay: impuls_delay_pump_on };
+            msg3.payload = {
+                "state": "delay_off",
+                "timer": impuls_delay_pump_on,
+            };
+            msg1.payload = pump;
+            msg2.payload = {
+                "Pump": pump,
+                "state": state,
+                "sub_state": sub_state,
+                "mode": mode,
+                };
+
+    
+            return [msg1,msg2,msg3];
+        }   
     
         if (sun == "above_horizon" && solfangare_manuell_styrning === false && dT > 3  && overheated === false){
             switch (state) {

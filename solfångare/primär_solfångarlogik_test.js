@@ -1,9 +1,12 @@
 try {
     node.status({ fill: "blue", shape: "ring", text: "run" });
     //=============Input values=============//
-    var T1 = flow.get("RTD_1_1") || 0; //Kollektor
-    var T2 = flow.get("RTD_1_2") || 0; //Tank_bottom
-    var T3 = flow.get("RTD_1_8") || 0; //Tank_top
+//    var T1 = flow.get("RTD_1_1") || 0; //Kollektor
+//    var T2 = flow.get("RTD_1_2") || 0; //Tank_bottom
+//    var T3 = flow.get("RTD_1_8") || 0; //Tank_top
+    var T1 = global.get("RTD_1_1") || 0; //Kollektor
+    var T2 = global.get("RTD_1_2") || 0; //Tank_bottom
+    var T3 = global.get("RTD_1_8") || 0; //Tank_top
     var manuell_styrning = flow.get("solfangare_manuell_styrning") || false;
     var manuell_pump = flow.get("pump_solfangare") || false;
     //=============set variables=============//
@@ -23,11 +26,11 @@ try {
     var dT_running;
     var dT = T1 - T2;
     var sun = flow.get("sun") || 0;
-    var impuls_delay_pump_off =10000 //300000; // 5min
-    var impuls_delay_pump_on = 5000 //60000; // 1min
-    var impuls_delay_pump_timer = 0;
-    var impuls_delay_pump_state = flow.get("impuls_delay_pump_state") || "impuls_delay_pump_off";
-       //=============Output values=============//
+    //var impuls_delay_pump_off =10000 //300000; // 5min
+    //var impuls_delay_pump_on = 5000 //60000; // 1min
+    //var impuls_delay_pump_timer = 0;
+    //var impuls_delay_pump_state = flow.get("impuls_delay_pump_state") || "impuls_delay_pump_off";
+    //=============Output values=============//
     var main_state = flow.get("main_state") || 0;
     var sub_state = flow.get("sub_state") || 0;
     var mode = flow.get("mode") || 0; //sammanslagning av main_state och sub_state     
@@ -69,7 +72,7 @@ try {
         flow.set("main_state", main_state);
         node.status({ fill: "blue", shape: "ring", text: "run - main_state 5" });
     }
-    else if ( (dT >= dTStart_tank_1 || normal_drift_nedkylning === true) || (pump === true && impuls_delay_pump_state == "impuls_delay_pump_off")){//(dT <= dTStart_tank_1 && pump === true && impuls_delay_pump_state == "impuls_delay_pump_off") || (T2 >= set_temp_tank_1 && pump === true) ){
+    else if ((dT >= dTStart_tank_1 || normal_drift_nedkylning === true) || (pump === true )){
         main_state = 4; // normaldrift
         flow.set("main_state", main_state);
         node.status({ fill: "blue", shape: "ring", text: "run - main_state 4" });
@@ -108,7 +111,9 @@ try {
                 //"mode_string": mode_string,
                 "overheated": overheated,
                 "cooling_kollektor": cooling_kollektor,
-                "impuls_delay_pump_state": impuls_delay_pump_state,
+                //               "impuls_delay_pump_state": impuls_delay_pump_state,
+                "T1": T1,
+                "T2": T2,
             };
             msg3.reset = true;
             return [msg1, msg2, msg3];
@@ -149,7 +154,9 @@ try {
                 //"mode_string": mode_string,
                 "overheated": overheated,
                 "cooling_kollektor": cooling_kollektor,
-                "impuls_delay_pump_state": impuls_delay_pump_state,
+                //               "impuls_delay_pump_state": impuls_delay_pump_state,
+                "T1": T1,
+                "T2": T2,
             };
             msg3.reset = true;
             return [msg1, msg2, msg3];
@@ -173,7 +180,7 @@ try {
                 flow.set("sub_state", 2);
                 node.status({ fill: "green", shape: "dot", text: "42 - Normaldrift - Pump avslagen, dT under gränsvärdet" });
             }
-                else if (T2 >= set_temp_tank_1) {
+            else if (T2 >= set_temp_tank_1) {
                 pump = false;
                 normal_drift_nedkylning = true;
                 flow.set("normal_drift_nedkylning", normal_drift_nedkylning)
@@ -183,7 +190,7 @@ try {
                 flow.set("sub_state", 3);
                 node.status({ fill: "green", shape: "dot", text: "43 - Normaldrift - Pump avslagen, T2 över gränsvärdet" });
             }
-            
+
             else if (T2 < reset_set_temp_tank_1 && normal_drift_nedkylning === true) {
                 normal_drift_nedkylning = false;
                 flow.set("normal_drift_nedkylning", normal_drift_nedkylning)
@@ -192,13 +199,7 @@ try {
                 flow.set("sub_state", 4);
                 node.status({ fill: "green", shape: "dot", text: "44 - Normaldrift - Pump avslagen" });
             }
-            //else {
-                //                   flow.set("mode", "44");
-                //flow.set(mode_string, "Out of bounds");
-                //                   flow.set("sub_state", 4);
-                //                   node.status({fill:"red",shape:"dot",text:"44 - Out of bounds"});
-                //break;
-            //}
+
             flow.set("main_state", main_state);
             msg1.payload = pump;
             msg2.payload = {
@@ -210,13 +211,25 @@ try {
                 "overheated": overheated,
                 "cooling_kollektor": cooling_kollektor,
                 "normal_drift_nedkylning": normal_drift_nedkylning,
-                "impuls_delay_pump_state": impuls_delay_pump_state,
+                //               "impuls_delay_pump_state": impuls_delay_pump_state,
+                "T1": T1,
+                "T2": T2,
             };
             msg3.reset = true;
             return [msg1, msg2, msg3];
 
         case 5: //nedkylning av kollektor
-            if (pump === false && T1 >= kylning_kollektor && cooling_kollektor === false) {
+            if (cooling_kollektor === true && T1 < reset_kylning_kollektor) {
+                pump = false;
+                cooling_kollektor = false;
+                flow.set("cooling_kollektor", cooling_kollektor);
+                flow.set("pump", pump);
+                flow.set("mode", "52");
+                //flow.set(mode_string, "Pump avsalgen, kylning av kollektor är klar");
+                flow.set("sub_state", 2);
+                node.status({ fill: "green", shape: "dot", text: "52 - Pump avsalgen, kylning av kollektor är klar" });
+            }
+            else {
                 pump = true;
                 cooling_kollektor = true;
                 flow.set("cooling_kollektor", cooling_kollektor);
@@ -226,22 +239,7 @@ try {
                 flow.set("sub_state", 1);
                 node.status({ fill: "green", shape: "dot", text: "51 - Pump påslagen och kylning av kollektor pågår" });
             }
-            else if (cooling_kollektor === true && T1 < reset_kylning_kollektor) {
-                pump = false;
-                cooling_kollektor = false;
-                flow.set("cooling_kollektor", cooling_kollektor);
-                flow.set("pump", pump);
-                flow.set("mode", "52");
-                //flow.set(mode_string, "Pump avsalgen, kylning av kollektor är klar");
-                flow.set("sub_state", 2);
-                node.status({ fill: "green", shape: "dot", text: "52 - Pump avsalgen, kylning av kollektor är klar" });
-            }              
-            else {
-                flow.set("mode", "53");
-                //flow.set(mode_string, "Pump påslagen och kylning av kollektor pågår");
-                flow.set("sub_state", 3);
-                node.status({ fill: "red", shape: "dot", text: "53 - Pump påslagen och kylning av kollektor pågår" });
-            }
+
             flow.set("main_state", main_state);
             msg1.payload = pump;
             msg2.payload = {
@@ -253,30 +251,12 @@ try {
                 "overheated": overheated,
                 "cooling_kollektor": cooling_kollektor,
                 "normal_drift_nedkylning": normal_drift_nedkylning,
-                "impuls_delay_pump_state": impuls_delay_pump_state,
+                //                "impuls_delay_pump_state": impuls_delay_pump_state,
+                "T1": T1,
+                "T2": T2,
             };
             msg3.reset = true;
             return [msg1, msg2, msg3];
-
-
-        case 6: //out of bounds
-            flow.set("mode", "61");
-            //flow.set(mode_string, "Out of bounds");
-            flow.set("sub_state", 1);
-            node.status({ fill: "red", shape: "dot", text: "61 - Out of bounds" });
-            flow.set("main_state", main_state);
-            msg2.payload = {
-                "Pump": pump,
-                "main_state": main_state,
-                "sub_state": sub_state,
-                "mode": mode,
-                //"mode_string": mode_string,
-                "overheated": overheated,
-                "cooling_kollektor": cooling_kollektor,
-                "normal_drift_nedkylning": normal_drift_nedkylning,
-                "impuls_delay_pump_state": impuls_delay_pump_state,
-            };
-            return [msg2];
     }
 }
 
