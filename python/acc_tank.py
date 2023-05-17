@@ -2,6 +2,10 @@ import librtd
 import paho.mqtt.client as mqtt
 import time
 
+mqttBroker ="192.168.0.110" 
+
+client = mqtt.Client("RTD")
+client.connect(mqttBroker) 
 
 while True:
     i = 1
