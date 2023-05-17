@@ -6,7 +6,7 @@ def on_message(client, userdata, message):
 
 mqttBroker ="192.168.0.110"
 
-client = mqtt.Client("Smartphone")
+client = mqtt.Client("sun_heat_collector")
 client.connect(mqttBroker) 
 
 client.loop_start()
