@@ -11,7 +11,7 @@ client.connect(mqttBroker)
 
 client.loop_start()
 
-client.subscribe("test")
+client.subscribe("test/test1")
 client.on_message=on_message 
 
 time.sleep(30)
