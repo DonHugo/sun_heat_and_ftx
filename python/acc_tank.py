@@ -10,10 +10,10 @@ client.connect(mqttBroker)
 rtd1 = [0,0,0,0,0,0,0,0,0,0]
 
 while True:
-    i = 1
-    while i < 10:
+    i = 0
+    while i < 9:
         rtd1[i] = librtd.get(0, 1)
-        mean_rtd1 = statistics.mean(rtd1)
+        mean_rtd1 = round(statistics.mean(rtd1))
         client.publish("test/test2", mean_rtd1)
         print("Just published " + str(mean_rtd1) + " to topic test/test2")
         print(rtd1)

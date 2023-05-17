@@ -7,3 +7,8 @@ git push
 git pull
 git push
 ```
+
+```
+pip install statistics
+
+```
