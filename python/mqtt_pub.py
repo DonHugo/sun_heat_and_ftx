@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 from random import randrange, uniform
 import time
 
-mqttBroker ="mqtt.eclipseprojects.io" 
+mqttBroker ="192.168.0.110" 
 
 client = mqtt.Client("Temperature_Inside")
 client.connect(mqttBroker) 
