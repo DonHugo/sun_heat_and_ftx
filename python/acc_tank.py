@@ -34,11 +34,11 @@ def read_rtd(board_id,rtd_id,loops):
         #print(mean_rtd_1)
         i += 1
         time.sleep(0.2)
-a=1
+a = 1
 while True:
     read_rtd(0,a,10)
-    print(rtd_avg[a])
+    print(rtd_avg[a-1])
     print(rtd_avg)
     a += 1
     if a > 2:
-        a=0
+        a = 1
