@@ -8,15 +8,22 @@ mqttBroker ="192.168.0.110"
 client = mqtt.Client("RTD")
 client.connect(mqttBroker)
 rtd1 = [0,0,0,0,0,0,0,0,0,0]
+loops = 10
 
-while True:
+
+def read_rtd(board_id,rtd_id,loops):
     i = 0
-    while i < 10:
-        rtd1[i] = librtd.get(0, 1)
-        mean_rtd1 = round(statistics.mean(rtd1),2)
+    while i < loops:
+        rtd1[i] = librtd.get(board_id, rtd_id)
+        mean_rtd1 = round(statistics.mean(rtd1),1)
         client.publish("test/test2", mean_rtd1)
         print("Just published " + str(mean_rtd1) + " to topic test/test2")
         print(rtd1)
         print(mean_rtd1)
         i += 1
         time.sleep(1)
+
+while True:
+#    a = 0
+#    while a < 8
+    read_rtd(0,1,10)
