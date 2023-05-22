@@ -40,5 +40,5 @@ while True:
     print(rtd_avg[a-1])
     print(rtd_avg)
     a += 1
-    if a > 2:
+    if a > 8:
         a = 1
