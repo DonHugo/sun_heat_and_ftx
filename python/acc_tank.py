@@ -14,43 +14,29 @@ exitFlag = 0
 
 
 # Application variables
-rtd1 = [0,0,0,0,0,0,0,0,0,0]
+rtd_1 = [0,0,0,0,0,0,0,0,0,0]
+rtd_2 = [0,0,0,0,0,0,0,0,0,0]
+rtd_3 = [0,0,0,0,0,0,0,0,0,0]
+rtd_avg = [0,0,0,0,0,0,0,0]
 loops = 10
-
-class myThread (threading.Thread):
-   def __init__(self, threadID, name, counter):
-      threading.Thread.__init__(self)
-      self.threadID = threadID
-      self.name = name
-      self.counter = counter
-   def run(self):
-      print "Starting " + self.name
-      print_time(self.name, 5, self.counter)
-      print "Exiting " + self.name
 
 def read_rtd(board_id,rtd_id,loops):
     i = 0
     while i < loops:
-        rtd1[i] = librtd.get(board_id, rtd_id)
-        mean_rtd1 = round(statistics.mean(rtd1),1)
-        client.publish("test/test2", mean_rtd1)
+        rtd_1[i] = librtd.get(board_id, rtd_id)
+        avg_rtd_1 = round(statistics.mean(rtd_1),1)
+        client.publish("test/test2", avg_rtd_1)
+        rtd_avg[rtd_id-1] = avg_rtd_1
         #print("Just published " + str(mean_rtd1) + " to topic test/test2")
         #print(rtd1)
-        print("rtd_" + str(rtd_id) + " " + str(mean_rtd1))
-        #print(mean_rtd1)
+        print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
+        #print(mean_rtd_1)
         i += 1
-        time.sleep(1)
-
-# Create new threads
-thread1 = myThread(1, "Thread-1", 1)
-thread2 = myThread(2, "Thread-2", 2)
-
-# Start new Threads
-thread1.start()
-thread2.start()
+        time.sleep(0.2)
 
 while True:
 #    a = 0
 #    while a < 8
     read_rtd(0,1,10)
+    print(rtd_avg[1])
     read_rtd(0,2,10)
