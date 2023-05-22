@@ -37,7 +37,7 @@ def read_rtd(board_id,rtd_id,loops):
 a = 1
 while True:
     read_rtd(0,a,10)
-    print("rtd " + srt(rtd_avg[a-1]))
+    print("rtd " + str(rtd_avg[a-1]))
     print(rtd_avg)
     a += 1
     if a > 8:
