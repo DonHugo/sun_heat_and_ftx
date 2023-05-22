@@ -1,4 +1,4 @@
-import threads
+import thread
 import librtd
 import paho.mqtt.client as mqtt
 import time
@@ -27,8 +27,8 @@ def read_rtd(board_id,rtd_id,loops):
 
 # Create two threads as follows
 try:
-   threads.start_new_thread( print_time, ("Thread-1", 2, ) )
-   threads.start_new_thread( print_time, ("Thread-2", 4, ) )
+   thread.start_new_thread( print_time, ("Thread-1", 2, ) )
+   thread.start_new_thread( print_time, ("Thread-2", 4, ) )
 except:
    print "Error: unable to start thread"
 
