@@ -15,8 +15,8 @@ exitFlag = 0
 
 # Application variables
 rtd_1 = [0,0,0,0,0,0,0,0,0,0]
-rtd_2 = [0,0,0,0,0,0,0,0,0,0]
-rtd_3 = [0,0,0,0,0,0,0,0,0,0]
+#rtd_2 = [0,0,0,0,0,0,0,0,0,0]
+#rtd_3 = [0,0,0,0,0,0,0,0,0,0]
 rtd_avg = [0,0,0,0,0,0,0,0]
 loops = 10
 
@@ -33,10 +33,10 @@ def read_rtd(board_id,rtd_id,loops):
         #print(mean_rtd_1)
         i += 1
         time.sleep(0.2)
-
+a=1
 while True:
-#    a = 0
-#    while a < 8
-    read_rtd(0,1,10)
-    print(rtd_avg[1])
-    read_rtd(0,2,10)
+    read_rtd(0,a,10)
+    print(rtd_avg[a])
+    a += 1
+    if a > 2:
+        a=0
