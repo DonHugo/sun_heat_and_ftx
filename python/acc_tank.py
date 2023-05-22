@@ -33,7 +33,7 @@ def read_rtd(board_id,rtd_id,loops):
         ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
         #print(mean_rtd_1)
         i += 1
-        time.sleep(0.2)
+        time.sleep(0.02)
 a = 1
 while True:
     read_rtd(0,a,10)
