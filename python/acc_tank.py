@@ -19,7 +19,7 @@ def read_rtd(board_id,rtd_id,loops):
         client.publish("test/test2", mean_rtd1)
         #print("Just published " + str(mean_rtd1) + " to topic test/test2")
         #print(rtd1)
-        print("rtd" + srt(rtd_id) + " " + str(mean_rtd1))
+        print("rtd" + str(rtd_id) + " " + str(mean_rtd1))
         #print(mean_rtd1)
         i += 1
         time.sleep(1)
