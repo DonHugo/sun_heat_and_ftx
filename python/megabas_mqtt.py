@@ -72,7 +72,7 @@ def get_temp():
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
             else: print("to hot!!")    
-
+        print(temp)
 #        x = {
 #            "name": beach,
 #            "water": water,
@@ -113,7 +113,7 @@ def read_sensors():
 
 #get_water_temp()
 #read_sensors()
-print(get_temp())
+get_temp()
 
 client.disconnect()
 client.loop_stop()
