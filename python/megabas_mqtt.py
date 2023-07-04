@@ -41,7 +41,7 @@ def get_temp():
     for x in range(8):
         sensor = m.getRIn1K(3, x+1)
         if sensor == 60:
-            break
+            print("no sensor connected!")
         else:
             print(sensor)
 #        x = {
