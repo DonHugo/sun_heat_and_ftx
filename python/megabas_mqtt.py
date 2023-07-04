@@ -39,7 +39,7 @@ while Connected != True:    #Wait for connection
 
 def get_temp():
     for x in range(8):
-        sensor = m.getRIn1K(3, x)
+        sensor = m.getRIn1K(3, x+1)
         if sensor == 60:
             break
         else:
