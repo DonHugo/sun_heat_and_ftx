@@ -48,6 +48,7 @@ def get_temp():
     for x in range(8):
         sensor = m.getRIn1K(3, x+1)
         mod_sensor = sensor*1000
+        temp = "No value"
              
         if sensor == 60:
             print("no sensor connected!")
@@ -71,7 +72,7 @@ def get_temp():
             elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
-            else: print("to hot!!")    
+            else: temp = "to hot!!"    
         print(temp)
 #        x = {
 #            "name": beach,
