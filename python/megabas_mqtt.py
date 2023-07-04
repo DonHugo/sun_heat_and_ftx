@@ -1,4 +1,3 @@
-import requests
 import random
 import json
 import time
@@ -40,7 +39,7 @@ while Connected != True:    #Wait for connection
 
 def get_water_temp():
 
-    response = requests.post("https://gotlandsenergi.se/badapp//Home/buoyGraf", headers={'User-Agent': 'Mozilla/5.0'})
+    response = "a"
     water = 'N/A'
     air = 'N/A'
     beaches = ["Ekeviken", "Sudersand", "Slite", "Aminne", "Sandviken", "Ljugarn", "Herta", "Holmhallar", "Burgsvik", "Nisseviken", "Tofta", "Kallis", "Ihreviken"]
