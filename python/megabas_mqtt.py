@@ -37,45 +37,34 @@ while Connected != True:    #Wait for connection
 
 
 
-def get_water_temp():
+def get_temp():
+    for x in range(8):
+        sensor = m.getRIn1K(3, x)
+        if sensor == 60:
+            break
+        else:
+            print(sensor)
+#        x = {
+#            "name": beach,
+#            "water": water,
+#            "air": air,
+#            "unit_of_measurement" : "C",
+#            "state_class" : "measurement",
+#            "device_class" : "temperature"
+#            }
+#        y = json.dumps(x, ensure_ascii=False).encode('utf8')
+#        print(y.decode())
 
-    response = "a"
-    water = 'N/A'
-    air = 'N/A'
-    beaches = ["Ekeviken", "Sudersand", "Slite", "Aminne", "Sandviken", "Ljugarn", "Herta", "Holmhallar", "Burgsvik", "Nisseviken", "Tofta", "Kallis", "Ihreviken"]
-    beach_search = "<td>{}</td>"   
-    for beach in beaches:
-        for i, line in enumerate(response.text.splitlines()):
-
-            if beach_search.format(beach) in line.strip():
-
-                water = response.text.splitlines()[i+1].strip()[4:-6]
-                #print(water)
-                air = response.text.splitlines()[i+2].strip()[4:-6]
-                #print(air)
-                break
-
-        x = {
-            "name": beach,
-            "water": water,
-            "air": air,
-            "unit_of_measurement" : "C",
-            "state_class" : "measurement",
-            "device_class" : "temperature"
-            }
-        y = json.dumps(x, ensure_ascii=False).encode('utf8')
-        print(y.decode())
-
-        msg = y
-        topic_path = "beach/{}"
-        topic = topic_path.format(beach)
-        client.publish(topic,msg)
+        # msg = y
+        # topic_path = "beach/{}"
+        # topic = topic_path.format(beach)
+        # client.publish(topic,msg)
 
         #time.sleep(1)
 
 
 
-    return water, air
+    return
 
 def read_sensors():
     #s7 = m.getRIn1K(3, 7)
@@ -94,7 +83,8 @@ def read_sensors():
     return
 
 #get_water_temp()
-read_sensors()
+#read_sensors()
+get_temp()
 
 client.disconnect()
 client.loop_stop()
