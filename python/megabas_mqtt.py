@@ -37,7 +37,7 @@ while Connected != True:    #Wait for connection
 
 
 def calc_temp(calc, delta, deci):
-    temp=(calc/a)+b
+    temp=(calc/delta)+deci
 
     return temp
 
