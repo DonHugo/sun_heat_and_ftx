@@ -77,13 +77,14 @@ def get_water_temp():
 
     return water, air
 
-get_water_temp()
-#print(get_water_temp("Herta"))
-#get_water_temp("Tofta")
-#get_water_temp("Herta")
-#get_water_temp("Slite")
-#get_water_temp("Ihreviken")
-#get_water_temp("Sandviken")
+def read_sensors():
+    s7 = getRIn1K(3, 7)
+    s8 = getRIn1K(3, 8)
+    print(s7)
+    print(s8)
+
+#get_water_temp()
+read_sensors()
 
 client.disconnect()
 client.loop_stop()
