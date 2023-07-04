@@ -53,7 +53,7 @@ def get_temp():
         if sensor == 60:
             print("no sensor connected!")
         else:
-            print(sensor)
+            #print(sensor)
             if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
             elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      temp = calc_temp(mod_sensor-limit[1],delta[1],10)
             elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      temp = calc_temp(mod_sensor-limit[2],delta[2],20)
@@ -73,7 +73,7 @@ def get_temp():
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
             else: temp = "to hot!!"    
-        print(temp)
+            print(temp)
 #        x = {
 #            "name": beach,
 #            "water": water,
