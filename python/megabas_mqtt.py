@@ -43,7 +43,7 @@ def get_water_temp():
     response = requests.post("https://gotlandsenergi.se/badapp//Home/buoyGraf", headers={'User-Agent': 'Mozilla/5.0'})
     water = 'N/A'
     air = 'N/A'
-    beaches = ["Ekeviken", "Sudersand", "Slite", "Åminne", "Sandviken", "Ljugarn", "Herta", "Holmhällar", "Burgsvik", "Nisseviken", "Tofta", "Kallis", "Ihreviken"]
+    beaches = ["Ekeviken", "Sudersand", "Slite", "Aminne", "Sandviken", "Ljugarn", "Herta", "Holmhallar", "Burgsvik", "Nisseviken", "Tofta", "Kallis", "Ihreviken"]
     beach_search = "<td>{}</td>"   
     for beach in beaches:
         for i, line in enumerate(response.text.splitlines()):
