@@ -2,6 +2,7 @@ import requests
 import random
 import json
 import time
+import megabas 
 from paho.mqtt import client as mqttClient
 
 def on_connect(client, userdata, flags, rc):
@@ -78,8 +79,8 @@ def get_water_temp():
     return water, air
 
 def read_sensors():
-    s7 = getRIn1K(3, 7)
-    s8 = getRIn1K(3, 8)
+    s7 = megabas.getRIn1K(3, 7)
+    s8 = megabas.getRIn1K(3, 8)
     print(s7)
     print(s8)
 
