@@ -60,7 +60,7 @@ def get_water_temp():
             "name": beach,
             "water": water,
             "air": air,
-            "unit_of_measurement" : "°C",
+            "unit_of_measurement" : "C",
             "state_class" : "measurement",
             "device_class" : "temperature"
             }
