@@ -79,10 +79,11 @@ def get_water_temp():
     return water, air
 
 def read_sensors():
-    s7 = m.getRIn1K(3, 7)
-    s8 = m.getRIn1K(3, 8)
-    print(s7)
-    print(s8)
+    #s7 = m.getRIn1K(3, 7)
+    #s8 = m.getRIn1K(3, 8)
+    print(m.getRIn1K(3, 7))
+    time.sleep(0.3)
+    print(m.getRIn1K(3, 8))
     return
 
 #get_water_temp()
