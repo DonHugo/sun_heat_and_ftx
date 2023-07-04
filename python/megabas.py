@@ -83,6 +83,7 @@ def read_sensors():
     s8 = megabas.getRIn1K(3, 8)
     print(s7)
     print(s8)
+    return
 
 #get_water_temp()
 read_sensors()
