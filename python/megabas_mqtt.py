@@ -111,8 +111,9 @@ def board_megabas_values():
             "board cpu temperature": m.getCpuTemp(stack_level)
 
         }
-        #y = json.dumps(x, ensure_ascii=False).encode('utf8')
+    y = json.dumps(x, ensure_ascii=False).encode('utf8')
     print(x)
+    print(y)
     #msg = x
     #topic_path = "/{}"
     #topic = topic_path.format(beach)
