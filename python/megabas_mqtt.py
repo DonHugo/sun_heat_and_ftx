@@ -124,8 +124,6 @@ def read_onewire():
     print("========== OneWire ==========")
     print(m.owbScan(3))
     print(m.owbGetSensorNo(3))
-    print(m.owbGetTemp(3, 0))
-    print(m.owbGetRomCode(3, 0))
     print(m.owbGetTemp(3, 1))
     print(m.owbGetRomCode(3, 1))
     print("========== OneWire ==========")
