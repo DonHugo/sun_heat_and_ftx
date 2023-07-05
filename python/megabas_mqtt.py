@@ -76,7 +76,7 @@ def get_temp():
             print(sensor_name.format(x))
             round_temp = (round(temp, 1))    
             print(round_temp)
-            print(sensor_name.format(x) + round_temp)
+            print(sensor_name.format(x) + ": "+ str(round_temp))
 #        x = {
 #            "name": "sensor_3_"x,
 #            "temperature": round_temp,
