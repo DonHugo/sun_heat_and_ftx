@@ -131,6 +131,10 @@ def read_megabas_1k(stack, input):
 
 def read_rtd(stack,input):
     temp = librtd.get(stack, input)
+    if temp == 690.9090576171875:
+        #print("no sensor connected!")
+        temp = "no sensor connected"
+
     print(temp)
     #round_temp = round(temp,1)
     return temp
