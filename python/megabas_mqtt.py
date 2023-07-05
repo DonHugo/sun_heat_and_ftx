@@ -77,20 +77,20 @@ def get_temp():
             round_temp = (round(temp, 1))    
             #print(round_temp)
             print(sensor_name.format(x) + ": "+ str(round_temp))
-        x = {
-            "name": sensor_name.format(x),
-            "temperature": round_temp,
-            "ohms": sensor
-            }
-        y = json.dumps(x, ensure_ascii=False).encode('utf8')
-        print(y)
+            x = {
+                "name": sensor_name.format(x),
+                "temperature": round_temp,
+                "ohms": sensor
+                }
+            y = json.dumps(x, ensure_ascii=False).encode('utf8')
+            print(y)
 
-        # msg = y
-        # topic_path = "/{}"
-        # topic = topic_path.format(beach)
-        # client.publish(topic,msg)
+            # msg = y
+            # topic_path = "/{}"
+            # topic = topic_path.format(beach)
+            # client.publish(topic,msg)
 
-        #time.sleep(1)
+            #time.sleep(1)
     return temp
 
 
