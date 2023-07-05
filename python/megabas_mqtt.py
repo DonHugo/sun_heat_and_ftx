@@ -202,6 +202,7 @@ print(read_rtd(4,1))
 board_megabas_values()
 read_onewire()
 
+a=1
 while True:
     collect_sensor_data_rtd(0,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
