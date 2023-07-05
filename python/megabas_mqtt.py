@@ -73,9 +73,9 @@ def get_temp():
             elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
-            print(sensor_name.format(x))
+            #print(sensor_name.format(x))
             round_temp = (round(temp, 1))    
-            print(round_temp)
+            #print(round_temp)
             print(sensor_name.format(x) + ": "+ str(round_temp))
 #        x = {
 #            "name": "sensor_3_"x,
@@ -91,10 +91,9 @@ def get_temp():
         # client.publish(topic,msg)
 
         #time.sleep(1)
-
-
-
     return temp
+
+
 def board_megabas_values():
     board_type = "megabas"
     stack_level = 3
@@ -112,12 +111,14 @@ def board_megabas_values():
 
         }
     y = json.dumps(x, ensure_ascii=False).encode('utf8')
-    print(x)
+    #print(x)
     print(y)
-    #msg = x
-    #topic_path = "/{}"
-    #topic = topic_path.format(beach)
+    #msg = y
+    #topic_path = "sequentmicrosystems/{}"
+    #topic = topic_path.format(board_name)
     #client.publish(topic,msg)
+    
+    return
 
 def read_onewire():
     print("========== OneWire ==========")
@@ -127,13 +128,8 @@ def read_onewire():
     print(m.owbGetRomCode(3, 1))
     print("========== OneWire ==========")
 
-
-    
-
     return
 
-#get_water_temp()
-#read_sensors()
 get_temp()
 board_megabas_values()
 read_onewire()
