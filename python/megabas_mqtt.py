@@ -120,10 +120,13 @@ def board_megabas_values():
     #client.publish(topic,msg)
 
 def read_onewire():
-    #s7 = m.getRIn1K(3, 7)
-    #s8 = m.getRIn1K(3, 8)
+    print("========== OneWire ==========")
     print(m.owbScan(3))
     print(m.owbGetSensorNo(3))
+    print(m.owbGetTemp(3, 1))
+    print(m.owbGetRomCode(3, 1))
+    print("========== OneWire ==========")
+
 
     
 
