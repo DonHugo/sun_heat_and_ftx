@@ -38,8 +38,8 @@ while Connected != True:    #Wait for connection
 
 def calc_temp(calc, delta, deci):
     temp=(calc/delta)+deci
-
-    return temp
+    round_temp = (round(temp, 1))   
+    return round_temp
 
 def get_temp():
     limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
@@ -93,6 +93,38 @@ def get_temp():
             #time.sleep(1)
     return temp
 
+def read_megabas_1k(stack, input):
+    limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
+    delta = [3.9,3.89,3.88,3.87,3.86,3.84,3.84,3.82,3.81,3.8,3.78,3.78,3.76,3.75,3.75,3.72,3.72,3.71]
+
+    sensor = m.getRIn1K(stack, input)
+    mod_sensor = sensor*1000
+    temp = "No value"
+    sensor_name = "temp_sensor_3_{}"
+        
+    if sensor == 60:
+        print("no sensor connected!")
+    else:
+        if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
+        elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      temp = calc_temp(mod_sensor-limit[1],delta[1],10)
+        elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      temp = calc_temp(mod_sensor-limit[2],delta[2],20)
+        elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      temp = calc_temp(mod_sensor-limit[3],delta[3],30)
+        elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      temp = calc_temp(mod_sensor-limit[4],delta[4],40)
+        elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      temp = calc_temp(mod_sensor-limit[5],delta[5],50)
+        elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      temp = calc_temp(mod_sensor-limit[6],delta[6],60)
+        elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      temp = calc_temp(mod_sensor-limit[7],delta[7],70)
+        elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      temp = calc_temp(mod_sensor-limit[8],delta[8],80)
+        elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      temp = calc_temp(mod_sensor-limit[9],delta[9],90)
+        elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      temp = calc_temp(mod_sensor-limit[10],delta[10],100)
+        elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      temp = calc_temp(mod_sensor-limit[11],delta[11],110)
+        elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      temp = calc_temp(mod_sensor-limit[12],delta[12],120)
+        elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      temp = calc_temp(mod_sensor-limit[13],delta[13],130)
+        elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      temp = calc_temp(mod_sensor-limit[14],delta[14],140)
+        elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
+        elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
+        elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
+
+    return temp
 
 def board_megabas_values():
     board_type = "megabas"
@@ -130,7 +162,9 @@ def read_onewire():
 
     return
 
-get_temp()
+#get_temp()
+print(read_megabas_1k(3,6))
+print(read_megabas_1k(3,7))
 board_megabas_values()
 read_onewire()
 
