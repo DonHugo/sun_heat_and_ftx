@@ -49,6 +49,7 @@ def get_temp():
         sensor = m.getRIn1K(3, x+1)
         mod_sensor = sensor*1000
         temp = "No value"
+        sensor_name = "temp_sensor_3_" + x
              
         if sensor == 60:
             print("no sensor connected!")
@@ -75,18 +76,15 @@ def get_temp():
             round_temp = (round(temp, 1))    
             print(round_temp)
 #        x = {
-#            "name": beach,
-#            "water": water,
-#            "air": air,
-#            "unit_of_measurement" : "C",
-#            "state_class" : "measurement",
-#            "device_class" : "temperature"
+#            "name": "sensor_3_"x,
+#            "temperature": round_temp,
+#            "ohms": sensor
 #            }
 #        y = json.dumps(x, ensure_ascii=False).encode('utf8')
-#        print(y.decode())
+#        print(x)
 
-        # msg = y
-        # topic_path = "beach/{}"
+        # msg = x
+        # topic_path = "/{}"
         # topic = topic_path.format(beach)
         # client.publish(topic,msg)
 
@@ -95,26 +93,43 @@ def get_temp():
 
 
     return temp
+def board_megabas_values():
+    board_name = "megabas"
+    stack_level = 3
+    hw_version = "4.1"
+    sw_version = m.getVer(stack_level)
 
-def read_sensors():
+    x = {
+            "name": board_name + "stack " + stack_level,
+            "HW version": hw_version,
+            "SW version": sw_version,
+            "power supply voltage": m.getInVolt(stack_level),
+            "raspberry power supply voltage": m.getRaspVolt(stack_level),
+            "board cpu temperature": m.getCpuTemp(stack_level)
+
+        }
+        #y = json.dumps(x, ensure_ascii=False).encode('utf8')
+    print(x)
+    #msg = x
+    #topic_path = "/{}"
+    #topic = topic_path.format(beach)
+    #client.publish(topic,msg)
+
+def read_onewire():
     #s7 = m.getRIn1K(3, 7)
     #s8 = m.getRIn1K(3, 8)
-    print(m.getRIn1K(3, 5))
-    time.sleep(0.3)
-    print(m.getRIn1K(3, 6))
-    time.sleep(0.3)
-    print(m.getRIn1K(3, 7))
-    time.sleep(0.3)
-    print(m.getRIn1K(3, 8))
-    print(m.getInVolt(3))
-    print(m.getRaspVolt(3))
-    print(m.getCpuTemp(3))
+    print(m.owbScan(3))
+    print(m.owbGetSensorNo(3))
+
+    
 
     return
 
 #get_water_temp()
 #read_sensors()
 get_temp()
+board_megabas_values()
+read_onewire()
 
 client.disconnect()
 client.loop_stop()
