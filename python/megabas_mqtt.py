@@ -96,13 +96,14 @@ def get_temp():
 
     return temp
 def board_megabas_values():
-    board_name = "megabas"
+    board_type = "megabas"
     stack_level = 3
     hw_version = "4.1"
     sw_version = m.getVer(stack_level)
-
+    board_name_prep = "{} stack {}"
+    board_name = board_name_prep.format(board_type, stack_level)
     x = {
-            "name": board_name + "stack " + stack_level,
+            "name": board_name,
             "HW version": hw_version,
             "SW version": sw_version,
             "power supply voltage": m.getInVolt(stack_level),
