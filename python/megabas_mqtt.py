@@ -2,7 +2,9 @@ import random
 import json
 import time
 import megabas as m
+import librtd
 from paho.mqtt import client as mqttClient
+import statistics
 
 def on_connect(client, userdata, flags, rc):
  
@@ -103,7 +105,8 @@ def read_megabas_1k(stack, input):
     sensor_name = "temp_sensor_3_{}"
         
     if sensor == 60:
-        print("no sensor connected!")
+        #print("no sensor connected!")
+        temp = "no sensor connected"
     else:
         if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
         elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      temp = calc_temp(mod_sensor-limit[1],delta[1],10)
@@ -125,6 +128,11 @@ def read_megabas_1k(stack, input):
         elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
 
     return temp
+
+def read_rtd(stack,input):
+    temp = librtd.get(stack, input)
+    round_temp = round(temp,1)
+    return round_temp
 
 def board_megabas_values():
     board_type = "megabas"
