@@ -175,15 +175,17 @@ def collect_sensor_data_rtd(stack,input,iterations):
     i = 0
     while i < iterations:
         collection[i] = read_rtd(stack, input)
-        avg_value = round(statistics.mean(collection),1)
-        rtd_position = input-1
-        stack[stack-1,rtd_position] = avg_value
-        #print("Just published " + str(mean_rtd1) + " to topic test/test2")
-        #print(rtd1)
-        ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
-        #print(mean_rtd_1)
+        if isinstance(collection[i], (float, int)):
+            avg_value = round(statistics.mean(collection),1)
+            rtd_position = input-1
+            stack[stack-1,rtd_position] = avg_value
+            #print("Just published " + str(mean_rtd1) + " to topic test/test2")
+            #print(rtd1)
+            ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
+            #print(mean_rtd_1)
         i += 1
         time.sleep(0.02)
+
 
 def read_onewire():
     print("========== OneWire ==========")
