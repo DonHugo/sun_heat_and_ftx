@@ -135,8 +135,7 @@ def read_rtd(stack,input):
         #print("no sensor connected!")
         template = "no sensor connected in stack {}, input {}"
         temp = template.format(stack,input)
-
-    print(temp)
+    #print(temp)
     #round_temp = round(temp,1)
     return temp
 
