@@ -49,7 +49,7 @@ def get_temp():
         sensor = m.getRIn1K(3, x+1)
         mod_sensor = sensor*1000
         temp = "No value"
-        sensor_name = "temp_sensor_3_" + x
+        sensor_name = "temp_sensor_3_{}"
              
         if sensor == 60:
             print("no sensor connected!")
@@ -73,8 +73,10 @@ def get_temp():
             elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
+            print(sensor_name.format(x))
             round_temp = (round(temp, 1))    
             print(round_temp)
+            
 #        x = {
 #            "name": "sensor_3_"x,
 #            "temperature": round_temp,
