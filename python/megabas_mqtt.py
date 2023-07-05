@@ -131,8 +131,9 @@ def read_megabas_1k(stack, input):
 
 def read_rtd(stack,input):
     temp = librtd.get(stack, input)
-    round_temp = round(temp,1)
-    return round_temp
+    print(temp)
+    #round_temp = round(temp,1)
+    return temp
 
 def board_megabas_values():
     board_type = "megabas"
@@ -173,6 +174,7 @@ def read_onewire():
 #get_temp()
 print(read_megabas_1k(3,6))
 print(read_megabas_1k(3,7))
+print(read_rtd(4,1))
 board_megabas_values()
 read_onewire()
 
