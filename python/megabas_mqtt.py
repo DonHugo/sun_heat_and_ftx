@@ -61,6 +61,7 @@ def get_temp():
              
         if sensor == 60:
             print("no sensor connected!")
+            temp = 9999
         else:
             #print(sensor)
             if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
@@ -111,8 +112,9 @@ def read_megabas_1k(stack, input):
         
     if sensor == 60:
         #print("no sensor connected!")
-        template = "no sensor connected in stack {}, input {}"
-        temp = template.format(stack,input)
+        #template = "no sensor connected in stack {}, input {}"
+        #temp = template.format(stack,input)
+        temp = 9999
     else:
         if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
         elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      temp = calc_temp(mod_sensor-limit[1],delta[1],10)
@@ -139,8 +141,9 @@ def read_rtd(stack,input):
     temp = librtd.get(stack, input)
     if temp == 690.9090576171875:
         #print("no sensor connected!")
-        template = "no sensor connected in stack {}, input {}"
-        temp = template.format(stack,input)
+        #template = "no sensor connected in stack {}, input {}"
+        #temp = template.format(stack,input)
+        temp = 9999
     #print(temp)
     #round_temp = round(temp,1)
     return temp
