@@ -195,6 +195,7 @@ def collect_sensor_data_mega(stack,input,iterations):
     while i < iterations:
         collection[i] = read_megabas_1k(stack, input)
         if isinstance(collection[i], (float, int)):
+            print(collection[i])
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
             rtd_position = input-1
