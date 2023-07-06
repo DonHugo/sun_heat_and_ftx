@@ -185,11 +185,26 @@ def collect_sensor_data_rtd(stack,input,iterations):
             #print(mean_rtd_1)
         i += 1
         time.sleep(0.02)
+    return
 
+def collect_sensor_data_mega(stack,input,iterations):
+    i = 0
+    while i < iterations:
+        collection[i] = read_megabas_1k(stack, input)
+        if isinstance(collection[i], (float, int)):
+            avg_value = round(statistics.mean(collection),1)
+            rtd_position = input-1
+            stack[stack-1,rtd_position] = avg_value
+            #print("Just published " + str(mean_rtd1) + " to topic test/test2")
+            #print(rtd1)
+            ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
+            #print(mean_rtd_1)
+        i += 1
+        time.sleep(0.02)
 
 def read_onewire():
     print("========== OneWire ==========")
-    print(m.owbScan(3))
+    #print(m.owbScan(3))
     print(m.owbGetSensorNo(3))
     print(m.owbGetTemp(3, 1))
     print(m.owbGetRomCode(3, 1))
@@ -201,12 +216,13 @@ def read_onewire():
 print(read_megabas_1k(3,6))
 print(read_megabas_1k(3,7))
 print(read_rtd(4,1))
-board_megabas_values()
+#board_megabas_values()
 read_onewire()
 
 a=1
 while True:
-    collect_sensor_data_rtd(4,a,10)
+    #collect_sensor_data_rtd(4,a,10)
+    collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
     print(stack)
     a += 1
