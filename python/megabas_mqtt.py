@@ -198,7 +198,9 @@ def collect_sensor_data_mega(stack,input,iterations):
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
             rtd_position = input-1
+            print(rtd_position)
             stack_position = stack-1
+            print(stack_position)
             stack[stack_position,rtd_position] = float(avg_value)
             #print("Just published " + str(mean_rtd1) + " to topic test/test2")
             #print(rtd1)
