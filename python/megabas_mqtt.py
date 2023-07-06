@@ -199,6 +199,12 @@ def collect_sensor_data_mega(stack,input,iterations):
             #print(rtd1)
             ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
             #print(mean_rtd_1)
+        else: 
+            collection[i] = 0
+            avg_value = round(statistics.mean(collection),1)
+            rtd_position = input-1
+            stack[stack-1,rtd_position] = avg_value
+
         i += 1
         time.sleep(0.02)
 
@@ -215,6 +221,7 @@ def read_onewire():
 #get_temp()
 print(read_megabas_1k(3,6))
 print(read_megabas_1k(3,7))
+print(read_megabas_1k(3,8))
 print(read_rtd(4,1))
 #board_megabas_values()
 read_onewire()
