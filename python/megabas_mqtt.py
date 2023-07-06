@@ -200,7 +200,6 @@ def collect_sensor_data_mega(stack,input,iterations):
             ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
             #print(mean_rtd_1)
         else: 
-            collection[i] = 0
             avg_value = round(statistics.mean(collection),1)
             rtd_position = input-1
             stack[stack-1,rtd_position] = avg_value
