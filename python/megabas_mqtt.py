@@ -204,7 +204,7 @@ def collect_sensor_data_mega(stack,input,iterations):
 
         print(collection[i])
         print(collection)
-        
+
         if isinstance(collection[i], (float, int)) and collect != 9999:
             print("===== if =====")
             print(collection[i])
@@ -221,7 +221,7 @@ def collect_sensor_data_mega(stack,input,iterations):
             print(avg_value)
             stack_position = stack-1
             print(stack_position)
-            rtd_position = input-1
+            rtd_position = input
             print(rtd_position)
             print(stack[stack_position,rtd_position])
             stack[stack_position,rtd_position] = avg_value
