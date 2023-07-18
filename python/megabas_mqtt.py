@@ -134,7 +134,7 @@ def read_megabas_1k(stack, input):
         elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
         elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
         elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
-    print("===== def get_temp =====")
+    print("===== def read_megabas_1k =====")
     print(sensor)
     print(mod_sensor)
     print(temp)
@@ -198,6 +198,8 @@ def collect_sensor_data_mega(stack,input,iterations):
     print("===== def collect_sensor_data_mega =====")
     while i < iterations:
         collection[i] = read_megabas_1k(stack, input)
+        print(collection[i])
+        print(collection)
         if isinstance(collection[i], (float, int)) and collection[i] != 9999:
             print("===== if =====")
             print(collection[i])
