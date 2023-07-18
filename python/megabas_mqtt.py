@@ -197,10 +197,15 @@ def collect_sensor_data_mega(stack,input,iterations):
     i = 0
     print("===== def collect_sensor_data_mega =====")
     while i < iterations:
-        collection[i] = read_megabas_1k(stack, input)
+        collect = read_megabas_1k(stack, input)
+#        collection[i] = read_megabas_1k(stack, input)
+        if collect != 9999:
+            collection[i] = collect
+
         print(collection[i])
         print(collection)
-        if isinstance(collection[i], (float, int)) and collection[i] != 9999:
+        
+        if isinstance(collection[i], (float, int)) and collect != 9999:
             print("===== if =====")
             print(collection[i])
             avg_value = round(statistics.mean(collection),1)
@@ -210,10 +215,6 @@ def collect_sensor_data_mega(stack,input,iterations):
             stack_position = stack-1
             print(stack_position)
             stack[stack_position,rtd_position] = float(avg_value)
-            #print("Just published " + str(mean_rtd1) + " to topic test/test2")
-            #print(rtd1)
-            ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
-            #print(mean_rtd_1)
         else:
             print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
