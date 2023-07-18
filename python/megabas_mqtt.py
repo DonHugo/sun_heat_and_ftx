@@ -134,10 +134,10 @@ def read_megabas_1k(stack, input):
         elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
         elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
         elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
-    print("===== def read_megabas_1k =====")
-    print(sensor)
-    print(mod_sensor)
-    print(temp)
+    #print("===== def read_megabas_1k =====")
+    #print(sensor)
+    #print(mod_sensor)
+    #print(temp)
     return temp
 
 def read_rtd(stack,input):
@@ -195,36 +195,36 @@ def collect_sensor_data_rtd(stack,input,iterations):
 
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
-    print("===== def collect_sensor_data_mega =====")
+    #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
         collect = read_megabas_1k(stack, input)
 #        collection[i] = read_megabas_1k(stack, input)
         if collect != 9999:
             collection[i] = collect
 
-        print(collection[i])
-        print(collection)
+        #print(collection[i])
+        #print(collection)
 
         if isinstance(collection[i], (float, int)) and collect != 9999:
-            print("===== if =====")
-            print(collection[i])
+            #print("===== if =====")
+            #print(collection[i])
             avg_value = round(statistics.mean(collection),1)
-            print(avg_value)
+            #print(avg_value)
             rtd_position = input-1
-            print(rtd_position)
+            #print(rtd_position)
             stack_position = stack-1
-            print(stack_position)
+            #print(stack_position)
             stack_array[stack_position,rtd_position] = float(avg_value)
         else:
-            print("===== else =====") 
+            #print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
-            print(avg_value)
+            #print(avg_value)
             stack_position = stack-1
-            print(stack_position)
+            #print(stack_position)
             rtd_position = input-1
-            print(rtd_position)
-            print(stack_array)
-            print(stack_array[stack_position,rtd_position])
+            #print(rtd_position)
+            #print(stack_array)
+            #print(stack_array[stack_position,rtd_position])
             stack_array[stack_position,rtd_position] = avg_value
 
         i += 1
