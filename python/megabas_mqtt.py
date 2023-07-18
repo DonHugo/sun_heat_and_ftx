@@ -9,7 +9,7 @@ import numpy as np
 
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
-stack = np.array([[0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]])
+stack_array = np.array([[0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]])
 loops = 10
 
 def on_connect(client, userdata, flags, rc):
@@ -136,7 +136,10 @@ def read_megabas_1k(stack, input):
         elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
         elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
         elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
-
+    #print("===== def read_megabas_1k =====")
+    #print(sensor)
+    #print(mod_sensor)
+    #print(temp)
     return temp
 
 def read_rtd(stack,input):
@@ -194,25 +197,37 @@ def collect_sensor_data_rtd(stack,input,iterations):
 
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
+    #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
-        collection[i] = read_megabas_1k(stack, input)
-        if isinstance(collection[i], (float, int)):
-            print(collection[i])
+        collect = read_megabas_1k(stack, input)
+#        collection[i] = read_megabas_1k(stack, input)
+        if collect != 9999:
+            collection[i] = collect
+
+        #print(collection[i])
+        #print(collection)
+
+        if isinstance(collection[i], (float, int)) and collect != 9999:
+            #print("===== if =====")
+            #print(collection[i])
             avg_value = round(statistics.mean(collection),1)
-            print(avg_value)
+            #print(avg_value)
             rtd_position = input-1
-            print(rtd_position)
+            #print(rtd_position)
             stack_position = stack-1
-            print(stack_position)
-            stack[stack_position,rtd_position] = float(avg_value)
-            #print("Just published " + str(mean_rtd1) + " to topic test/test2")
-            #print(rtd1)
-            ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
-            #print(mean_rtd_1)
-        else: 
+            #print(stack_position)
+            stack_array[stack_position,rtd_position] = float(avg_value)
+        else:
+            #print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
+            #print(avg_value)
+            stack_position = stack-1
+            #print(stack_position)
             rtd_position = input-1
-            stack[stack-1,rtd_position] = avg_value
+            #print(rtd_position)
+            #print(stack_array)
+            #print(stack_array[stack_position,rtd_position])
+            stack_array[stack_position,rtd_position] = avg_value
 
         i += 1
         time.sleep(0.02)
@@ -228,19 +243,20 @@ def read_onewire():
     return
 
 #get_temp()
-print(read_megabas_1k(3,6))
-print(read_megabas_1k(3,7))
-print(read_megabas_1k(3,8))
-print(read_rtd(4,1))
+#print(read_megabas_1k(3,6))
+#print(read_megabas_1k(3,7))
+#print(read_megabas_1k(3,8))
+#print(read_rtd(4,1))
 #board_megabas_values()
-read_onewire()
+#read_onewire()
 
 a=1
 while True:
     #collect_sensor_data_rtd(4,a,10)
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
-    print(stack)
+    print(a)
+    print(stack_array)
     a += 1
     if a > 8:
         a = 1
