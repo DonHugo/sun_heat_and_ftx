@@ -210,18 +210,18 @@ def collect_sensor_data_mega(stack,input,iterations):
             print(collection[i])
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
-            rtd_position = input
+            rtd_position = input-1
             print(rtd_position)
-            stack_position = stack
+            stack_position = stack-1
             print(stack_position)
             stack_array[stack_position,rtd_position] = float(avg_value)
         else:
             print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
-            stack_position = stack
+            stack_position = stack-1
             print(stack_position)
-            rtd_position = input
+            rtd_position = input-1
             print(rtd_position)
             print(stack_array)
             print(stack_array[stack_position,rtd_position])
@@ -253,7 +253,8 @@ while True:
     #collect_sensor_data_rtd(4,a,10)
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
-    print(stack)
+    print(a)
+    print(stack_array)
     a += 1
     if a > 8:
         a = 1
