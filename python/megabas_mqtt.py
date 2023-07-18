@@ -235,7 +235,8 @@ def collect_sensor_data_mega(stack,input,iterations):
             stack_array[stack_position,rtd_position] = avg_value
 
         i += 1
-        time.sleep(0.02)
+        #time.sleep(0.02)
+        time.sleep(2)
 
 def read_onewire():
     print("========== OneWire ==========")
@@ -265,7 +266,7 @@ while True:
     a += 1
     if a > 8:
         a = 1
-        time.sleep(1)
+        time.sleep(5)
 
 client.disconnect()
 client.loop_stop()
