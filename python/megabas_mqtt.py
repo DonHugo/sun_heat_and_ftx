@@ -9,7 +9,7 @@ import numpy as np
 
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
-stack = np.array([[0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]])
+stack_array = np.array([[0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]])
 loops = 10
 
 def on_connect(client, userdata, flags, rc):
@@ -214,7 +214,7 @@ def collect_sensor_data_mega(stack,input,iterations):
             print(rtd_position)
             stack_position = stack
             print(stack_position)
-            stack[stack_position,rtd_position] = float(avg_value)
+            stack_array[stack_position,rtd_position] = float(avg_value)
         else:
             print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
@@ -223,9 +223,9 @@ def collect_sensor_data_mega(stack,input,iterations):
             print(stack_position)
             rtd_position = input
             print(rtd_position)
-            print(stack)
-            print(stack[stack_position,rtd_position])
-            stack[stack_position,rtd_position] = avg_value
+            print(stack_array)
+            print(stack_array[stack_position,rtd_position])
+            stack_array[stack_position,rtd_position] = avg_value
 
         i += 1
         time.sleep(0.02)
