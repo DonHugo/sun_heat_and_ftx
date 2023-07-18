@@ -85,12 +85,12 @@ def get_temp():
             elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
             elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)
             #print(sensor_name.format(x))
-            round_temp = (round(temp, 1))    
+            #round_temp = (round(temp, 1))    
             #print(round_temp)
-            print(sensor_name.format(x) + ": "+ str(round_temp))
+            print(sensor_name.format(x) + ": "+ str(temp))
             x = {
                 "name": sensor_name.format(x),
-                "temperature": round_temp,
+                "temperature": temp,
                 "ohms": sensor
                 }
             y = json.dumps(x, ensure_ascii=False).encode('utf8')
