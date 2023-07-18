@@ -45,9 +45,11 @@ while Connected != True:    #Wait for connection
 
 
 def calc_temp(calc, delta, deci):
-    temp=(calc/delta)+deci
-    round_temp = (round(temp, 1))   
-    return round_temp
+    calculated_temp=(calc/delta)+deci
+    round_calculated_temp = (round(calculated_temp, 1))
+    print(calculated_temp)
+    print(round_calculated_temp)
+    return round_calculated_temp
 
 def get_temp():
     limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
@@ -242,6 +244,7 @@ while True:
     a += 1
     if a > 8:
         a = 1
+        time.sleep(1)
 
 client.disconnect()
 client.loop_stop()
