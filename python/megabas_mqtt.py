@@ -110,37 +110,37 @@ def read_megabas_1k(stack, input):
 
     sensor = m.getRIn1K(stack, input)
     mod_sensor = sensor*1000
-    temp = "No value"
+    megabas_temp = "No value"
         
     if sensor == 60:
         #print("no sensor connected!")
         #template = "no sensor connected in stack {}, input {}"
-        #temp = template.format(stack,input)
-        temp = 9999
+        #megabas_temp = template.format(stack,input)
+        megabas_temp = 9999
     else:
-        if mod_sensor >= limit[0] and mod_sensor < limit[1]:        temp = calc_temp(mod_sensor-limit[0],delta[0],0)
-        elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      temp = calc_temp(mod_sensor-limit[1],delta[1],10)
-        elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      temp = calc_temp(mod_sensor-limit[2],delta[2],20)
-        elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      temp = calc_temp(mod_sensor-limit[3],delta[3],30)
-        elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      temp = calc_temp(mod_sensor-limit[4],delta[4],40)
-        elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      temp = calc_temp(mod_sensor-limit[5],delta[5],50)
-        elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      temp = calc_temp(mod_sensor-limit[6],delta[6],60)
-        elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      temp = calc_temp(mod_sensor-limit[7],delta[7],70)
-        elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      temp = calc_temp(mod_sensor-limit[8],delta[8],80)
-        elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      temp = calc_temp(mod_sensor-limit[9],delta[9],90)
-        elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      temp = calc_temp(mod_sensor-limit[10],delta[10],100)
-        elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      temp = calc_temp(mod_sensor-limit[11],delta[11],110)
-        elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      temp = calc_temp(mod_sensor-limit[12],delta[12],120)
-        elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      temp = calc_temp(mod_sensor-limit[13],delta[13],130)
-        elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      temp = calc_temp(mod_sensor-limit[14],delta[14],140)
-        elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      temp = calc_temp(mod_sensor-limit[15],delta[15],150)
-        elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      temp = calc_temp(mod_sensor-limit[16],delta[16],160)
-        elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
+        if mod_sensor >= limit[0] and mod_sensor < limit[1]:        megabas_temp = calc_temp(mod_sensor-limit[0],delta[0],0)
+        elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      megabas_temp = calc_temp(mod_sensor-limit[1],delta[1],10)
+        elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      megabas_temp = calc_temp(mod_sensor-limit[2],delta[2],20)
+        elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      megabas_temp = calc_temp(mod_sensor-limit[3],delta[3],30)
+        elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      megabas_temp = calc_temp(mod_sensor-limit[4],delta[4],40)
+        elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      megabas_temp = calc_temp(mod_sensor-limit[5],delta[5],50)
+        elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      megabas_temp = calc_temp(mod_sensor-limit[6],delta[6],60)
+        elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      megabas_temp = calc_temp(mod_sensor-limit[7],delta[7],70)
+        elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      megabas_temp = calc_temp(mod_sensor-limit[8],delta[8],80)
+        elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      megabas_temp = calc_temp(mod_sensor-limit[9],delta[9],90)
+        elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      megabas_temp = calc_temp(mod_sensor-limit[10],delta[10],100)
+        elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      megabas_temp = calc_temp(mod_sensor-limit[11],delta[11],110)
+        elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      megabas_temp = calc_temp(mod_sensor-limit[12],delta[12],120)
+        elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      megabas_temp = calc_temp(mod_sensor-limit[13],delta[13],130)
+        elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      megabas_temp = calc_temp(mod_sensor-limit[14],delta[14],140)
+        elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_temp(mod_sensor-limit[15],delta[15],150)
+        elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_temp(mod_sensor-limit[16],delta[16],160)
+        elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_temp(mod_sensor-limit[17],delta[17],170)   
     #print("===== def read_megabas_1k =====")
     #print(sensor)
     #print(mod_sensor)
-    #print(temp)
-    return temp
+    print(megabas_temp)
+    return megabas_temp
 
 def read_rtd(stack,input):
     temp = librtd.get(stack, input)
@@ -197,19 +197,24 @@ def collect_sensor_data_rtd(stack,input,iterations):
 
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
+    print(i)
     #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
         collect = read_megabas_1k(stack, input)
 #        collection[i] = read_megabas_1k(stack, input)
-        if collect != 9999:
-            collection[i] = collect
+#        if collect != 9999:
+#            print(collect)
+#            collection[i] = collect
 
         #print(collection[i])
         #print(collection)
 
-        if isinstance(collection[i], (float, int)) and collect != 9999:
+        #if isinstance(collection[i], (float, int)) and collect != 9999:
+        if collect != 9999:
             #print("===== if =====")
-            #print(collection[i])
+            print(collect)
+            collection[i] = collect
+            print(collection[i])
             avg_value = round(statistics.mean(collection),1)
             #print(avg_value)
             rtd_position = input-1
@@ -256,7 +261,7 @@ while True:
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
     print(a)
-    print(stack_array)
+    #print(stack_array)
     a += 1
     if a > 8:
         a = 1
