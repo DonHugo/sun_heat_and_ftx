@@ -210,19 +210,20 @@ def collect_sensor_data_mega(stack,input,iterations):
             print(collection[i])
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
-            rtd_position = input-1
+            rtd_position = input
             print(rtd_position)
-            stack_position = stack-1
+            stack_position = stack
             print(stack_position)
             stack[stack_position,rtd_position] = float(avg_value)
         else:
             print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
             print(avg_value)
-            stack_position = stack-1
+            stack_position = stack
             print(stack_position)
             rtd_position = input
             print(rtd_position)
+            print(stack)
             print(stack[stack_position,rtd_position])
             stack[stack_position,rtd_position] = avg_value
 
