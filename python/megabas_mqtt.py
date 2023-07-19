@@ -210,7 +210,8 @@ def mqtt_data():
         for y in range(8):
             input_array.mean(2)[x,y]
             p_location = "array[{},{}] = {}"
-            print(p_location.format(x,y,input_array.mean(2)[x,y]))
+            round_value = round(input_array.mean(2)[x,y],1)
+            print(p_location.format(x,y,round_value))
     # x = {
     #         "name": board_name,
     #         "HW version": hw_version,
@@ -246,10 +247,11 @@ while True:
     collect_sensor_data_mega(3,a,10)
     collect_sensor_data_rtd(4,a,10)
     #print(input_array)
-    mqtt_data()
+    
     
     a += 1
     if a > 8:
+        mqtt_data()
         a = 1
 
 client.disconnect()
