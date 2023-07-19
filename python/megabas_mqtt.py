@@ -147,7 +147,7 @@ def read_megabas_1k(stack, input):
 
 def read_rtd(stack,input):
     temp = librtd.get(stack, input)
-    if temp == 690.9090576171875:
+    if temp > 200 or temp < -50:
         #print("no sensor connected!")
         #template = "no sensor connected in stack {}, input {}"
         #temp = template.format(stack,input)
@@ -186,8 +186,7 @@ def collect_sensor_data_rtd(stack,input,iterations):
     i = 0
     while i < iterations:
         collect_rtd = read_rtd(stack, input)
-        if collect_rtd < -50 or collect_rtd > 200:
-            avg_value = round(statistics.mean(collection),1)
+        if collect_rtd != 9999:
             stack_position = stack-1
             #print(stack_position)
             input_position = input-1
