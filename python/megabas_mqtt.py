@@ -236,7 +236,7 @@ def mqtt_data():
 #board_megabas_values()
 #read_onewire()
 
-def mqtt_data():
+mqtt_data()
 
 
 # a=1
