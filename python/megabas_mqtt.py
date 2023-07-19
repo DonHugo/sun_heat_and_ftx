@@ -208,22 +208,22 @@ def collect_sensor_data_onewire():
 #print(read_megabas_1k(3,8))
 #print(read_rtd(4,1))
 #board_megabas_values()
-#read_onewire()
+read_onewire()
 
-a=1
-while True:
-    p_a = "a (input) = {} "
-    print(p_a.format(a))
-    collect_sensor_data_mega(3,a,10)
-    collect_sensor_data_rtd(4,a,10)
-    print(input_array)
-    a += 1
-    if a > 8:
-        a = 1
-        if a == 7 or a == 8:
-            time.sleep(10)
-        else:
-            time.sleep(1)
+# a=1
+# while True:
+#     p_a = "a (input) = {} "
+#     print(p_a.format(a))
+#     collect_sensor_data_mega(3,a,10)
+#     collect_sensor_data_rtd(4,a,10)
+#     print(input_array)
+#     a += 1
+#     if a > 8:
+#         a = 1
+#         if a == 7 or a == 8:
+#             time.sleep(10)
+#         else:
+#             time.sleep(1)
 client.disconnect()
 client.loop_stop()
 
