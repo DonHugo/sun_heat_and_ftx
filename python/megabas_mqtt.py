@@ -197,9 +197,11 @@ def collect_sensor_data_rtd(stack,input,iterations):
 
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
-    print(i)
+    
     #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
+        p_i = "i = {}"
+        print(p_i.format(i))
         collect = read_megabas_1k(stack, input)
 #        collection[i] = read_megabas_1k(stack, input)
 #        if collect != 9999:
@@ -212,9 +214,11 @@ def collect_sensor_data_mega(stack,input,iterations):
         #if isinstance(collection[i], (float, int)) and collect != 9999:
         if collect != 9999:
             #print("===== if =====")
-            print(collect)
+            p_collect = "collect = "
+            print(p_collect.format(collect))
+            p_collection = "collection[{}]"
             collection[i] = collect
-            print(collection[i])
+            print(p_collection.format(collection))
             avg_value = round(statistics.mean(collection),1)
             #print(avg_value)
             rtd_position = input-1
@@ -261,7 +265,8 @@ while True:
     #collect_sensor_data_rtd(4,a,10)
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
-    print(a)
+    p_a = "a (input) = "
+    print(p_a.format(a))
     #print(stack_array)
     a += 1
     if a > 8:
