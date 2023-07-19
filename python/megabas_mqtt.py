@@ -157,8 +157,8 @@ def collect_sensor_data_mega(stack,input,iterations):
     
     #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
-        p_i = "i = {}"
-        print(p_i.format(i))
+        #p_i = "i = {}"
+        #print(p_i.format(i))
         collect = read_megabas_1k(stack, input)
 
         if collect != 9999:
