@@ -265,7 +265,7 @@ while True:
     #collect_sensor_data_rtd(4,a,10)
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
-    p_a = "a (input) = "
+    p_a = "a (input) = {} "
     print(p_a.format(a))
     #print(stack_array)
     a += 1
