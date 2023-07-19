@@ -212,22 +212,22 @@ def mqtt_data():
             p_location = "array[{},{}] = {}"
             round_value = round(input_array.mean(2)[x,y],1)
             print(p_location.format(x,y,round_value))
-    # x = {
-    #         "name": board_name,
-    #         "HW version": hw_version,
-    #         "SW version": sw_version,
-    #         "power supply voltage": m.getInVolt(stack_level),
-    #         "raspberry power supply voltage": m.getRaspVolt(stack_level),
-    #         "board cpu temperature": m.getCpuTemp(stack_level)
+            stack = x+1
+            sensor = y+1
+            name = "sequentmicrosystems_{}_{}"
 
-    #     }
-    # y = json.dumps(x, ensure_ascii=False).encode('utf8')
-    # #print(x)
-    # print(y)
-    # #msg = y
-    # #topic_path = "sequentmicrosystems/{}"
-    # #topic = topic_path.format(board_name)
-    # #client.publish(topic,msg)
+
+            g = {
+                    "name": name.format(stack,sensor),
+                    "temperature": round_value
+                }
+            h = json.dumps(x, ensure_ascii=False).encode('utf8')
+    #print(x)
+            print(h)
+            msg = h
+            topic_path = "sequentmicrosystems/{}"
+            topic = topic_path.format(name.format(stack,sensor))
+            client.publish(topic,msg)
 
 #get_temp()
 #print(read_megabas_1k(3,6))
