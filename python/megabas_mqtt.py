@@ -10,7 +10,7 @@ import numpy as np
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
 input_array = np.zeros((4, 8, 10))
-onewire_array = np.zeros((16, 10))
+onewire_array = np.zeros((4, 16, 10))
 loops = 10
 
 def on_connect(client, userdata, flags, rc):
@@ -198,8 +198,11 @@ def read_onewire():
 
     return
 
-def collect_sensor_data_onewire():
+def collect_sensor_data_onewire(stack):
+    sensor_count = m.owbGetSensorNo(stack)
     
+    collect_onewire = read_onewire(stack,)
+
     return
     
 #get_temp()
