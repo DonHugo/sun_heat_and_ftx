@@ -47,8 +47,10 @@ while Connected != True:    #Wait for connection
 def calc_temp(calc, delta, deci):
     calculated_temp=(calc/delta)+deci
     round_calculated_temp = (round(calculated_temp, 1))
-    print(calculated_temp)
-    print(round_calculated_temp)
+    p_calculated_temp = "calculated_temp: {}"
+    print(p_calculated_temp.format(calculated_temp))
+    p_round_calculated_temp = "round_calculated_temp: {}"
+    print(p_round_calculated_temp.format(round_calculated_temp))
     return round_calculated_temp
 
 def get_temp():
@@ -274,8 +276,8 @@ while True:
     collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
     #print(stack_array)
-    if a == 7 or a == 8:
-        print(stack_array)
+    #if a == 7 or a == 8:
+    print(stack_array)
     a += 1
     if a > 8:
         a = 1
