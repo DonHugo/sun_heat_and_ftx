@@ -240,7 +240,7 @@ def collect_sensor_data_mega(stack,input,iterations):
 
         i += 1
         #time.sleep(0.02)
-        if input == 6 or input == 7:
+        if input == 7 or input == 8:
             time.sleep(2)
         else:
             time.sleep(0.02)
@@ -277,7 +277,7 @@ while True:
     a += 1
     if a > 8:
         a = 1
-        if a == 6 or a == 7:
+        if a == 7 or a == 8:
             time.sleep(5)
         else:
             time.sleep(1)
