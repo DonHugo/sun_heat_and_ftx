@@ -10,7 +10,7 @@ import numpy as np
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
 input_array = np.zeros((4, 8, 10))
-#stack_array = np.zeros((4, 8))
+onewire_array = np.zeros((16, 10))
 loops = 10
 
 def on_connect(client, userdata, flags, rc):
@@ -191,9 +191,9 @@ def collect_sensor_data_rtd(stack,input,iterations):
 def read_onewire():
     print("========== OneWire ==========")
     #print(m.owbScan(3))
-    print(m.owbGetSensorNo(3))
-    print(m.owbGetTemp(3, 1))
-    print(m.owbGetRomCode(3, 1))
+    print(m.owbGetSensorNo(3)) #number of sensors present, starting at 1
+    print(m.owbGetTemp(3, 1))  # reading first sensor and getting temperature
+    print(m.owbGetRomCode(3, 1)) # reading sensor id on first sensor
     print("========== OneWire ==========")
 
     return
@@ -208,18 +208,18 @@ def collect_sensor_data_onewire():
 #print(read_megabas_1k(3,8))
 #print(read_rtd(4,1))
 #board_megabas_values()
-read_onewire()
+#read_onewire()
 
-# a=1
-# while True:
-#     p_a = "a (input) = {} "
-#     print(p_a.format(a))
-#     collect_sensor_data_mega(3,a,10)
-#     collect_sensor_data_rtd(4,a,10)
-#     print(input_array)
-#     a += 1
-#     if a > 8:
-#         a = 1
+a=1
+while True:
+    p_a = "a (input) = {} "
+    print(p_a.format(a))
+    collect_sensor_data_mega(3,a,10)
+    collect_sensor_data_rtd(4,a,10)
+    print(input_array)
+    a += 1
+    if a > 8:
+        a = 1
 #         if a == 7 or a == 8:
 #             time.sleep(10)
 #         else:
