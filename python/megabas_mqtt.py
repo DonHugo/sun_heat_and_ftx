@@ -241,7 +241,7 @@ def collect_sensor_data_mega(stack,input,iterations):
         i += 1
         #time.sleep(0.02)
         if input == 7 or input == 8:
-            time.sleep(2)
+            time.sleep(5)
         else:
             time.sleep(0.02)
         
@@ -269,7 +269,7 @@ while True:
     #collect_sensor_data_rtd(4,a,10)
     p_a = "a (input) = {} "
     print(p_a.format(a))
-    collect_sensor_data_mega(3,a,5)
+    collect_sensor_data_mega(3,a,10)
     #print("rtd " + str(rtd_avg[a-1]))
     #print(stack_array)
     if a == 6 or a == 7:
@@ -278,7 +278,7 @@ while True:
     if a > 8:
         a = 1
         if a == 7 or a == 8:
-            time.sleep(5)
+            time.sleep(10)
         else:
             time.sleep(1)
 client.disconnect()
