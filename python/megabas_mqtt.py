@@ -92,66 +92,6 @@ def read_megabas_1k(stack, input):
     #print(megabas_temp)
     return megabas_temp
 
-def read_rtd(stack,input):
-    temp = librtd.get(stack, input)
-    if temp > 200 or temp < -50:
-        #print("no sensor connected!")
-        #template = "no sensor connected in stack {}, input {}"
-        #temp = template.format(stack,input)
-        temp = 9999
-    #print(temp)
-    #round_temp = round(temp,1)
-    return temp
-
-def board_megabas_values():
-    board_type = "megabas"
-    stack_level = 3
-    hw_version = "4.1"
-    sw_version = m.getVer(stack_level)
-    board_name_prep = "{} stack {}"
-    board_name = board_name_prep.format(board_type, stack_level)
-    x = {
-            "name": board_name,
-            "HW version": hw_version,
-            "SW version": sw_version,
-            "power supply voltage": m.getInVolt(stack_level),
-            "raspberry power supply voltage": m.getRaspVolt(stack_level),
-            "board cpu temperature": m.getCpuTemp(stack_level)
-
-        }
-    y = json.dumps(x, ensure_ascii=False).encode('utf8')
-    #print(x)
-    print(y)
-    #msg = y
-    #topic_path = "sequentmicrosystems/{}"
-    #topic = topic_path.format(board_name)
-    #client.publish(topic,msg)
-    
-    return
-
-def collect_sensor_data_rtd(stack,input,iterations):
-    i = 0
-    while i < iterations:
-        collect_rtd = read_rtd(stack, input)
-        if collect_rtd != 9999:
-            stack_position = stack-1
-            #print(stack_position)
-            input_position = input-1
-            #print(rtd_position)
-            input_array[stack_position,input_position,i] = collect_rtd
-        else:
-            stack_position = stack-1
-            #print(stack_position)
-            input_position = input-1
-            #print(rtd_position)
-
-        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
-        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
-        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
-        i += 1
-        time.sleep(0.02)
-    return
-
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
     
@@ -187,6 +127,66 @@ def collect_sensor_data_mega(stack,input,iterations):
         #else:
         #    time.sleep(0.02)
     
+def board_megabas_values():
+    board_type = "megabas"
+    stack_level = 3
+    hw_version = "4.1"
+    sw_version = m.getVer(stack_level)
+    board_name_prep = "{} stack {}"
+    board_name = board_name_prep.format(board_type, stack_level)
+    x = {
+            "name": board_name,
+            "HW version": hw_version,
+            "SW version": sw_version,
+            "power supply voltage": m.getInVolt(stack_level),
+            "raspberry power supply voltage": m.getRaspVolt(stack_level),
+            "board cpu temperature": m.getCpuTemp(stack_level)
+
+        }
+    y = json.dumps(x, ensure_ascii=False).encode('utf8')
+    #print(x)
+    print(y)
+    #msg = y
+    #topic_path = "sequentmicrosystems/{}"
+    #topic = topic_path.format(board_name)
+    #client.publish(topic,msg)
+    
+    return
+
+def read_rtd(stack,input):
+    temp = librtd.get(stack, input)
+    if temp > 200 or temp < -50:
+        #print("no sensor connected!")
+        #template = "no sensor connected in stack {}, input {}"
+        #temp = template.format(stack,input)
+        temp = 9999
+    #print(temp)
+    #round_temp = round(temp,1)
+    return temp
+
+def collect_sensor_data_rtd(stack,input,iterations):
+    i = 0
+    while i < iterations:
+        collect_rtd = read_rtd(stack, input)
+        if collect_rtd != 9999:
+            stack_position = stack-1
+            #print(stack_position)
+            input_position = input-1
+            #print(rtd_position)
+            input_array[stack_position,input_position,i] = collect_rtd
+        else:
+            stack_position = stack-1
+            #print(stack_position)
+            input_position = input-1
+            #print(rtd_position)
+
+        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
+        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
+        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
+        i += 1
+        time.sleep(0.02)
+    return
+
 
 def read_onewire():
     print("========== OneWire ==========")
@@ -198,6 +198,10 @@ def read_onewire():
 
     return
 
+def collect_sensor_data_onewire():
+    
+    return
+    
 #get_temp()
 #print(read_megabas_1k(3,6))
 #print(read_megabas_1k(3,7))
