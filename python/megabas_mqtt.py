@@ -48,10 +48,10 @@ while Connected != True:    #Wait for connection
 def calc_megabas_temp(calc, delta, deci):
     calculated_temp=(calc/delta)+deci
     round_calculated_temp = (round(calculated_temp, 1))
-    p_calculated_temp = "calculated_temp: {}"
-    print(p_calculated_temp.format(calculated_temp))
-    p_round_calculated_temp = "round_calculated_temp: {}"
-    print(p_round_calculated_temp.format(round_calculated_temp))
+    #p_calculated_temp = "calculated_temp: {}"
+    #print(p_calculated_temp.format(calculated_temp))
+    #p_round_calculated_temp = "round_calculated_temp: {}"
+    #print(p_round_calculated_temp.format(round_calculated_temp))
     return round_calculated_temp
 
 def read_megabas_1k(stack, input):
@@ -89,7 +89,7 @@ def read_megabas_1k(stack, input):
     #print("===== def read_megabas_1k =====")
     #print(sensor)
     #print(mod_sensor)
-    print(megabas_temp)
+    #print(megabas_temp)
     return megabas_temp
 
 def read_rtd(stack,input):
@@ -145,9 +145,9 @@ def collect_sensor_data_rtd(stack,input,iterations):
             input_position = input-1
             #print(rtd_position)
 
-        input_array_mean = input_array.mean(2)[stack_position,input_position]    
-        p_input_array_mean = "Input_array.mean(2){},{} = {}"     
-        print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
+        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
+        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
+        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
         i += 1
         time.sleep(0.02)
     return
@@ -163,8 +163,8 @@ def collect_sensor_data_mega(stack,input,iterations):
 
         if collect != 9999:
             #print("===== if =====")
-            p_collect = "collect = {}"
-            print(p_collect.format(collect))
+            #p_collect = "collect = {}"
+            #print(p_collect.format(collect))
             input_position = input-1
             #print(rtd_position)
             stack_position = stack-1
@@ -177,9 +177,9 @@ def collect_sensor_data_mega(stack,input,iterations):
             input_position = input-1
             #print(rtd_position)
 
-        input_array_mean = input_array.mean(2)[stack_position,input_position]    
-        p_input_array_mean = "Input_array.mean(2){},{} = {}"     
-        print(p_input_array_mean.format(stack_position,input_position,input_array_mean))      
+        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
+        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
+        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))      
         i += 1
         time.sleep(0.02)
         #if input == 7 or input == 8:
