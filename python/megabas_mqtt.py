@@ -239,17 +239,18 @@ def mqtt_data():
 mqtt_data()
 
 
-# a=1
-# while True:
-#     p_a = "a (input) = {} "
-#     print(p_a.format(a))
-#     collect_sensor_data_mega(3,a,10)
-#     collect_sensor_data_rtd(4,a,10)
-#     print(input_array)
+a=1
+while True:
+    p_a = "a (input) = {} "
+    print(p_a.format(a))
+    collect_sensor_data_mega(3,a,10)
+    collect_sensor_data_rtd(4,a,10)
+    #print(input_array)
+    mqtt_data()
     
-#     a += 1
-#     if a > 8:
-#         a = 1
+    a += 1
+    if a > 8:
+        a = 1
 
 client.disconnect()
 client.loop_stop()
