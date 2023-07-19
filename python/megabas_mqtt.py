@@ -9,10 +9,6 @@ import numpy as np
 
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
-#input_array = np.array([[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
-#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
-#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
-#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]])
 input_array = np.zeros((4, 8, 10))
 #stack_array = np.zeros((4, 8))
 loops = 10
@@ -189,15 +185,23 @@ def board_megabas_values():
 def collect_sensor_data_rtd(stack,input,iterations):
     i = 0
     while i < iterations:
-        collection[i] = read_rtd(stack, input)
-        if isinstance(collection[i], (float, int)):
+        collect_rtd = read_rtd(stack, input)
+        if collect_rtd < -50 or collect_rtd > 200:
             avg_value = round(statistics.mean(collection),1)
-            rtd_position = input-1
-            stack[stack-1,rtd_position] = avg_value
-            #print("Just published " + str(mean_rtd1) + " to topic test/test2")
-            #print(rtd1)
-            ##print("rtd_" + str(rtd_id) + " " + str(avg_rtd_1))
-            #print(mean_rtd_1)
+            stack_position = stack-1
+            #print(stack_position)
+            input_position = input-1
+            #print(rtd_position)
+            input_array[stack_position,input_position,i] = collect_rtd
+        else:
+            stack_position = stack-1
+            #print(stack_position)
+            input_position = input-1
+            #print(rtd_position)
+
+        input_array_mean = input_array.mean(2)[stack_position,input_position]    
+        p_input_array_mean = "Input_array.mean(2){},{} = {}"     
+        print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
         i += 1
         time.sleep(0.02)
     return
@@ -210,42 +214,23 @@ def collect_sensor_data_mega(stack,input,iterations):
         p_i = "i = {}"
         print(p_i.format(i))
         collect = read_megabas_1k(stack, input)
-#        collection[i] = read_megabas_1k(stack, input)
-#        if collect != 9999:
-#            print(collect)
-#            collection[i] = collect
 
-        #print(collection[i])
-        #print(collection)
-
-        #if isinstance(collection[i], (float, int)) and collect != 9999:
         if collect != 9999:
             #print("===== if =====")
             p_collect = "collect = {}"
             print(p_collect.format(collect))
-            p_collection = "collection[{}]"
-            #collection[i] = collect
-            #print(p_collection.format(collection))
-            #avg_value = round(statistics.mean(collection),1)
-            #print(avg_value)
             input_position = input-1
             #print(rtd_position)
             stack_position = stack-1
             #print(stack_position)
-            #p_position = "stack_array[{},{}]"
-            #print(p_position.format(stack_position,input_position))
-            #stack_array[stack_position,input_position] = float(avg_value)
             input_array[stack_position,input_position,i] = collect 
         else:
             #print("===== else =====") 
-            avg_value = round(statistics.mean(collection),1)
-            #print(avg_value)
             stack_position = stack-1
             #print(stack_position)
             input_position = input-1
             #print(rtd_position)
-            #print(stack_array)
-            #print(stack_array[stack_position,rtd_position])
+
         input_array_mean = input_array.mean(2)[stack_position,input_position]    
         p_input_array_mean = "Input_array.mean(2){},{} = {}"     
         print(p_input_array_mean.format(stack_position,input_position,input_array_mean))      
@@ -277,13 +262,10 @@ def read_onewire():
 
 a=1
 while True:
-    #collect_sensor_data_rtd(4,a,10)
     p_a = "a (input) = {} "
     print(p_a.format(a))
-    collect_sensor_data_mega(3,a,10)
-    #print("rtd " + str(rtd_avg[a-1]))
-    #print(stack_array)
-    #if a == 7 or a == 8:
+#    collect_sensor_data_mega(3,a,10)
+    collect_sensor_data_rtd(4,a,10)
     print(input_array)
     a += 1
     if a > 8:
