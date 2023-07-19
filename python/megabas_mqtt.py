@@ -209,9 +209,9 @@ def mqtt_data():
     for x in range(4):
         for y in range(8):
             input_array.mean(2)[x,y]
-            p_location = "array[{},{}] = {}"
+            #p_location = "array[{},{}] = {}"
             round_value = round(input_array.mean(2)[x,y],1)
-            print(p_location.format(x,y,round_value))
+            #print(p_location.format(x,y,round_value))
             stack = x+1
             sensor = y+1
             name = "sequentmicrosystems_{}_{}"
@@ -223,7 +223,7 @@ def mqtt_data():
                 }
             h = json.dumps(g, ensure_ascii=False).encode('utf8')
             #print(g)
-            print(h)
+            #print(h)
             msg = h
             topic_path = "sequentmicrosystems/{}"
             topic = topic_path.format(name.format(stack,sensor))
@@ -242,12 +242,11 @@ def mqtt_data():
 
 a=1
 while True:
-    p_a = "a (input) = {} "
-    print(p_a.format(a))
+    #p_a = "a (input) = {} "
+    #print(p_a.format(a))
     collect_sensor_data_mega(3,a,10)
     collect_sensor_data_rtd(4,a,10)
     #print(input_array)
-    
     
     a += 1
     if a > 8:
