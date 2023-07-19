@@ -187,10 +187,8 @@ def collect_sensor_data_rtd(stack,input,iterations):
         time.sleep(0.02)
     return
 
-
 def read_onewire():
     print("========== OneWire ==========")
-    #print(m.owbScan(3))
     print(m.owbGetSensorNo(3)) #number of sensors present, starting at 1
     print(m.owbGetTemp(3, 1))  # reading first sensor and getting temperature
     print(m.owbGetRomCode(3, 1)) # reading sensor id on first sensor
@@ -200,11 +198,36 @@ def read_onewire():
 
 def collect_sensor_data_onewire(stack):
     sensor_count = m.owbGetSensorNo(stack)
-    
-    collect_onewire = read_onewire(stack,)
-
+    for x in range(sensor_count):
+        i = 1
+        owb_id = m.owbGetRomCode(stack, i)
+        collect_onewire = read_onewire(stack,i)
+        i += 1
     return
-    
+
+def mqtt_data():
+    for x in range(4):
+        for y in range(8):
+            input_array.mean(2)[x,y]
+            p_location = "array[{},{}]"
+            print(p_location(x,y))
+    # x = {
+    #         "name": board_name,
+    #         "HW version": hw_version,
+    #         "SW version": sw_version,
+    #         "power supply voltage": m.getInVolt(stack_level),
+    #         "raspberry power supply voltage": m.getRaspVolt(stack_level),
+    #         "board cpu temperature": m.getCpuTemp(stack_level)
+
+    #     }
+    # y = json.dumps(x, ensure_ascii=False).encode('utf8')
+    # #print(x)
+    # print(y)
+    # #msg = y
+    # #topic_path = "sequentmicrosystems/{}"
+    # #topic = topic_path.format(board_name)
+    # #client.publish(topic,msg)
+
 #get_temp()
 #print(read_megabas_1k(3,6))
 #print(read_megabas_1k(3,7))
@@ -213,20 +236,21 @@ def collect_sensor_data_onewire(stack):
 #board_megabas_values()
 #read_onewire()
 
-a=1
-while True:
-    p_a = "a (input) = {} "
-    print(p_a.format(a))
-    collect_sensor_data_mega(3,a,10)
-    collect_sensor_data_rtd(4,a,10)
-    print(input_array)
-    a += 1
-    if a > 8:
-        a = 1
-#         if a == 7 or a == 8:
-#             time.sleep(10)
-#         else:
-#             time.sleep(1)
+def mqtt_data():
+
+
+# a=1
+# while True:
+#     p_a = "a (input) = {} "
+#     print(p_a.format(a))
+#     collect_sensor_data_mega(3,a,10)
+#     collect_sensor_data_rtd(4,a,10)
+#     print(input_array)
+    
+#     a += 1
+#     if a > 8:
+#         a = 1
+
 client.disconnect()
 client.loop_stop()
 
