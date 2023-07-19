@@ -210,7 +210,7 @@ def mqtt_data():
         for y in range(8):
             input_array.mean(2)[x,y]
             p_location = "array[{},{}]"
-            print(p_location(x,y))
+            print(p_location.format(x,y))
     # x = {
     #         "name": board_name,
     #         "HW version": hw_version,
