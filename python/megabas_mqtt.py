@@ -9,7 +9,12 @@ import numpy as np
 
 # Application variables
 collection = [0,0,0,0,0,0,0,0,0,0]
-stack_array = np.array([[0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0]])
+#input_array = np.array([[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
+#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
+#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]], 
+#                        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]])
+input_array = np.array([4, 8, 10], ndim=3)
+stack_array = np.array([4, 8]ndim=2)
 loops = 10
 
 def on_connect(client, userdata, flags, rc):
@@ -219,17 +224,18 @@ def collect_sensor_data_mega(stack,input,iterations):
             p_collect = "collect = {}"
             print(p_collect.format(collect))
             p_collection = "collection[{}]"
-            collection[i] = collect
-            print(p_collection.format(collection))
-            avg_value = round(statistics.mean(collection),1)
+            #collection[i] = collect
+            #print(p_collection.format(collection))
+            #avg_value = round(statistics.mean(collection),1)
             #print(avg_value)
             input_position = input-1
             #print(rtd_position)
             stack_position = stack-1
             #print(stack_position)
-            p_position = "stack_array[{},{}]"
-            print(p_position.format(stack_position,input_position))
-            stack_array[stack_position,input_position] = float(avg_value)
+            #p_position = "stack_array[{},{}]"
+            #print(p_position.format(stack_position,input_position))
+            #stack_array[stack_position,input_position] = float(avg_value)
+            input_array[stack_position,input_position,i] = collect 
         else:
             #print("===== else =====") 
             avg_value = round(statistics.mean(collection),1)
@@ -240,15 +246,16 @@ def collect_sensor_data_mega(stack,input,iterations):
             #print(rtd_position)
             #print(stack_array)
             #print(stack_array[stack_position,rtd_position])
-            stack_array[stack_position,input_position] = avg_value
-
+        input_array_mean = input_array.mean(2)[stack_position,input_position]    
+        p_input_array_mean = "Input_array.mean(2){},{} = {}"     
+        print(p_input_array_mean.format(stack_position,input_position,input_array_mean))      
         i += 1
         #time.sleep(0.02)
         if input == 7 or input == 8:
             time.sleep(5)
         else:
             time.sleep(0.02)
-        
+    
 
 def read_onewire():
     print("========== OneWire ==========")
@@ -277,7 +284,7 @@ while True:
     #print("rtd " + str(rtd_avg[a-1]))
     #print(stack_array)
     #if a == 7 or a == 8:
-    print(stack_array)
+    print(input_array)
     a += 1
     if a > 8:
         a = 1
