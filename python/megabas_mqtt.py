@@ -214,7 +214,7 @@ def collect_sensor_data_mega(stack,input,iterations):
         #if isinstance(collection[i], (float, int)) and collect != 9999:
         if collect != 9999:
             #print("===== if =====")
-            p_collect = "collect = "
+            p_collect = "collect = {}"
             print(p_collect.format(collect))
             p_collection = "collection[{}]"
             collection[i] = collect
@@ -240,7 +240,11 @@ def collect_sensor_data_mega(stack,input,iterations):
 
         i += 1
         #time.sleep(0.02)
-        time.sleep(2)
+        if input == 6 or input == 7:
+            time.sleep(2)
+        else:
+            time.sleep(0.02)
+        
 
 def read_onewire():
     print("========== OneWire ==========")
@@ -263,16 +267,20 @@ def read_onewire():
 a=1
 while True:
     #collect_sensor_data_rtd(4,a,10)
-    collect_sensor_data_mega(3,a,10)
-    #print("rtd " + str(rtd_avg[a-1]))
     p_a = "a (input) = {} "
     print(p_a.format(a))
+    collect_sensor_data_mega(3,a,5)
+    #print("rtd " + str(rtd_avg[a-1]))
     #print(stack_array)
+    if a == 6 or a == 7:
+        print(stack_array)
     a += 1
     if a > 8:
         a = 1
-        time.sleep(5)
-
+        if a == 6 or a == 7:
+            time.sleep(5)
+        else:
+            time.sleep(1)
 client.disconnect()
 client.loop_stop()
 
