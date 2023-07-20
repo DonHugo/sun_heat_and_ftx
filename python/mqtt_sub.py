@@ -119,7 +119,6 @@ def publish(client):
                 print(f'Send `{msg}` to topic `{TOPIC}`')
             else:
                 print(f'Failed to send message to topic {TOPIC}')
-            msg_count += 1
             time.sleep(1)
 
 
