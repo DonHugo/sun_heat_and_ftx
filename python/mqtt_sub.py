@@ -293,7 +293,7 @@ def mqtt_data():
                     "name": name.format(stack,sensor),
                     "temperature": round_value
                 }
-            msg_json = json.dumps(g, ensure_ascii=False).encode('utf8')
+            msg_json = json.dumps(msg_dict, ensure_ascii=False).encode('utf8')
             msg = msg_json
             topic_path = "sequentmicrosystems/{}"
             topic = topic_path.format(name.format(stack,sensor))
