@@ -123,19 +123,19 @@ def publish(client):
                     topic_path = "sequentmicrosystems/{}"
                     topic = topic_path.format(name.format(stack,sensor))
 
-            msg = json.dumps(msg_dict)
-            if not client.is_connected():
-                logging.error("publish: MQTT client is not connected!")
-                time.sleep(1)
-                continue
-            result = client.publish(topic, msg)
-            # result: [0, 1]
-            status = result[0]
-            if status == 0:
-                print(f'Send `{msg}` to topic `{topic}`')
-            else:
-                print(f'Failed to send message to topic {topic}')
-            time.sleep(1)
+                    msg = json.dumps(msg_dict)
+                    if not client.is_connected():
+                        logging.error("publish: MQTT client is not connected!")
+                        time.sleep(1)
+                        continue
+                    result = client.publish(topic, msg)
+                    # result: [0, 1]
+                    status = result[0]
+                    if status == 0:
+                        print(f'Send `{msg}` to topic `{topic}`')
+                    else:
+                        print(f'Failed to send message to topic {topic}')
+                    time.sleep(1)
 
 
 
