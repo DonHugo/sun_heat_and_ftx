@@ -98,30 +98,43 @@ def publish_original(client):
         msg_count += 1
         time.sleep(1)
 
-def publish(client,msg_dict):
-    msg = json.dumps(msg_dict)
-    if not client.is_connected():
-        logging.error("publish: MQTT client is not connected!")
-    result = client.publish(TOPIC, msg)
-    # result: [0, 1]
-    status = result[0]
-    if status == 0:
-        print(f'Send `{msg}` to topic `{TOPIC}`')
-    else:
-        print(f'Failed to send message to topic {TOPIC}')
+def publish(client):
+    a = 0
+    while not FLAG_EXIT:
+        collect_sensor_data_mega(3,a,10)
+        collect_sensor_data_rtd(4,a,10)
+        a += 1
+        if a > 8:
+            a = 1
+            msg_dict = mqtt_data()
+            msg = json.dumps(msg_dict)
+            if not client.is_connected():
+                logging.error("publish: MQTT client is not connected!")
+                time.sleep(1)
+                continue
+            result = client.publish(TOPIC, msg)
+            # result: [0, 1]
+            status = result[0]
+            if status == 0:
+                print(f'Send `{msg}` to topic `{TOPIC}`')
+            else:
+                print(f'Failed to send message to topic {TOPIC}')
+            msg_count += 1
+            time.sleep(1)
 
 
 
-def run(msg_dict):
+def run():
     logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
                         level=logging.DEBUG)
     client = connect_mqtt()
     client.loop_start()
     time.sleep(1)
     if client.is_connected():
-        publish(client,msg_dict)
+        publish(client)
     else:
         client.loop_stop()
+
 
 #===============================================================================================================================
 
@@ -297,20 +310,21 @@ def mqtt_data():
             msg = msg_json
             topic_path = "sequentmicrosystems/{}"
             topic = topic_path.format(name.format(stack,sensor))
-            run(msg_dict)
-    return
+    return msg_dict
+
+# def run():
+#     a=1
+#     while True:
+#         #p_a = "a (input) = {} "
+#         #print(p_a.format(a))
+#         collect_sensor_data_mega(3,a,10)
+#         collect_sensor_data_rtd(4,a,10)
+#         #print(input_array)
+        
+#         a += 1
+#         if a > 8:
+#             mqtt_data()
+#             a = 1
 
 if __name__ == '__main__':
-    #run()
-    a=1
-    while True:
-        #p_a = "a (input) = {} "
-        #print(p_a.format(a))
-        collect_sensor_data_mega(3,a,10)
-        collect_sensor_data_rtd(4,a,10)
-        #print(input_array)
-        
-        a += 1
-        if a > 8:
-            mqtt_data()
-            a = 1
+    run()
