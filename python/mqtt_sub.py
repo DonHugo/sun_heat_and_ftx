@@ -13,7 +13,7 @@ from paho.mqtt import client as mqtt_client
 
 BROKER = '192.168.0.110'
 PORT = 1883
-TOPIC = "python-mqtt/tcp"
+#TOPIC = "python-mqtt/tcp"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -106,19 +106,34 @@ def publish(client):
         a += 1
         if a > 8:
             a = 1
-            msg_dict = mqtt_data()
+            for x in range(4):
+                for y in range(8):
+                    input_array.mean(2)[x,y]
+                    round_value = round(input_array.mean(2)[x,y],1)
+                    stack = x+1
+                    sensor = y+1
+                    name = "sequentmicrosystems_{}_{}"
+
+                    msg_dict = {
+                            "name": name.format(stack,sensor),
+                            "temperature": round_value
+                        }
+                    
+                    topic_path = "sequentmicrosystems/{}"
+                    topic = topic_path.format(name.format(stack,sensor))
+
             msg = json.dumps(msg_dict)
             if not client.is_connected():
                 logging.error("publish: MQTT client is not connected!")
                 time.sleep(1)
                 continue
-            result = client.publish(TOPIC, msg)
+            result = client.publish(topic, msg)
             # result: [0, 1]
             status = result[0]
             if status == 0:
-                print(f'Send `{msg}` to topic `{TOPIC}`')
+                print(f'Send `{msg}` to topic `{topic}`')
             else:
-                print(f'Failed to send message to topic {TOPIC}')
+                print(f'Failed to send message to topic {topic}')
             time.sleep(1)
 
 
