@@ -14,6 +14,7 @@ from paho.mqtt import client as mqtt_client
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
+SUB_TOPIC = "sequentmicrosystems"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -36,7 +37,7 @@ loops = 10
 def on_connect(client, userdata, flags, rc):
     if rc == 0 and client.is_connected():
         print("Connected to MQTT Broker!")
-        client.subscribe(TOPIC)
+        client.subscribe(SUB_TOPIC)
     else:
         print(f'Failed to connect, return code {rc}')
 
@@ -64,7 +65,7 @@ def on_disconnect(client, userdata, rc):
 
 
 def on_message(client, userdata, msg):
-    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` topic')
+    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` sub_topic')
 
 
 def connect_mqtt():
@@ -77,26 +78,26 @@ def connect_mqtt():
     return client
 
 
-def publish_original(client):
-    msg_count = 0
-    while not FLAG_EXIT:
-        msg_dict = {
-            'msg': msg_count
-        }
-        msg = json.dumps(msg_dict)
-        if not client.is_connected():
-            logging.error("publish: MQTT client is not connected!")
-            time.sleep(1)
-            continue
-        result = client.publish(TOPIC, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f'Send `{msg}` to topic `{TOPIC}`')
-        else:
-            print(f'Failed to send message to topic {TOPIC}')
-        msg_count += 1
-        time.sleep(1)
+# def publish_original(client):
+#     msg_count = 0
+#     while not FLAG_EXIT:
+#         msg_dict = {
+#             'msg': msg_count
+#         }
+#         msg = json.dumps(msg_dict)
+#         if not client.is_connected():
+#             logging.error("publish: MQTT client is not connected!")
+#             time.sleep(1)
+#             continue
+#         result = client.publish(TOPIC, msg)
+#         # result: [0, 1]
+#         status = result[0]
+#         if status == 0:
+#             print(f'Send `{msg}` to topic `{TOPIC}`')
+#         else:
+#             print(f'Failed to send message to topic {TOPIC}')
+#         msg_count += 1
+#         time.sleep(1)
 
 def publish(client):
     a = 1
