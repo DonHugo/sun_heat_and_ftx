@@ -1,18 +1,22 @@
-import paho.mqtt.client as mqtt
-import time
+from paho.mqtt import client as mqtt_client
+import random
 
-def on_message(client, userdata, message):
-    print("received message: " ,str(message.payload.decode("utf-8")))
+broker= "192.168.0.110"
+port = 1883
+topic = "python/mqtt"
+client_id = f'python-mqtt-{random.randint(0, 1000)}'
+#username = "mqtt_beaches"
+#password = "uQX6NiZ.7R"
 
-mqttBroker ="192.168.0.110"
-
-client = mqtt.Client("Smartphone")
-client.connect(mqttBroker) 
-
-client.loop_start()
-
-client.subscribe("test/test1")
-client.on_message=on_message 
-
-time.sleep(30)
-client.loop_stop()
+def connect_mqtt():
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
+    # Set Connecting Client ID
+    client = mqtt_client.Client(client_id)
+    # client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
