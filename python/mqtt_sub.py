@@ -99,7 +99,7 @@ def publish_original(client):
         time.sleep(1)
 
 def publish(client):
-    a = 0
+    a = 1
     while not FLAG_EXIT:
         collect_sensor_data_mega(3,a,10)
         collect_sensor_data_rtd(4,a,10)
