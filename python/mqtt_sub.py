@@ -341,7 +341,7 @@ def mqtt_data():
 #         if a > 8:
 #             mqtt_data()
 #             a = 1
-mqtt_client_connected = run()
+#mqtt_client_connected = run()
 if __name__ == '__main__':
     mqtt_client_connected = run()
     a = 1
