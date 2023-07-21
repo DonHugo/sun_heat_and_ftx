@@ -146,7 +146,8 @@ def run():
     client.loop_start()
     time.sleep(1)
     if client.is_connected():
-        publish(client)
+        #publish(client)
+        return client
     else:
         client.loop_stop()
 
@@ -340,15 +341,16 @@ def mqtt_data():
 #         if a > 8:
 #             mqtt_data()
 #             a = 1
-
+mqtt_client_connected = run()
 if __name__ == '__main__':
+    mqtt_client_connected = run()
     a = 1
     while not FLAG_EXIT:
         collect_sensor_data_mega(3,a,10)
         collect_sensor_data_rtd(4,a,10)
         a += 1
         if a > 8:
-            run()
+            publish(mqtt_client_connected)
             a = 1
  
 
