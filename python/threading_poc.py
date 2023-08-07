@@ -32,7 +32,7 @@ def producer(queue, event):
     """Pretend we're getting a number from the network."""
     while not event.is_set():
         a = 1
-        while a > 8:
+        while a < 8:
             collect_sensor_data_mega(3,a,10)
             a += 1
             if a > 8:
