@@ -35,14 +35,15 @@ def producer(queue, event):
         while a > 8:
             collect_sensor_data_mega(3,a,10)
             a += 1
+            if a > 8:
+                a = 1
         logging.info("Producer got message: %s", input_array)
-        queue.put(input_array)
+        #queue.put(input_array)
 
     logging.info("Producer received event. Exiting")
 
-def consumer(queue, event):
-    """Pretend we're saving a number in the database."""
-    while not event.is_set() or not queue.empty():
+def sender(queue, event):
+    while not event.is_set() #or not queue.empty():
         publish(mqtt_client_connected)
         #message = queue.get()
         #logging.info(
@@ -118,6 +119,7 @@ def collect_sensor_data_mega(stack,input,iterations):
             #print(stack_position)
             input_position = input-1
             #print(rtd_position)
+            logging.info("megabas stack: %i input: %i Value: %i ", stack_position, input_position, collect)
 
         #input_array_mean = input_array.mean(2)[stack_position,input_position]    
         #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
@@ -177,18 +179,6 @@ def calc_megabas_temp(calc, delta, deci):
     return round_calculated_temp
 
 #============= MQTT publish ==========================
-def run():
-    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
-                        level=logging.DEBUG)
-    client = connect_mqtt()
-    client.loop_start()
-    time.sleep(1)
-    if client.is_connected():
-        #publish(client)
-        return client
-    else:
-        client.loop_stop()
-
 def publish(client):
     # a = 1
     # while not FLAG_EXIT:
@@ -216,7 +206,7 @@ def publish(client):
                     msg = json.dumps(msg_dict)
                     if not client.is_connected():
                         logging.error("publish: MQTT client is not connected!")
-                        time.sleep(1)
+                        time.sleep(0.01)
                         continue
                     result = client.publish(topic, msg)
                     # result: [0, 1]
@@ -227,6 +217,18 @@ def publish(client):
                         print(f'Failed to send message to topic {topic}')
                     time.sleep(1)
 
+def run():
+    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
+                        level=logging.DEBUG)
+    client = connect_mqtt()
+    client.loop_start()
+    time.sleep(1)
+    if client.is_connected():
+        #publish(client)
+        return client
+    else:
+        client.loop_stop()
+
 
 #============= Main execution ==========================
 if __name__ == "__main__":
@@ -236,10 +238,10 @@ if __name__ == "__main__":
     mqtt_client_connected = run()
     pipeline = queue.Queue(maxsize=10)
     event = threading.Event()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         executor.submit(producer, pipeline, event)
-        executor.submit(consumer, pipeline, event)
-
+    #    executor.submit(consumer, pipeline, event)
+        executor.submit(sender, pipeline, event)
         time.sleep(0.1)
         logging.info("Main: about to set event")
         event.set()
