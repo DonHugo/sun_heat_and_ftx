@@ -36,6 +36,7 @@ def producer(queue, event):
             collect_sensor_data_mega(3,a,10)
             a += 1
             if a > 8:
+                logging.info("Producer got message: %s", input_array)
                 a = 1
         logging.info("Producer got message: %s", input_array)
         #queue.put(input_array)
@@ -43,7 +44,8 @@ def producer(queue, event):
     logging.info("Producer received event. Exiting")
 
 def sender(queue, event):
-    while not event.is_set(): #or not queue.empty():
+    while not event.is_set() or not queue.empty():
+        time.sleep(5)
         publish(mqtt_client_connected)
         #message = queue.get()
         #logging.info(
@@ -119,7 +121,7 @@ def collect_sensor_data_mega(stack,input,iterations):
             #print(stack_position)
             input_position = input-1
             #print(rtd_position)
-            logging.info("megabas stack: %i input: %i Value: %i ", stack_position, input_position, collect)
+            #logging.info("megabas stack: %i input: %i Value: %i ", stack_position, input_position, collect)
 
         #input_array_mean = input_array.mean(2)[stack_position,input_position]    
         #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
