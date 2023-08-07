@@ -32,7 +32,7 @@ def producer(queue, event):
     """Pretend we're getting a number from the network."""
     while not event.is_set():
         a = 1
-        while a < 8:
+        while not FLAG_EXIT:
             collect_sensor_data_mega(3,a,10)
             a += 1
             if a > 8:
@@ -206,7 +206,7 @@ def publish(client):
                     msg = json.dumps(msg_dict)
                     if not client.is_connected():
                         logging.error("publish: MQTT client is not connected!")
-                        time.sleep(0.01)
+                        time.sleep(1)
                         continue
                     result = client.publish(topic, msg)
                     # result: [0, 1]
@@ -215,7 +215,7 @@ def publish(client):
                         print(f'Send `{msg}` to topic `{topic}`')
                     else:
                         print(f'Failed to send message to topic {topic}')
-                    time.sleep(1)
+                    time.sleep(0.1)
 
 def run():
     logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
