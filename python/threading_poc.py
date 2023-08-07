@@ -43,7 +43,7 @@ def producer(queue, event):
     logging.info("Producer received event. Exiting")
 
 def sender(queue, event):
-    while not event.is_set() #or not queue.empty():
+    while not event.is_set(): #or not queue.empty():
         publish(mqtt_client_connected)
         #message = queue.get()
         #logging.info(
