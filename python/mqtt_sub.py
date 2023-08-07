@@ -100,13 +100,13 @@ def connect_mqtt():
 #         time.sleep(1)
 
 def publish(client):
-    a = 1
-    while not FLAG_EXIT:
-        collect_sensor_data_mega(3,a,10)
-        collect_sensor_data_rtd(4,a,10)
-        a += 1
-        if a > 8:
-            a = 1
+    # a = 1
+    # while not FLAG_EXIT:
+    #     collect_sensor_data_mega(3,a,10)
+    #     collect_sensor_data_rtd(4,a,10)
+    #     a += 1
+    #     if a > 8:
+    #         a = 1
             for x in range(4):
                 for y in range(8):
                     input_array.mean(2)[x,y]
@@ -146,7 +146,8 @@ def run():
     client.loop_start()
     time.sleep(1)
     if client.is_connected():
-        publish(client)
+        #publish(client)
+        return client
     else:
         client.loop_stop()
 
@@ -340,6 +341,17 @@ def mqtt_data():
 #         if a > 8:
 #             mqtt_data()
 #             a = 1
-
+#mqtt_client_connected = run()
 if __name__ == '__main__':
-    run()
+    mqtt_client_connected = run()
+    a = 1
+    while not FLAG_EXIT:
+        collect_sensor_data_mega(3,a,10)
+        collect_sensor_data_rtd(4,a,10)
+        a += 1
+        if a > 8:
+            publish(mqtt_client_connected)
+            a = 1
+ 
+
+    
