@@ -45,8 +45,10 @@ def producer(queue, event):
 
 def sender(queue, event):
     while not event.is_set() or not queue.empty():
-        time.sleep(5)
-        publish(mqtt_client_connected)
+        while not FLAG_EXIT:
+            time.sleep(5)
+            publish(mqtt_client_connected)
+    
         #message = queue.get()
         #logging.info(
         #    "Consumer storing message: %s (size=%d)", message, queue.qsize()
