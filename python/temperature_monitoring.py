@@ -315,6 +315,7 @@ def stored_energy(client):
     stack_1 = 3
     stack_2 = 4
     stored_energy = [((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,1]-zero_valu)*35),((input_array.mean(2)[stack_1,2]-zero_valu)*35),((input_array.mean(2)[stack_1,3]-zero_valu)*35),((input_array.mean(2)[stack_1,4]-zero_valu)*35),((input_array.mean(2)[stack_1,5]-zero_valu)*35),((input_array.mean(2)[stack_1,6]-zero_valu)*35),((input_array.mean(2)[stack_1,7]-zero_valu)*35),((input_array.mean(2)[stack_2,0]-zero_valu)*35)]
+    logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
     stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
     stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
