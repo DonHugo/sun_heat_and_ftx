@@ -10,10 +10,7 @@ import json
 import numpy as np
 import librtd
 
-collection = [0,0,0,0,0,0,0,0,0,0]
-input_array = np.zeros((4, 8, 10))
-loops = 10
-
+#==== MQTT Variables ====#
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
@@ -27,7 +24,18 @@ FIRST_RECONNECT_DELAY = 1
 RECONNECT_RATE = 2
 MAX_RECONNECT_COUNT = 12
 MAX_RECONNECT_DELAY = 60
+
+#==== Application Variables ====#
 FLAG_EXIT = False
+collection = [0,0,0,0,0,0,0,0,0,0]
+input_array = np.zeros((4, 8, 10))
+loops = 10
+#stored_energy = np.zeros(9)
+
+
+
+
+
 
 def producer(queue, event):
     """Pretend we're getting a number from the network."""
@@ -44,11 +52,26 @@ def producer(queue, event):
 
     logging.info("Producer received event. Exiting")
 
-def sender(queue, event):
+def executor(queue, event):
     while not event.is_set() or not queue.empty():
         while not FLAG_EXIT:
             time.sleep(5)
+            stored_energy
+    
+        #message = queue.get()
+        #logging.info(
+        #    "Consumer storing message: %s (size=%d)", message, queue.qsize()
+        #)
+
+    logging.info("Consumer received event. Exiting")
+
+def sender(queue, event):
+    while not event.is_set() or not queue.empty():
+        time.sleep(5)
+        while not FLAG_EXIT:
+            time.sleep(5)
             publish(mqtt_client_connected)
+            stored_energy(mqtt_client_connected)
     
         #message = queue.get()
         #logging.info(
@@ -233,42 +256,36 @@ def read_onewire():
 
 #========================== MQTT publish ==========================
 def publish(client):
-    # a = 1
-    # while not FLAG_EXIT:
-    #     collect_sensor_data_mega(3,a,10)
-    #     collect_sensor_data_rtd(4,a,10)
-    #     a += 1
-    #     if a > 8:
-    #         a = 1
-            for x in range(4):
-                for y in range(8):
-                    input_array.mean(2)[x,y]
-                    round_value = round(input_array.mean(2)[x,y],1)
-                    stack = x+1
-                    sensor = y+1
-                    name = "sequentmicrosystems_{}_{}"
+    for x in range(4):
+        for y in range(8):
+            #remove below row?! (input_array.mean(2)[x,y]), dont think its used!
+            input_array.mean(2)[x,y]
+            round_value = round(input_array.mean(2)[x,y],1)
+            stack = x+1
+            sensor = y+1
+            name = "sequentmicrosystems_{}_{}"
 
-                    msg_dict = {
-                            "name": name.format(stack,sensor),
-                            "temperature": round_value
-                        }
-                    
-                    topic_path = "sequentmicrosystems/{}"
-                    topic = topic_path.format(name.format(stack,sensor))
+            msg_dict = {
+                    "name": name.format(stack,sensor),
+                    "temperature": round_value
+                }
+            
+            topic_path = "sequentmicrosystems/{}"
+            topic = topic_path.format(name.format(stack,sensor))
 
-                    msg = json.dumps(msg_dict)
-                    if not client.is_connected():
-                        logging.error("publish: MQTT client is not connected!")
-                        time.sleep(1)
-                        continue
-                    result = client.publish(topic, msg)
-                    # result: [0, 1]
-                    status = result[0]
-                    if status == 0:
-                        print(f'Send `{msg}` to topic `{topic}`')
-                    else:
-                        print(f'Failed to send message to topic {topic}')
-                    time.sleep(0.1)
+            msg = json.dumps(msg_dict)
+            if not client.is_connected():
+                logging.error("publish: MQTT client is not connected!")
+                time.sleep(1)
+                continue
+            result = client.publish(topic, msg)
+            # result: [0, 1]
+            status = result[0]
+            if status == 0:
+                print(f'Send `{msg}` to topic `{topic}`')
+            else:
+                print(f'Failed to send message to topic {topic}')
+            time.sleep(0.1)
 
 def run():
     logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
@@ -282,17 +299,49 @@ def run():
     else:
         client.loop_stop()
 
-#========================== onewire ==========================
-def collect_sensor_data_onewire(stack):
-    return
 
-def read_onewire():
     print("========== OneWire ==========")
     print(m.owbGetSensorNo(3)) #number of sensors present, starting at 1
     print(m.owbGetTemp(3, 1))  # reading first sensor and getting temperature
     print(m.owbGetRomCode(3, 1)) # reading sensor id on first sensor
     print("========== OneWire ==========")
 
+    return
+
+#========================== Energy calculations ==========================
+def stored_energy(client):
+    stored_energy_kwh = np.zeros(3)
+    zero_valu = 4 #temperature of the water that is comming to to the system from the well
+    stack_1 = 3
+    stack_2 = 4
+    stored_energy = [((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,1]-zero_valu)*35),((input_array.mean(2)[stack_1,2]-zero_valu)*35),((input_array.mean(2)[stack_1,3]-zero_valu)*35),((input_array.mean(2)[stack_1,4]-zero_valu)*35),((input_array.mean(2)[stack_1,5]-zero_valu)*35),((input_array.mean(2)[stack_1,6]-zero_valu)*35),((input_array.mean(2)[stack_1,7]-zero_valu)*35),((input_array.mean(2)[stack_2,0]-zero_valu)*35)]
+    stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
+    stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
+    stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
+    
+    name = "sequentmicrosystems_{}_{}"
+
+    msg_dict = {
+            "name": stored_energy,
+            "stored_energy_kwh": stored_energy_kwh[0],
+            "stored_energy_top_kwh": stored_energy_kwh[1],
+            "stored_energy_bottom_kwh": stored_energy_kwh[2]
+        }
+    
+    topic = "sequentmicrosystems/stored_energy"
+
+    msg = json.dumps(msg_dict)
+    if not client.is_connected():
+        logging.error("publish: MQTT client is not connected!")
+        time.sleep(1)
+
+    result = client.publish(topic, msg)
+    # result: [0, 1]
+    status = result[0]
+    if status == 0:
+        print(f'Send `{msg}` to topic `{topic}`')
+    else:
+        print(f'Failed to send message to topic {topic}')
     return
 
 #========================== Main execution ==========================
