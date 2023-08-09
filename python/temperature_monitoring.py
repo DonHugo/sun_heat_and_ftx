@@ -71,7 +71,8 @@ def sender(queue, event):
         while not FLAG_EXIT:
             time.sleep(5)
             #publish(mqtt_client_connected)
-            stored_energy(mqtt_client_connected)
+            sensor_calculations(mqtt_client_connected)
+            #stored_energy(mqtt_client_connected)
     
         #message = queue.get()
         #logging.info(
@@ -255,7 +256,67 @@ def read_onewire():
     return
 
 #========================== MQTT publish ==========================
-def publish(client):
+# def publish(client):
+#     for x in range(4):
+#         for y in range(8):
+#             #remove below row?! (input_array.mean(2)[x,y]), dont think its used!
+#             input_array.mean(2)[x,y]
+#             round_value = round(input_array.mean(2)[x,y],1)
+#             stack = x+1
+#             sensor = y+1
+#             name = "sequentmicrosystems_{}_{}"
+
+#             msg_dict = {
+#                     "name": name.format(stack,sensor),
+#                     "temperature": round_value
+#                 }
+            
+#             topic_path = "sequentmicrosystems/{}"
+#             topic = topic_path.format(name.format(stack,sensor))
+
+#             msg = json.dumps(msg_dict)
+#             if not client.is_connected():
+#                 logging.error("publish: MQTT client is not connected!")
+#                 time.sleep(1)
+#                 continue
+#             result = client.publish(topic, msg)
+#             # result: [0, 1]
+#             status = result[0]
+#             if status == 0:
+#                 print(f'Send `{msg}` to topic `{topic}`')
+#             else:
+#                 print(f'Failed to send message to topic {topic}')
+#             time.sleep(0.1)
+def publish(client,topic,msg):
+    if not client.is_connected():
+        logging.error("publish: MQTT client is not connected!")
+        time.sleep(1)
+        return
+    result = client.publish(topic, msg)
+    # result: [0, 1]
+    status = result[0]
+    if status == 0:
+        print(f'Send `{msg}` to topic `{topic}`')
+    else:
+        print(f'Failed to send message to topic {topic}')
+    time.sleep(0.1)
+
+def run():
+    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
+                        level=logging.DEBUG)
+    client = connect_mqtt()
+    client.loop_start()
+    time.sleep(1)
+    if client.is_connected():
+        #publish(client)
+        return client
+    else:
+        client.loop_stop()
+
+
+
+#========================== data calculations ==========================
+def sensor_calculations(client):
     for x in range(4):
         for y in range(8):
             #remove below row?! (input_array.mean(2)[x,y]), dont think its used!
@@ -274,41 +335,8 @@ def publish(client):
             topic = topic_path.format(name.format(stack,sensor))
 
             msg = json.dumps(msg_dict)
-            if not client.is_connected():
-                logging.error("publish: MQTT client is not connected!")
-                time.sleep(1)
-                continue
-            result = client.publish(topic, msg)
-            # result: [0, 1]
-            status = result[0]
-            if status == 0:
-                print(f'Send `{msg}` to topic `{topic}`')
-            else:
-                print(f'Failed to send message to topic {topic}')
-            time.sleep(0.1)
+            publish(client,topic,msg)
 
-def run():
-    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
-                        level=logging.DEBUG)
-    client = connect_mqtt()
-    client.loop_start()
-    time.sleep(1)
-    if client.is_connected():
-        #publish(client)
-        return client
-    else:
-        client.loop_stop()
-
-
-    print("========== OneWire ==========")
-    print(m.owbGetSensorNo(3)) #number of sensors present, starting at 1
-    print(m.owbGetTemp(3, 1))  # reading first sensor and getting temperature
-    print(m.owbGetRomCode(3, 1)) # reading sensor id on first sensor
-    print("========== OneWire ==========")
-
-    return
-
-#========================== Energy calculations ==========================
 def stored_energy(client):
     stored_energy = np.zeros(10)
     stored_energy_kwh = np.zeros(3)
