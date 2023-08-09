@@ -33,7 +33,7 @@ input_array = np.zeros((4, 8, 10))
 loops = 10
 
 #===== MQTT subscribe =====#
-mqtt_rtd = np.zeros(8)
+mqtt_rtd = np.zeros(9)
 mqtt_sun = np.zeros(3)
 
 #==== Application parsing variables ====#
@@ -133,6 +133,7 @@ def on_message(client, userdata, msg):
     mqtt_rtd[5] = x["RTD_6"]
     mqtt_rtd[6] = x["RTD_7"]
     mqtt_rtd[7] = x["RTD_8"]
+    mqtt_rtd[8] = x["T3"]
     mqtt_sun[0] = x["T1"]
     mqtt_sun[1] = x["T2"]
     mqtt_sun[2] = x["T3"]
@@ -328,11 +329,12 @@ def stored_energy(client):
         stored_energy[5] = ((mqtt_rtd[5]-zero_valu)*35)
         stored_energy[6] = ((mqtt_rtd[6]-zero_valu)*35)
         stored_energy[7] = ((mqtt_rtd[7]-zero_valu)*35)
+        stored_energy[8] = ((mqtt_rtd[8]-zero_valu)*35)
         #logging.info("stored_energy[0]: %s", stored_energy[0])
         #logging.info("stored_energy: %s", stored_energy)
         stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-        stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
-        stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
+        stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
+        stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
     msg_dict = {
