@@ -313,7 +313,7 @@ def stored_energy(client):
             "stored_energy_top_kwh": stored_energy_kwh[1],
             "stored_energy_bottom_kwh": stored_energy_kwh[2]
         }
-    logging.info("msg_dict: %s", msg_dict)
+    
     topic = "sequentmicrosystems/stored_energy"
     logging.info("topic: %s", topic)
 
