@@ -310,7 +310,7 @@ def run():
 
 #========================== Energy calculations ==========================
 def stored_energy(client):
-    stored_energy = np.zeros(9)
+    stored_energy = np.zeros(10)
     stored_energy_kwh = np.zeros(3)
     zero_valu = 0 #temperature of the water that is comming to to the system from the well
     stack_1 = 3
@@ -320,12 +320,12 @@ def stored_energy(client):
     stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
     stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
     stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
-    stored_energy[5] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
-    stored_energy[6] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
-    stored_energy[7] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
-    stored_energy[8] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-    stored_energy[9] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
-    stored_energy[10] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+    stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
+    stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
+    stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
+    stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
+    stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
+    stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
     logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
     stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
