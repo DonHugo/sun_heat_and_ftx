@@ -72,7 +72,7 @@ def sender(queue, event):
             time.sleep(5)
             #publish(mqtt_client_connected)
             sensor_calculations(mqtt_client_connected)
-            #stored_energy(mqtt_client_connected)
+            stored_energy(mqtt_client_connected)
     
         #message = queue.get()
         #logging.info(
@@ -294,17 +294,13 @@ def sensor_calculations(client):
             stack = x+1
             sensor = y+1
             name = "sequentmicrosystems_{}_{}"
-
             msg_dict = {
                     "name": name.format(stack,sensor),
                     "temperature": round_value
                 }
             
-            #("Producer got message: %s", input_array)
             topic_path = "sequentmicrosystems/{}"
             topic = topic_path.format(name.format(stack,sensor))
-            #topic = ("sequentmicrosystems/%s", stack)
-
             msg = json.dumps(msg_dict)
             publish(client,topic,msg)
 
@@ -350,17 +346,7 @@ def stored_energy(client):
     topic = "sequentmicrosystems/stored_energy"
 
     msg = json.dumps(msg_dict)
-    if not client.is_connected():
-        logging.error("publish: MQTT client is not connected!")
-        time.sleep(1)
-
-    result = client.publish(topic, msg)
-    # result: [0, 1]
-    status = result[0]
-    if status == 0:
-        print(f'Send `{msg}` to topic `{topic}`')
-    else:
-        print(f'Failed to send message to topic {topic}')
+    publish(client,topic,msg)
     return
 
 #========================== Main execution ==========================
