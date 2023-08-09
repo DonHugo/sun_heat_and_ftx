@@ -9,6 +9,7 @@ from paho.mqtt import client as mqtt_client
 import json
 import numpy as np
 import librtd
+import argparse
 
 #==== MQTT Variables ====#
 BROKER = '192.168.0.110'
@@ -31,9 +32,15 @@ collection = [0,0,0,0,0,0,0,0,0,0]
 input_array = np.zeros((4, 8, 10))
 loops = 10
 #stored_energy = np.zeros(9)
-debug_mode = True
+#debug_mode = False
 
+#==== Application parsing variables ====#
+parser = argparse.ArgumentParser()
 
+#-db DATABSE -u USERNAME -p PASSWORD -size 20
+parser.add_argument("-d", "--debug", dest = "debug_mode", default = "False", help="if extra debugt output is needed")
+
+args = parser.parse_args()
 
 
 
@@ -46,7 +53,7 @@ def producer(queue, event):
             collect_sensor_data_mega(3,a,10)
             a += 1
             if a > 8:
-                if debug_mode == True:
+                if args.debug_mode == True:
                     logging.info("""input_array content: 
                                 %s""", input_array)
                 a = 1
