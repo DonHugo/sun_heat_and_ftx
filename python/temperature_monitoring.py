@@ -332,9 +332,9 @@ def stored_energy(client):
         stored_energy[8] = ((mqtt_rtd[8]-zero_valu)*35)
         #logging.info("stored_energy[0]: %s", stored_energy[0])
         #logging.info("stored_energy: %s", stored_energy)
-        stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-        stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
-        stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
+        stored_energy_kwh[0] = round((np.sum(stored_energy)*4200/1000/3600),2)
+        stored_energy_kwh[1] = round((np.sum(stored_energy[:5])*4200/1000/3600),2)
+        stored_energy_kwh[2] = round((np.sum(stored_energy[4:])*4200/1000/3600),2)
         stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
