@@ -136,38 +136,19 @@ def connect_mqtt():
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
     
-    #print("===== def collect_sensor_data_mega =====")
     while i < iterations:
-        #p_i = "i = {}"
-        #print(p_i.format(i))
         collect = read_megabas_1k(stack, input)
 
         if collect != 9999:
-            #print("===== if =====")
-            #p_collect = "collect = {}"
-            #print(p_collect.format(collect))
             input_position = input-1
-            #print(rtd_position)
             stack_position = stack-1
-            #print(stack_position)
             input_array[stack_position,input_position,i] = collect 
         else:
-            #print("===== else =====") 
             stack_position = stack-1
-            #print(stack_position)
             input_position = input-1
-            #print(rtd_position)
-            #logging.info("megabas stack: %i input: %i Value: %i ", stack_position, input_position, collect)
-
-        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
-        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
-        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))      
+ 
         i += 1
-        time.sleep(0.02)
-        #if input == 7 or input == 8:
-        #    time.sleep(5)
-        #else:
-        #    time.sleep(0.02)
+
     
 def read_megabas_1k(stack, input):
     limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
@@ -178,9 +159,6 @@ def read_megabas_1k(stack, input):
     megabas_temp = "No value"
         
     if sensor == 60:
-        #print("no sensor connected!")
-        #template = "no sensor connected in stack {}, input {}"
-        #megabas_temp = template.format(stack,input)
         megabas_temp = 9999
     else:
         if mod_sensor >= limit[0] and mod_sensor < limit[1]:        megabas_temp = calc_megabas_temp(mod_sensor-limit[0],delta[0],0)
@@ -201,19 +179,11 @@ def read_megabas_1k(stack, input):
         elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[15],delta[15],150)
         elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[16],delta[16],160)
         elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[17],delta[17],170)   
-    #print("===== def read_megabas_1k =====")
-    #print(sensor)
-    #print(mod_sensor)
-    #print(megabas_temp)
     return megabas_temp
 
 def calc_megabas_temp(calc, delta, deci):
     calculated_temp=(calc/delta)+deci
     round_calculated_temp = (round(calculated_temp, 1))
-    #p_calculated_temp = "calculated_temp: {}"
-    #print(p_calculated_temp.format(calculated_temp))
-    #p_round_calculated_temp = "round_calculated_temp: {}"
-    #print(p_round_calculated_temp.format(round_calculated_temp))
     return round_calculated_temp
 
 #========================== rtd ==========================
@@ -228,14 +198,9 @@ def collect_sensor_data_rtd(stack,input,iterations):
             #print(rtd_position)
             input_array[stack_position,input_position,i] = collect_rtd
         else:
-            stack_position = stack-1
-            #print(stack_position)
+            stack_position = stack-1)
             input_position = input-1
-            #print(rtd_position)
 
-        #input_array_mean = input_array.mean(2)[stack_position,input_position]    
-        #p_input_array_mean = "Input_array.mean(2){},{} = {}"     
-        #print(p_input_array_mean.format(stack_position,input_position,input_array_mean))   
         i += 1
         time.sleep(0.02)
     return
@@ -243,12 +208,7 @@ def collect_sensor_data_rtd(stack,input,iterations):
 def read_rtd(stack,input):
     temp = librtd.get(stack, input)
     if temp > 200 or temp < -50:
-        #print("no sensor connected!")
-        #template = "no sensor connected in stack {}, input {}"
-        #temp = template.format(stack,input)
         temp = 9999
-    #print(temp)
-    #round_temp = round(temp,1)
     return temp
 
 #========================== onewire ==========================
@@ -271,7 +231,6 @@ def publish(client,topic,msg):
         time.sleep(1)
         return
     result = client.publish(topic, msg)
-    # result: [0, 1]
     status = result[0]
     if status == 0:
         print(f'Send `{msg}` to topic `{topic}`')
@@ -314,11 +273,10 @@ def sensor_calculations(client):
             publish(client,topic,msg)
 
 def stored_energy(client):
-    print("stored_energy")
     stored_energy = np.zeros(10)
-    print(stored_energy)
+    logging.info("stored_energy: %f", stored_energy)
     stored_energy_kwh = np.zeros(3)
-    print(stored_energy_kwh)
+    logging.info("stored_energy_kwh: %f", stored_energy_kwh)
     zero_valu = 0 #temperature of the water that is comming to to the system from the well
     stack_1 = 3
     stack_2 = 4
@@ -334,7 +292,7 @@ def stored_energy(client):
     # stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
     # stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
     stored_energy[0] = (input_array.mean(2)[2,0])
-    print(stored_energy[0])
+    logging.info("stored_energy[0]: %f", stored_energy[0])
     stored_energy[1] = (input_array.mean(2)[2,1])
     stored_energy[2] = (input_array.mean(2)[2,2])
     stored_energy[3] = (input_array.mean(2)[2,3])
@@ -344,20 +302,20 @@ def stored_energy(client):
     stored_energy[7] = (input_array.mean(2)[2,7])
     stored_energy[8] = (input_array.mean(2)[2,0])
     stored_energy[9] = (input_array.mean(2)[2,1])
-    print(stored_energy)
-    logging.info("stored_energy: %s", stored_energy)
+    logging.info("stored_energy: %f", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
     stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
     stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-    print(stored_energy_kwh)
+    logging.info("stored_energy_kwh: %f", stored_energy_kwh)
     msg_dict = {
-            "name": stored_energy,
+            "name": "stored_energy",
             "stored_energy_kwh": stored_energy_kwh[0],
             "stored_energy_top_kwh": stored_energy_kwh[1],
             "stored_energy_bottom_kwh": stored_energy_kwh[2]
         }
-    
+    logging.info("msg_dict: %s", msg_dict)
     topic = "sequentmicrosystems/stored_energy"
+    logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
     publish(client,topic,msg)
