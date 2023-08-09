@@ -38,7 +38,7 @@ loops = 10
 parser = argparse.ArgumentParser()
 
 #-db DATABSE -u USERNAME -p PASSWORD -size 20
-parser.add_argument("-d", "--debug", dest = "debug_mode", default = "False", help="if extra debugt output is needed")
+parser.add_argument("-d", "--debug", dest = "debug_mode", default = "True", help="if extra debugt output is needed")
 
 args = parser.parse_args()
 
@@ -368,6 +368,7 @@ if __name__ == "__main__":
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO,
                         datefmt="%H:%M:%S")
+    print(args.debug_mode)
     mqtt_client_connected = run()
     pipeline = queue.Queue(maxsize=10)
     event = threading.Event()
