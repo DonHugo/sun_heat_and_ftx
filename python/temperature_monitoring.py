@@ -69,8 +69,7 @@ def sender(queue, event):
     while not event.is_set() or not queue.empty():
         time.sleep(5)
         while not FLAG_EXIT:
-            time.sleep(5)
-            #publish(mqtt_client_connected)
+            time.sleep(2)
             sensor_calculations(mqtt_client_connected)
             stored_energy(mqtt_client_connected)
     
@@ -305,8 +304,11 @@ def sensor_calculations(client):
             publish(client,topic,msg)
 
 def stored_energy(client):
+    print("stored_energy")
     stored_energy = np.zeros(10)
+    print(stored_energy)
     stored_energy_kwh = np.zeros(3)
+    print(stored_energy_kwh)
     zero_valu = 0 #temperature of the water that is comming to to the system from the well
     stack_1 = 3
     stack_2 = 4
@@ -331,11 +333,12 @@ def stored_energy(client):
     stored_energy[7] = (input_array.mean(2)[3,7])
     stored_energy[8] = (input_array.mean(2)[4,0])
     stored_energy[9] = (input_array.mean(2)[4,1])
+    print(stored_energy)
     logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
     stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
     stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-
+    print(stored_energy_kwh)
     msg_dict = {
             "name": stored_energy,
             "stored_energy_kwh": stored_energy_kwh[0],
