@@ -120,6 +120,7 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
+    sub_topic = "rtd/acctank"
     print(f'Received `{msg.payload.decode()}` from `{msg.topic}` sub_topic')
 
 def connect_mqtt():
@@ -274,9 +275,9 @@ def sensor_calculations(client):
 
 def stored_energy(client):
     stored_energy = np.zeros(10)
-    logging.info("stored_energy: %s", stored_energy)
+    #logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh = np.zeros(3)
-    logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+    #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
     zero_valu = 0 #temperature of the water that is comming to to the system from the well
     stack_1 = 2
     stack_2 = 2
@@ -292,21 +293,12 @@ def stored_energy(client):
     stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
     stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
     stored_energy[0] = (input_array.mean(2)[2,0])
-    logging.info("stored_energy[0]: %s", stored_energy[0])
-    # stored_energy[1] = (input_array.mean(2)[2,1])
-    # stored_energy[2] = (input_array.mean(2)[2,2])
-    # stored_energy[3] = (input_array.mean(2)[2,3])
-    # stored_energy[4] = (input_array.mean(2)[2,4])
-    # stored_energy[5] = (input_array.mean(2)[2,5])
-    # stored_energy[6] = (input_array.mean(2)[2,6])
-    # stored_energy[7] = (input_array.mean(2)[2,7])
-    # stored_energy[8] = (input_array.mean(2)[2,0])
-    # stored_energy[9] = (input_array.mean(2)[2,1])
-    logging.info("stored_energy: %s", stored_energy)
+    #logging.info("stored_energy[0]: %s", stored_energy[0])
+    #logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
     stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
     stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-    logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+    #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
     msg_dict = {
             "name": "stored_energy",
             "stored_energy_kwh": stored_energy_kwh[0],
@@ -315,7 +307,7 @@ def stored_energy(client):
         }
     
     topic = "sequentmicrosystems/stored_energy"
-    logging.info("topic: %s", topic)
+    #logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
     publish(client,topic,msg)
