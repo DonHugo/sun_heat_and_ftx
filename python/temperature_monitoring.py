@@ -324,6 +324,7 @@ def stored_energy(client):
     # stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
     # stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
     stored_energy[0] = (input_array.mean(2)[3,0])
+    print(stored_energy[0])
     stored_energy[1] = (input_array.mean(2)[3,1])
     stored_energy[2] = (input_array.mean(2)[3,2])
     stored_energy[3] = (input_array.mean(2)[3,3])
