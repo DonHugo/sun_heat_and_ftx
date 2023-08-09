@@ -295,7 +295,7 @@ def sensor_calculations(client):
 def stored_energy(client):
     stored_energy = np.zeros(10)
     #logging.info("stored_energy: %s", stored_energy)
-    stored_energy_kwh = np.zeros(3)
+    stored_energy_kwh = np.zeros(4)
     #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
     if args.test_mode == "false":
         zero_valu = 0 #temperature of the water that is comming to to the system from the well
@@ -333,15 +333,17 @@ def stored_energy(client):
         #logging.info("stored_energy[0]: %s", stored_energy[0])
         #logging.info("stored_energy: %s", stored_energy)
         stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-        stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
-        stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
+        stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
+        stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
+        stored_energy_kwh[3] = round(np.mean(stored_energy),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
     msg_dict = {
             "name": "stored_energy",
             "stored_energy_kwh": stored_energy_kwh[0],
             "stored_energy_top_kwh": stored_energy_kwh[1],
-            "stored_energy_bottom_kwh": stored_energy_kwh[2]
+            "stored_energy_bottom_kwh": stored_energy_kwh[2],
+            "average_temperature": stored_energy_kwh[3]
         }
     topic = "sequentmicrosystems/stored_energy"
     #logging.info("topic: %s", topic)
