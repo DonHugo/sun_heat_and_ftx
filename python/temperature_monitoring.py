@@ -41,6 +41,7 @@ parser = argparse.ArgumentParser()
 
 #-db DATABSE -u USERNAME -p PASSWORD -size 20
 parser.add_argument("-d", "--debug", dest = "debug_mode", default = "false", help="true|false")
+parser.add_argument("-t", "--test", dest = "test_mode", default = "false", help="true|false")
 
 args = parser.parse_args()
 
@@ -122,7 +123,7 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
-    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    #print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     x = json.loads(msg.payload.decode())
     mqtt_rtd[0] = x["RTD_1"]
     mqtt_rtd[1] = x["RTD_2"]
@@ -135,8 +136,8 @@ def on_message(client, userdata, msg):
     mqtt_sun[0] = x["T1"]
     mqtt_sun[1] = x["T2"]
     mqtt_sun[2] = x["T3"]
-    logging.info("mqtt_rtd %s", mqtt_rtd)
-    logging.info("mqtt_sun %s", mqtt_sun)
+    #logging.info("mqtt_rtd %s", mqtt_rtd)
+    #logging.info("mqtt_sun %s", mqtt_sun)
 
 
 def connect_mqtt():
@@ -295,34 +296,51 @@ def stored_energy(client):
     #logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh = np.zeros(3)
     #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
-    zero_valu = 0 #temperature of the water that is comming to to the system from the well
-    stack_1 = 2
-    stack_2 = 2
-    #stored_energy = [((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,1]-zero_valu)*35),((input_array.mean(2)[stack_1,2]-zero_valu)*35),((input_array.mean(2)[stack_1,3]-zero_valu)*35),((input_array.mean(2)[stack_1,4]-zero_valu)*35),((input_array.mean(2)[stack_1,5]-zero_valu)*35),((input_array.mean(2)[stack_1,6]-zero_valu)*35),((input_array.mean(2)[stack_1,7]-zero_valu)*35),((input_array.mean(2)[stack_2,0]-zero_valu)*35)]
-    stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
-    stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
-    stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
-    stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
-    stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
-    stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
-    stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
-    stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-    stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
-    stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
-    stored_energy[0] = (input_array.mean(2)[2,0])
-    #logging.info("stored_energy[0]: %s", stored_energy[0])
-    #logging.info("stored_energy: %s", stored_energy)
-    stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-    stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
-    stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-    #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+    if args.test_mode == "false":
+        zero_valu = 0 #temperature of the water that is comming to to the system from the well
+        stack_1 = 2
+        stack_2 = 2
+        stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
+        stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
+        stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
+        stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
+        stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
+        stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
+        stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
+        stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
+        stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
+        stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+        stored_energy[0] = (input_array.mean(2)[2,0])
+        #logging.info("stored_energy[0]: %s", stored_energy[0])
+        #logging.info("stored_energy: %s", stored_energy)
+        stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
+        stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
+        stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
+        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+
+    elif args.test_mode == "true":
+        zero_valu = 4 #temperature of the water that is comming to to the system from the well
+        stored_energy[0] = ((mqtt_rtd[0]-zero_valu)*35)
+        stored_energy[1] = ((mqtt_rtd[1]-zero_valu)*35)
+        stored_energy[2] = ((mqtt_rtd[2]-zero_valu)*35)
+        stored_energy[3] = ((mqtt_rtd[3]-zero_valu)*35)
+        stored_energy[4] = ((mqtt_rtd[4]-zero_valu)*35)
+        stored_energy[5] = ((mqtt_rtd[5]-zero_valu)*35)
+        stored_energy[6] = ((mqtt_rtd[6]-zero_valu)*35)
+        stored_energy[7] = ((mqtt_rtd[7]-zero_valu)*35)
+        #logging.info("stored_energy[0]: %s", stored_energy[0])
+        #logging.info("stored_energy: %s", stored_energy)
+        stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
+        stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
+        stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
+        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+
     msg_dict = {
             "name": "stored_energy",
             "stored_energy_kwh": stored_energy_kwh[0],
             "stored_energy_top_kwh": stored_energy_kwh[1],
             "stored_energy_bottom_kwh": stored_energy_kwh[2]
         }
-    
     topic = "sequentmicrosystems/stored_energy"
     #logging.info("topic: %s", topic)
 
