@@ -15,7 +15,7 @@ import argparse
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
-SUB_TOPIC = "sequentmicrosystems"
+SUB_TOPIC = "rtd/acctank"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -120,8 +120,7 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
-    sub_topic = "rtd/acctank"
-    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` sub_topic')
+    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
 
 def connect_mqtt():
     client = mqtt_client.Client(CLIENT_ID)
@@ -234,7 +233,8 @@ def publish(client,topic,msg):
     result = client.publish(topic, msg)
     status = result[0]
     if status == 0:
-        print(f'Send `{msg}` to topic `{topic}`')
+        if args.debug_mode == "true":
+            print(f'Send `{msg}` to topic `{topic}`')
     else:
         print(f'Failed to send message to topic {topic}')
     time.sleep(0.1)
