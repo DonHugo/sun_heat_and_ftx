@@ -133,8 +133,8 @@ def on_message(client, userdata, msg):
     mqtt_rtd[6] = x["RTD_7"]
     mqtt_rtd[7] = x["RTD_8"]
     mqtt_sun[0] = x["T1"]
-    mqtt_sun[0] = x["T2"]
-    mqtt_sun[0] = x["T3"]
+    mqtt_sun[1] = x["T2"]
+    mqtt_sun[2] = x["T3"]
     logging.info("mqtt_rtd %s", mqtt_rtd)
     logging.info("mqtt_sun %s", mqtt_sun)
 
