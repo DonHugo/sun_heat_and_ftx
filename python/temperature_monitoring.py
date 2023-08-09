@@ -256,37 +256,6 @@ def read_onewire():
     return
 
 #========================== MQTT publish ==========================
-# def publish(client):
-#     for x in range(4):
-#         for y in range(8):
-#             #remove below row?! (input_array.mean(2)[x,y]), dont think its used!
-#             input_array.mean(2)[x,y]
-#             round_value = round(input_array.mean(2)[x,y],1)
-#             stack = x+1
-#             sensor = y+1
-#             name = "sequentmicrosystems_{}_{}"
-
-#             msg_dict = {
-#                     "name": name.format(stack,sensor),
-#                     "temperature": round_value
-#                 }
-            
-#             topic_path = "sequentmicrosystems/{}"
-#             topic = topic_path.format(name.format(stack,sensor))
-
-#             msg = json.dumps(msg_dict)
-#             if not client.is_connected():
-#                 logging.error("publish: MQTT client is not connected!")
-#                 time.sleep(1)
-#                 continue
-#             result = client.publish(topic, msg)
-#             # result: [0, 1]
-#             status = result[0]
-#             if status == 0:
-#                 print(f'Send `{msg}` to topic `{topic}`')
-#             else:
-#                 print(f'Failed to send message to topic {topic}')
-#             time.sleep(0.1)
 def publish(client,topic,msg):
     if not client.is_connected():
         logging.error("publish: MQTT client is not connected!")
@@ -331,8 +300,10 @@ def sensor_calculations(client):
                     "temperature": round_value
                 }
             
-            topic_path = "sequentmicrosystems/{}"
-            topic = topic_path.format(name.format(stack,sensor))
+            #("Producer got message: %s", input_array)
+            #topic_path = "sequentmicrosystems/{}"
+            #topic = topic_path.format(name.format(stack,sensor))
+            topic = "sequentmicrosystems/%s", stack
 
             msg = json.dumps(msg_dict)
             publish(client,topic,msg)
