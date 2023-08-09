@@ -70,7 +70,7 @@ def sender(queue, event):
         time.sleep(5)
         while not FLAG_EXIT:
             time.sleep(5)
-            publish(mqtt_client_connected)
+            #publish(mqtt_client_connected)
             stored_energy(mqtt_client_connected)
     
         #message = queue.get()
