@@ -198,7 +198,7 @@ def collect_sensor_data_rtd(stack,input,iterations):
             #print(rtd_position)
             input_array[stack_position,input_position,i] = collect_rtd
         else:
-            stack_position = stack-1)
+            stack_position = stack-1
             input_position = input-1
 
         i += 1
