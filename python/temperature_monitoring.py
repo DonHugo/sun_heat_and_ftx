@@ -303,7 +303,7 @@ def sensor_calculations(client):
             #("Producer got message: %s", input_array)
             #topic_path = "sequentmicrosystems/{}"
             #topic = topic_path.format(name.format(stack,sensor))
-            topic = "sequentmicrosystems/%s", stack
+            topic = ("sequentmicrosystems/%s", stack)
 
             msg = json.dumps(msg_dict)
             publish(client,topic,msg)
