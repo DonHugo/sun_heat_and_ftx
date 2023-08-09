@@ -31,8 +31,10 @@ FLAG_EXIT = False
 collection = [0,0,0,0,0,0,0,0,0,0]
 input_array = np.zeros((4, 8, 10))
 loops = 10
-#stored_energy = np.zeros(9)
-#debug_mode = False
+
+#===== MQTT subscribe =====#
+mqtt_rtd = np.zeros(8)
+mqtt_sun = np.zeros(3)
 
 #==== Application parsing variables ====#
 parser = argparse.ArgumentParser()
@@ -121,6 +123,21 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, msg):
     print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    x = json.loads(msg.payload.decode())
+    mqtt_rtd[0] = x["RTD_1"]
+    mqtt_rtd[1] = x["RTD_2"]
+    mqtt_rtd[2] = x["RTD_3"]
+    mqtt_rtd[3] = x["RTD_4"]
+    mqtt_rtd[4] = x["RTD_5"]
+    mqtt_rtd[5] = x["RTD_6"]
+    mqtt_rtd[6] = x["RTD_7"]
+    mqtt_rtd[7] = x["RTD_8"]
+    mqtt_sun[0] = x["T1"]
+    mqtt_sun[0] = x["T2"]
+    mqtt_sun[0] = x["T3"]
+    logging.info("mqtt_rtd %s", mqtt_rtd)
+    logging.info("mqtt_sun %s", mqtt_sun)
+
 
 def connect_mqtt():
     client = mqtt_client.Client(CLIENT_ID)
