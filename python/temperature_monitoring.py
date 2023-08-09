@@ -316,22 +316,30 @@ def stored_energy(client):
     stack_1 = 3
     stack_2 = 4
     #stored_energy = [((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,0]-zero_valu)*35),((input_array.mean(2)[stack_1,1]-zero_valu)*35),((input_array.mean(2)[stack_1,2]-zero_valu)*35),((input_array.mean(2)[stack_1,3]-zero_valu)*35),((input_array.mean(2)[stack_1,4]-zero_valu)*35),((input_array.mean(2)[stack_1,5]-zero_valu)*35),((input_array.mean(2)[stack_1,6]-zero_valu)*35),((input_array.mean(2)[stack_1,7]-zero_valu)*35),((input_array.mean(2)[stack_2,0]-zero_valu)*35)]
-    stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
-    stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
-    stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
-    stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
-    stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
-    stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
-    stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
-    stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-    stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
-    stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+    # stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
+    # stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
+    # stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
+    # stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
+    # stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
+    # stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
+    # stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
+    # stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
+    # stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
+    # stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+    stored_energy[0] = (input_array.mean(2)[3,0])
+    stored_energy[1] = (input_array.mean(2)[3,1])
+    stored_energy[2] = (input_array.mean(2)[3,2])
+    stored_energy[3] = (input_array.mean(2)[3,3])
+    stored_energy[4] = (input_array.mean(2)[3,4])
+    stored_energy[5] = (input_array.mean(2)[3,5])
+    stored_energy[6] = (input_array.mean(2)[3,6])
+    stored_energy[7] = (input_array.mean(2)[3,7])
+    stored_energy[8] = (input_array.mean(2)[4,0])
+    stored_energy[9] = (input_array.mean(2)[4,1])
     logging.info("stored_energy: %s", stored_energy)
     stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-    stored_energy_kwh[1] = round(np.sum(stored_energy[:4])*4200/1000/3600,2)
-    stored_energy_kwh[2] = round(np.sum(stored_energy[4:])*4200/1000/3600,2)
-    
-    name = "sequentmicrosystems_{}_{}"
+    stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
+    stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
 
     msg_dict = {
             "name": stored_energy,
