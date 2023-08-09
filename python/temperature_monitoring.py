@@ -38,7 +38,7 @@ loops = 10
 parser = argparse.ArgumentParser()
 
 #-db DATABSE -u USERNAME -p PASSWORD -size 20
-parser.add_argument("-d", "--debug", dest = "debug_mode", default = "True", help="if extra debugt output is needed")
+parser.add_argument("-d", "--debug", dest = "debug_mode", default = "false", help="true|false")
 
 args = parser.parse_args()
 
@@ -53,7 +53,7 @@ def producer(queue, event):
             collect_sensor_data_mega(3,a,10)
             a += 1
             if a > 8:
-                if args.debug_mode == True:
+                if args.debug_mode == "true":
                     logging.info("""input_array content: 
                                 %s""", input_array)
                 a = 1
@@ -368,7 +368,7 @@ if __name__ == "__main__":
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO,
                         datefmt="%H:%M:%S")
-    print(args.debug_mode)
+    logging.info("debug_mode: %s", args.debug_mode)
     mqtt_client_connected = run()
     pipeline = queue.Queue(maxsize=10)
     event = threading.Event()
