@@ -15,7 +15,8 @@ import argparse
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
-SUB_TOPIC = "rtd/acctank"
+SUB_TOPIC_1 = "rtd/acctank"
+SUB_TOPIC_2 = "rtd/solfangare_2"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -98,7 +99,8 @@ def sender(queue, event):
 def on_connect(client, userdata, flags, rc):
     if rc == 0 and client.is_connected():
         print("Connected to MQTT Broker!")
-        client.subscribe(SUB_TOPIC)
+        #client.subscribe(SUB_TOPIC_1)
+        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0)])
     else:
         print(f'Failed to connect, return code {rc}')
 
@@ -125,7 +127,7 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, msg):
     #print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
-    print(msg)
+    print(msg.decoded)
     if msg.topic == "rtd/acctank":
         x = json.loads(msg.payload.decode())
         mqtt_rtd[0] = x["RTD_1"]
