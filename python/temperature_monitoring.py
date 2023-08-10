@@ -45,7 +45,7 @@ solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
 #======Test variables =======#
-test_pump = False
+test_pump = "False"
 
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
