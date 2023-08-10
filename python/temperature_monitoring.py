@@ -413,7 +413,6 @@ def main_sun_collector():
         dT = round(T1-T2,1);
         logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
         
-
     return
 #========================== Main execution ==========================
 if __name__ == "__main__":
