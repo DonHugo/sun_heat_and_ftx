@@ -154,7 +154,7 @@ def on_message(client, userdata, msg):
             logging.info("mqtt_rtd %s", mqtt_rtd)
             logging.info("mqtt_sun %s", mqtt_sun)
     elif msg.topic == "hass/pump":
-        test_pump = msg.payload.decode()
+        test_pump = msg.payload()
         logging.info("test_pump: %s", test_pump)
     
 def connect_mqtt():
