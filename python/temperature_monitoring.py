@@ -45,7 +45,7 @@ solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
 #======Test variables =======#
-test_pump = "False"
+test_pump = False
 
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
@@ -412,6 +412,7 @@ def main_sun_collector():
         T2 = mqtt_sun[1]
         dT = round(T1-T2,1);
         logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+        logging.info(test_pump)
         
     return
 #========================== Main execution ==========================
