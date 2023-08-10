@@ -18,6 +18,7 @@ PORT = 1883
 #TOPIC = "python-mqtt/tcp"
 SUB_TOPIC_1 = "rtd/acctank"
 SUB_TOPIC_2 = "rtd/solfangare_2"
+SUB_TOPIC_3 = "hass/pump"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -107,7 +108,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0 and client.is_connected():
         print("Connected to MQTT Broker!")
         #client.subscribe(SUB_TOPIC_1)
-        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0)])
+        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0)])
     else:
         print(f'Failed to connect, return code {rc}')
 
