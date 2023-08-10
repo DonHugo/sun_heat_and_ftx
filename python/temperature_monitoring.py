@@ -79,14 +79,13 @@ def producer(queue, event):
 
 def executor(queue, event):
     while not event.is_set() or not queue.empty():
+        logging.info("executor started, waiting 7sec")
+        time.sleep(5)
         while not FLAG_EXIT:
             time.sleep(2)
+            logging.info("starting main_sun_collector!")
             main_sun_collector()
-    
-        #message = queue.get()
-        #logging.info(
-        #    "Consumer storing message: %s (size=%d)", message, queue.qsize()
-        #)
+
 
     logging.info("Consumer received event. Exiting")
 
@@ -98,11 +97,6 @@ def sender(queue, event):
             sensor_calculations(mqtt_client_connected)
             stored_energy(mqtt_client_connected)
             ftx(mqtt_client_connected)
-    
-        #message = queue.get()
-        #logging.info(
-        #    "Consumer storing message: %s (size=%d)", message, queue.qsize()
-        #)
 
     logging.info("Consumer received event. Exiting")
 
