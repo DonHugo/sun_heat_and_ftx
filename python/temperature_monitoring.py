@@ -409,7 +409,7 @@ def main_sun_collector():
         T1 = mqtt_sun[0]
         T2 = mqtt_sun[1]
         dT = round(T1-T2,1);
-        logging.info("T1: %s, T2: %s, dT: %s", T1, T2, dT)
+        logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
         
 
     return
