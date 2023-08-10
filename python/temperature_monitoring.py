@@ -156,6 +156,7 @@ def on_message(client, userdata, msg):
             logging.info("mqtt_sun %s", mqtt_sun)
     if msg.topic == "hass/pump":
         y = json.loads(msg.payload.decode())
+        global test_pump
         test_pump = y["pump"]
         logging.info("test_pump: %s", test_pump)
     
