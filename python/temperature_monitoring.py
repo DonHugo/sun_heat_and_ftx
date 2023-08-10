@@ -15,7 +15,7 @@ import argparse
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
-SUB_TOPIC = "rtd/acctank"
+SUB_TOPIC = "rtd"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -124,22 +124,23 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
-    #print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
-    x = json.loads(msg.payload.decode())
-    mqtt_rtd[0] = x["RTD_1"]
-    mqtt_rtd[1] = x["RTD_2"]
-    mqtt_rtd[2] = x["RTD_3"]
-    mqtt_rtd[3] = x["RTD_4"]
-    mqtt_rtd[4] = x["RTD_5"]
-    mqtt_rtd[5] = x["RTD_6"]
-    mqtt_rtd[6] = x["RTD_7"]
-    mqtt_rtd[7] = x["RTD_8"]
-    mqtt_rtd[8] = x["T3"]
-    mqtt_sun[0] = x["T1"]
-    mqtt_sun[1] = x["T2"]
-    mqtt_sun[2] = x["T3"]
-    #logging.info("mqtt_rtd %s", mqtt_rtd)
-    #logging.info("mqtt_sun %s", mqtt_sun)
+    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    if msg.topic == "rtd/acctank":
+        x = json.loads(msg.payload.decode())
+        mqtt_rtd[0] = x["RTD_1"]
+        mqtt_rtd[1] = x["RTD_2"]
+        mqtt_rtd[2] = x["RTD_3"]
+        mqtt_rtd[3] = x["RTD_4"]
+        mqtt_rtd[4] = x["RTD_5"]
+        mqtt_rtd[5] = x["RTD_6"]
+        mqtt_rtd[6] = x["RTD_7"]
+        mqtt_rtd[7] = x["RTD_8"]
+        mqtt_rtd[8] = x["T3"]
+        mqtt_sun[0] = x["T1"]
+        mqtt_sun[1] = x["T2"]
+        mqtt_sun[2] = x["T3"]
+        logging.info("mqtt_rtd %s", mqtt_rtd)
+        logging.info("mqtt_sun %s", mqtt_sun)
 
 
 def connect_mqtt():
