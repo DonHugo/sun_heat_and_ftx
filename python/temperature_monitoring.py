@@ -85,6 +85,7 @@ def sender(queue, event):
             time.sleep(2)
             sensor_calculations(mqtt_client_connected)
             stored_energy(mqtt_client_connected)
+            ftx(mqtt_client_connected)
     
         #message = queue.get()
         #logging.info(
@@ -346,6 +347,40 @@ def stored_energy(client):
             "average_temperature": stored_energy_kwh[3]
         }
     topic = "sequentmicrosystems/stored_energy"
+    #logging.info("topic: %s", topic)
+
+    msg = json.dumps(msg_dict)
+    publish(client,topic,msg)
+    return
+
+def ftx(client):
+    
+    if args.test_mode == "false":
+        uteluft = input_array.mean(2)[2,0]  # sensor marked 4
+        avluft = input_array.mean(2)[2,1]   # sensor marked 5
+        tilluft = input_array.mean(2)[2,2]  # sensor marked 6
+        franluft = input_array.mean(2)[2,3] # sensor marked 7
+        effekt_varmevaxlare = 100 - (avluft/franluft*100)
+        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+
+    elif args.test_mode == "true":
+        uteluft = input_array.mean(2)[2,0]  # sensor marked 4
+        avluft = input_array.mean(2)[2,1]   # sensor marked 5
+        tilluft = input_array.mean(2)[2,2]  # sensor marked 6
+        franluft = input_array.mean(2)[2,3] # sensor marked 7
+        effekt_varmevaxlare = 100 - (avluft/franluft*100)
+        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+
+    msg_dict = {
+            "name": "ftx",
+            "effekt_varmevaxlare": effekt_varmevaxlare,
+            "uteluft": uteluft,
+            "avluft": avluft,
+            "tilluft": tilluft,
+            "franluft": franluft
+        }
+
+    topic = "sequentmicrosystems/ftx"
     #logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
