@@ -43,6 +43,8 @@ temp_kok_hysteres = (temp_kok - 10)
 solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
+#======Test variables =======#
+test_pump = False
 
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
@@ -151,7 +153,10 @@ def on_message(client, userdata, msg):
         if args.debug_mode == "true":
             logging.info("mqtt_rtd %s", mqtt_rtd)
             logging.info("mqtt_sun %s", mqtt_sun)
-
+    elif msg.topic == "hass/pump":
+        test_pump = json.loads(msg.payload.decode())
+        logging.info("test_pump: %s", test_pump)
+    
 def connect_mqtt():
     client = mqtt_client.Client(CLIENT_ID)
     client.username_pw_set(USERNAME, PASSWORD)
