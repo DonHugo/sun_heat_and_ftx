@@ -77,7 +77,7 @@ def producer(queue, event):
 
     logging.info("Producer received event. Exiting")
 
-def executor(queue, event):
+def execution(queue, event):
     while not event.is_set() or not queue.empty():
         logging.info("executor started, waiting 7sec")
         time.sleep(5)
@@ -420,7 +420,7 @@ if __name__ == "__main__":
     event = threading.Event()
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         executor.submit(producer, pipeline, event)
-        executor.submit(executor, pipeline, event)
+        executor.submit( bnv,, pipeline, event)
         executor.submit(sender, pipeline, event)
         time.sleep(0.1)
         logging.info("Main: about to set event")
