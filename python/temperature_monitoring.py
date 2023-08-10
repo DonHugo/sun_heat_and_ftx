@@ -10,6 +10,7 @@ import json
 import numpy as np
 import librtd
 import argparse
+import lib4relind
 
 #==== MQTT Variables ====#
 BROKER = '192.168.0.110'
@@ -32,6 +33,16 @@ FLAG_EXIT = False
 collection = [0,0,0,0,0,0,0,0,0,0]
 input_array = np.zeros((4, 8, 10))
 loops = 10
+
+set_temp_tank_1 = 70 # Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
+dTStart_tank_1 = 8 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
+dTStop_tank_1 = 4 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
+kylning_kollektor = 90
+temp_kok = 150
+temp_kok_hysteres = (temp_kok - 10)
+solfangare_manuell_styrning = False
+solfångare_manuell_pump = False # pump_solfangare
+
 
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
@@ -69,8 +80,8 @@ def producer(queue, event):
 def executor(queue, event):
     while not event.is_set() or not queue.empty():
         while not FLAG_EXIT:
-            time.sleep(5)
-            stored_energy
+            time.sleep(2)
+            main_sun_collector()
     
         #message = queue.get()
         #logging.info(
@@ -154,7 +165,6 @@ def connect_mqtt():
     client.on_disconnect = on_disconnect
     return client
 
-
 #========================== megabas ==========================
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
@@ -171,7 +181,6 @@ def collect_sensor_data_mega(stack,input,iterations):
             input_position = input-1
  
         i += 1
-
     
 def read_megabas_1k(stack, input):
     limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
@@ -275,7 +284,6 @@ def run():
         client.loop_stop()
 
 
-
 #========================== data calculations ==========================
 def sensor_calculations(client):
     for x in range(4):
@@ -363,7 +371,7 @@ def ftx(client):
         avluft = input_array.mean(2)[2,1]   # sensor marked 5
         tilluft = input_array.mean(2)[2,2]  # sensor marked 6
         franluft = input_array.mean(2)[2,3] # sensor marked 7
-        effekt_varmevaxlare = 100 - (avluft/franluft*100)
+        effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
     elif args.test_mode == "true":
@@ -371,7 +379,7 @@ def ftx(client):
         avluft = input_array.mean(2)[2,1]   # sensor marked 5
         tilluft = input_array.mean(2)[2,2]  # sensor marked 6
         franluft = input_array.mean(2)[2,3] # sensor marked 7
-        effekt_varmevaxlare = 100 - (avluft/franluft*100)
+        effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
     msg_dict = {
@@ -390,6 +398,22 @@ def ftx(client):
     publish(client,topic,msg)
     return
 
+#========================== sun heat collector ==========================
+def main_sun_collector():
+
+
+    if args.test_mode == "false":
+        logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+
+    elif args.test_mode == "true":
+        logging.info("sun collector in testmode")
+        T1 = mqtt_sun[0]
+        T2 = mqtt_sun[1]
+        dT = round(T1-T2,1);
+        logging.info("T1: %s, T2: %s, dT: %s", T1, T2, dT)
+        
+
+    return
 #========================== Main execution ==========================
 if __name__ == "__main__":
     format = "%(asctime)s: %(message)s"
