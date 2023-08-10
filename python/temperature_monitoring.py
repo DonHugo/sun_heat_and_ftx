@@ -44,12 +44,12 @@ temp_kok_hysteres = (temp_kok - 10)
 solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
-#======Test variables =======#
-test_pump = None
-
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
 mqtt_sun = np.zeros(3)
+
+#======Test variables =======#
+test_pump = False
 
 #==== Application parsing variables ====#
 parser = argparse.ArgumentParser()
