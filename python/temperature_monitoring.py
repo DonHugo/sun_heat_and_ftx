@@ -137,7 +137,9 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
-    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    if args.debug_mode == "true":
+        print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    
     if msg.topic == "rtd/acctank":
         x = json.loads(msg.payload.decode())
         mqtt_rtd[0] = x["RTD_1"]
@@ -152,9 +154,9 @@ def on_message(client, userdata, msg):
         mqtt_sun[0] = x["T1"]
         mqtt_sun[1] = x["T2"]
         mqtt_sun[2] = x["T3"]
-        logging.info("mqtt_rtd %s", mqtt_rtd)
-        logging.info("mqtt_sun %s", mqtt_sun)
-
+        if args.debug_mode == "true":
+            logging.info("mqtt_rtd %s", mqtt_rtd)
+            logging.info("mqtt_sun %s", mqtt_sun)
 
 def connect_mqtt():
     client = mqtt_client.Client(CLIENT_ID)
@@ -225,9 +227,7 @@ def collect_sensor_data_rtd(stack,input,iterations):
         collect_rtd = read_rtd(stack, input)
         if collect_rtd != 9999:
             stack_position = stack-1
-            #print(stack_position)
             input_position = input-1
-            #print(rtd_position)
             input_array[stack_position,input_position,i] = collect_rtd
         else:
             stack_position = stack-1
@@ -403,7 +403,7 @@ def main_sun_collector():
 
 
     if args.test_mode == "false":
-        logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+        logging.info("test_mode: %s", args.test_mode)
 
     elif args.test_mode == "true":
         logging.info("sun collector in testmode")
@@ -420,6 +420,7 @@ if __name__ == "__main__":
     logging.basicConfig(format=format, level=logging.INFO,
                         datefmt="%H:%M:%S")
     logging.info("debug_mode: %s", args.debug_mode)
+    logging.info("test_mode: %s", args.test_mode)
     mqtt_client_connected = run()
     pipeline = queue.Queue(maxsize=10)
     event = threading.Event()
