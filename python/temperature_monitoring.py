@@ -124,7 +124,8 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
-    print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    #print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    print(msg)
     if msg.topic == "rtd/acctank":
         x = json.loads(msg.payload.decode())
         mqtt_rtd[0] = x["RTD_1"]
