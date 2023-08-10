@@ -15,7 +15,7 @@ import argparse
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
-SUB_TOPIC = "rtd"
+SUB_TOPIC = "rtd/acctank"
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
