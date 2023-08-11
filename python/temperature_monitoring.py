@@ -186,22 +186,22 @@ def on_message(client, userdata, msg):
          x = json.loads(msg.payload.decode())
          dTStart_tank_1 = x["state"]
          logging.info("dTStart_tank_1: %s", dTStart_tank_1)
-    # elif msg.topic == "hass/delta_temp_stop_tank_1":
-    #     x = json.loads(msg.payload.decode())
-    #     dTStop_tank_1 = x["state"]
-    #     logging.info("dTStop_tank_1: %s", dTStop_tank_1)
-    # elif msg.topic == "hass/kylning_kollektor":
-    #     x = json.loads(msg.payload.decode())
-    #     kylning_kollektor = x["state"]
-    #     logging.info("kylning_kollektor: %s", kylning_kollektor)
-    # elif msg.topic == "hass/set_temp_tank_1":
-    #     x = json.loads(msg.payload.decode())
-    #     set_temp_tank_1 = x["state"]
-    #     logging.info("set_temp_tank_1: %s", set_temp_tank_1)
-    # elif msg.topic == "hass/temp_kok":
-    #     x = json.loads(msg.payload.decode())
-    #     temp_kok = x["state"]
-    #     logging.info("temp_kok: %s", temp_kok)
+    elif msg.topic == "hass/delta_temp_stop_tank_1":
+         x = json.loads(msg.payload.decode())
+         dTStop_tank_1 = x["state"]
+         logging.info("dTStop_tank_1: %s", dTStop_tank_1)
+    elif msg.topic == "hass/kylning_kollektor":
+         x = json.loads(msg.payload.decode())
+         kylning_kollektor = x["state"]
+         logging.info("kylning_kollektor: %s", kylning_kollektor)
+    elif msg.topic == "hass/set_temp_tank_1":
+         x = json.loads(msg.payload.decode())
+         set_temp_tank_1 = x["state"]
+         logging.info("set_temp_tank_1: %s", set_temp_tank_1)
+    elif msg.topic == "hass/temp_kok":
+         x = json.loads(msg.payload.decode())
+         temp_kok = x["state"]
+         logging.info("temp_kok: %s", temp_kok)
     # elif msg.topic == "hass/manuell_styrning":
     #     x = json.loads(msg.payload.decode())
     #     manuell_styrning = x["state"]
