@@ -204,9 +204,9 @@ def on_message(client, userdata, msg):
          logging.info("temp_kok: %s", temp_kok)
     elif msg.topic == "hass/manuell_styrning":
         x = json.loads(msg.payload.decode())
-        if x["state"] == "off":
+        if x["state"] == False:
             manuell_styrning = False
-        elif x["state"] == "on":
+        elif x["state"] == True:
             manuell_styrning = True
         logging.info("manuell_styrning: %s", manuell_styrning)
     # elif msg.topic == "hass/manuell_pump":
