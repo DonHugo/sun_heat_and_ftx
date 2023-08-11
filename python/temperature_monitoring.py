@@ -210,6 +210,7 @@ def on_message(client, userdata, msg):
             solfangare_manuell_styrning = True
         logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
     elif msg.topic == "hass/manuell_pump":
+        x = json.loads(msg.payload.decode())
         if x["state"] == 0:
             solfångare_manuell_pump = False
         elif x["state"] == 1:
