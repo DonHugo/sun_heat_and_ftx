@@ -455,6 +455,11 @@ def ftx(client):
 def main_sun_collector(client):
     global test_pump
     global solfångare_manuell_pump
+    global overheated
+    global mode
+    global state
+    global sub_state
+
     overheated = False
     mode = "startup"
     state = 1
