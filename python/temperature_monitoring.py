@@ -36,11 +36,14 @@ input_array = np.zeros((4, 8, 10))
 loops = 10
 
 set_temp_tank_1 = 70 # Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
+set_temp_tank_1_hysteres = 2
+set_temp_tank_1_gräns = set_temp_tank_1 + set_temp_tank_1_hysteres
 dTStart_tank_1 = 8 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
 dTStop_tank_1 = 4 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
 kylning_kollektor = 90
 temp_kok = 150
-temp_kok_hysteres = (temp_kok - 10)
+temp_kok_hysteres = 10
+temp_kok_hysteres_gräns = temp_kok - temp_kok_hysteres
 solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
@@ -54,13 +57,10 @@ test_pump = False
 #==== Application parsing variables ====#
 parser = argparse.ArgumentParser()
 
-#-db DATABSE -u USERNAME -p PASSWORD -size 20
 parser.add_argument("-d", "--debug", dest = "debug_mode", default = "false", help="true|false")
 parser.add_argument("-t", "--test", dest = "test_mode", default = "false", help="true|false")
 
 args = parser.parse_args()
-
-
 
 
 def producer(queue, event):
@@ -87,7 +87,7 @@ def execution(queue, event):
         while not FLAG_EXIT:
             time.sleep(2)
             logging.info("starting main_sun_collector!")
-            main_sun_collector()
+            main_sun_collector(mqtt_client_connected)
 
 
     logging.info("Consumer received event. Exiting")
@@ -401,8 +401,8 @@ def ftx(client):
     return
 
 #========================== sun heat collector ==========================
-def main_sun_collector():
-
+def main_sun_collector(client):
+    global test_pump
 
     if args.test_mode == "false":
         logging.info("test_mode: %s", args.test_mode)
@@ -413,66 +413,80 @@ def main_sun_collector():
         T2 = mqtt_sun[1]
         dT = round(T1-T2,1);
         logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+        
+        #skapar en entitet för att mäta energimängd när pumpen är på
         if test_pump == True:
             dT_running = dT
         else:
             dT_running = 0
         
-        if T1 >= temp_kok and overheated == False:
-            overheated = True
-            mode = "20"
-        elif overheated == True and T1 < 140:
-            overheated = False
-            mode = "21"
-            state = 0
         
+        # kollar om manuell styrning är påslagen
         if solfangare_manuell_styrning == True:
             if solfångare_manuell_pump == True:
                 test_pump = True
                 mode = "06"
                 state = 0
                 sub_state = 6
-            else:
+            elif solfångare_manuell_pump == False:
                 test_pump = False
                 mode = "07"
                 state = 0
                 sub_state = 7
-        else:
-            # Om pumpen är av(state 0) eller om pumpen är på pga "dra fram vatten impuls"        
-            if (state == 0 and overheated == False) or (state == 1 and sub_state == 1 and overheated == False):
-                # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
-                if dt >= dTStart_tank_1 and T2 <= set_temp_tank_1:
-                    test_pump = True
-                    mode = "12"
-                    state = 1
-                    sub_state = 2
-                # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
-                elif T1 >= kylning_kollektor:
-                    test_pump = True
-                    mode = "13"
-                    state = 1
-                    sub_state = 3
-            # Om pumpen är på men inte om  "dra fram vatten
-            if state == 1 and not(state == 1 and sub_state == 1):
-                #stoppa pumpen när dT går under satt nivå
-                if dt <= dTStop_tank_1:
-                    test_pump = False
-                    mode = "02"
-                    state = 0
-                    sub_state = 2
-                #stoppa pumpen när den nåt rätt nivå och kollektor inte är för varm
-                elif T2 >= (set_temp_tank_1+2) and T1 <= kylning_kollektor:
-                    test_pump = False
-                    mode = "03"
-                    state = 0
-                    sub_state = 3
-                #stoppa pumpen när kollektor har börjat koka
-                elif T1 >= temp_kok:
-                    test_pump = False
-                    overheated = True
-                    mode = "04"
-                    state = 0
-                    sub_state = 4
+        # Kollar om temperaturen är över eller ha varit över temp_kok 
+        elif T1 >= temp_kok or overheated == True:
+            if T1 >= temp_kok:
+                overheated = True
+                test_pump = False
+                mode = "20"
+                state = 2
+                sub_state = 0
+                #När temperaturen i kollktorn har varit över temp_kok-gränsen men har gått under hysteresgränsen
+            elif overheated == True and T1 < temp_kok_hysteres_gräns:
+                overheated = False
+                test_pump = True
+                mode = "21"
+                state = 2
+                sub_state = 1
+        # Om pumpen är avslagen(state 0)
+        elif state == 0:
+            # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
+            if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
+                test_pump = True
+                mode = "12"
+                state = 1
+                sub_state = 2
+            # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
+            elif T1 >= kylning_kollektor:
+                test_pump = True
+                mode = "13"
+                state = 1
+                sub_state = 3
+        # Pumpmen är påslagen(state 1)
+        elif state == 1:
+            #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
+            if T2 >= (set_temp_tank_1_gräns) and T1 <= kylning_kollektor:
+                test_pump = False
+                mode = "03"
+                state = 0
+                sub_state = 3
+            
+    solfångare_manuell_pump = test_pump
+    msg_dict = {
+            "name": "solfångare",
+            "pump": test_pump,
+            "mode": mode,
+            "state": state,
+            "sub_state": sub_state,
+            "overheated": overheated
+        }
+
+    topic = "sequentmicrosystems/suncollector"
+    #logging.info("topic: %s", topic)
+
+    msg = json.dumps(msg_dict)
+    publish(client,topic,msg)       
+
                 
 
     return
