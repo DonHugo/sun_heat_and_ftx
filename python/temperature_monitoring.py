@@ -85,9 +85,9 @@ def execution(queue, event):
         logging.info("executor started, waiting 7sec")
         time.sleep(5)
         while not FLAG_EXIT:
-            time.sleep(2)
+            time.sleep(1)
             logging.info("starting main_sun_collector!")
-            main_sun_collector(mqtt_client_connected)
+            
 
 
     logging.info("Consumer received event. Exiting")
@@ -95,11 +95,16 @@ def execution(queue, event):
 def sender(queue, event):
     while not event.is_set() or not queue.empty():
         time.sleep(5)
+        x = 1
         while not FLAG_EXIT:
-            time.sleep(2)
-            sensor_calculations(mqtt_client_connected)
-            stored_energy(mqtt_client_connected)
-            ftx(mqtt_client_connected)
+            time.sleep(0.2)
+            main_sun_collector(mqtt_client_connected)
+            if x == 5:    
+                sensor_calculations(mqtt_client_connected)
+                stored_energy(mqtt_client_connected)
+                ftx(mqtt_client_connected)
+                x = 1
+            x =+ 1
 
     logging.info("Consumer received event. Exiting")
 
@@ -478,7 +483,8 @@ def main_sun_collector(client):
             "mode": mode,
             "state": state,
             "sub_state": sub_state,
-            "overheated": overheated
+            "overheated": overheated,
+            "dT_running": dT_running
         }
 
     topic = "sequentmicrosystems/suncollector"
@@ -502,7 +508,7 @@ if __name__ == "__main__":
     event = threading.Event()
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         executor.submit(producer, pipeline, event)
-        executor.submit(execution, pipeline, event)
+        #executor.submit(execution, pipeline, event)
         executor.submit(sender, pipeline, event)
         time.sleep(0.1)
         logging.info("Main: about to set event")
