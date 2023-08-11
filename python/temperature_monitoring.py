@@ -94,7 +94,7 @@ def execution(queue, event):
         logging.info("executor started, waiting 7sec")
         time.sleep(5)
         while not FLAG_EXIT:
-            time.sleep(1)
+            time.sleep(2)
             logging.info("starting main_sun_collector!")
             main_sun_collector(mqtt_client_connected)
 
@@ -477,9 +477,10 @@ def main_sun_collector(client):
         else:
             dT_running = 0
         logging.info("dT_running: %s", dT_running)
+        logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
         # kollar om manuell styrning är påslagen
         if solfangare_manuell_styrning == True:
-            logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
+            logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
             if solfångare_manuell_pump == True:
                 test_pump = True
                 #lib4relind.set_relay(2, 1, 0)
@@ -494,7 +495,7 @@ def main_sun_collector(client):
                 sub_state = 7
         # Kollar om temperaturen är över eller ha varit över temp_kok 
         elif T1 >= temp_kok or overheated == True:
-            logging.info("T1(%s) >= temp_kok(%s)", T1, temp_kok)
+            logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
             if T1 >= temp_kok:
                 overheated = True
                 test_pump = False
@@ -510,7 +511,7 @@ def main_sun_collector(client):
                 sub_state = 1
         # Om pumpen är avslagen(state 0)
         elif state == 0 or mode == "startup":
-            logging.info("state: %s, T1:%s", state, T1)
+            logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
             # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
             if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
                 test_pump = True
@@ -530,7 +531,7 @@ def main_sun_collector(client):
                 sub_state = 4
         # Pumpmen är påslagen(state 1)
         elif state == 1:
-            logging.info("state: %s, T1:%s", state, T1)
+            logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
             #stoppa pumpen när dT går under satt nivå
             if dT <= dTStop_tank_1:
                 test_pump = False
