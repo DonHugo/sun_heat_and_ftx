@@ -493,15 +493,15 @@ def main_sun_collector(client):
             if solfångare_manuell_pump == True:
                 test_pump = True
                 #lib4relind.set_relay(2, 1, 0)
-                mode = "06"
-                state = 0
-                sub_state = 6
+                mode = "10"
+                state = 1
+                sub_state = 0
             elif solfångare_manuell_pump == False:
                 test_pump = False
                 #lib4relind.set_relay(2, 1, 1)
-                mode = "07"
-                state = 0
-                sub_state = 7
+                mode = "11"
+                state = 1
+                sub_state = 1
         # Kollar om temperaturen är över eller ha varit över temp_kok 
         elif T1 >= temp_kok or overheated == True:
             if args.debug_mode == "true" : logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
@@ -518,44 +518,47 @@ def main_sun_collector(client):
                 mode = "21"
                 state = 2
                 sub_state = 1
-        # Om pumpen är avslagen(state 0)
-        elif state == 0 or mode == "startup":
+        # Om pumpen är avslagen eller startup läge
+        elif test_pump == False or mode == "startup":
             if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
             # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
             if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
                 test_pump = True
-                mode = "12"
-                state = 1
-                sub_state = 2
+                mode = "30"
+                state = 3
+                sub_state = 0
             # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
             elif T1 >= kylning_kollektor:
                 test_pump = True
-                mode = "13"
-                state = 1
-                sub_state = 3
+                mode = "31"
+                state = 3
+                sub_state = 1
             elif mode == "startup":
                 test_pump = True
-                mode = "14"
-                state = 1
-                sub_state = 4
-        # Pumpmen är påslagen(state 1)
-        elif state == 1:
+                mode = "32"
+                state = 3
+                sub_state = 2
+        # Pumpmen är påslagen
+        elif test_pump == True:
             if args.debug_mode == "true" : logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
             #stoppa pumpen när dT går under satt nivå
             if dT <= dTStop_tank_1:
                 test_pump = False
-                mode = "02"
-                state = 0
-                sub_state = 2
+                mode = "40"
+                state = 4
+                sub_state = 0
             #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
             elif T2 >= set_temp_tank_1_gräns and T1 <= kylning_kollektor:
                 test_pump = False
-                mode = "03"
-                state = 0
-                sub_state = 3
+                mode = "41"
+                state = 4
+                sub_state = 1
             else:    
                 if args.debug_mode == "true" : logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
-            
+                mode = "42"
+                state = 4
+                sub_state = 2
+
     #solfångare_manuell_pump = test_pump
     msg_dict = {
             "name": "solfångare",
