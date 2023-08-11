@@ -47,6 +47,7 @@ temp_kok_hysteres_gräns = temp_kok - temp_kok_hysteres
 solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
 
+
 #===== MQTT subscribe =====#
 mqtt_rtd = np.zeros(9)
 mqtt_sun = np.zeros(3)
@@ -408,7 +409,10 @@ def ftx(client):
 #========================== sun heat collector ==========================
 def main_sun_collector(client):
     global test_pump
-
+    global solfångare_manuell_pump
+    overheated = False
+    state = 1
+    sub_state = 0
     if args.test_mode == "false":
         logging.info("test_mode: %s", args.test_mode)
 
