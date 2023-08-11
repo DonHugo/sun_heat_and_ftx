@@ -53,7 +53,7 @@ mqtt_rtd = np.zeros(9)
 mqtt_sun = np.zeros(3)
 
 #======Test variables =======#
-test_pump = False
+test_pump = True
 
 #==== Application parsing variables ====#
 parser = argparse.ArgumentParser()
@@ -501,7 +501,7 @@ def main_sun_collector(client):
     logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
-    #publish(client,topic,msg)       
+    publish(client,topic,msg)       
 
                 
 
