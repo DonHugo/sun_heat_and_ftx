@@ -88,7 +88,7 @@ def execution(queue, event):
         while not FLAG_EXIT:
             time.sleep(1)
             logging.info("starting main_sun_collector!")
-            
+            main_sun_collector(mqtt_client_connected)
 
 
     logging.info("Consumer received event. Exiting")
@@ -96,16 +96,12 @@ def execution(queue, event):
 def sender(queue, event):
     while not event.is_set() or not queue.empty():
         time.sleep(5)
-        x = 1
         while not FLAG_EXIT:
-            time.sleep(0.2)
-            main_sun_collector(mqtt_client_connected)
-            if x == 5:    
-                sensor_calculations(mqtt_client_connected)
-                stored_energy(mqtt_client_connected)
-                ftx(mqtt_client_connected)
-                x = 1
-            x =+ 1
+            time.sleep(5)
+           # main_sun_collector(mqtt_client_connected)  
+            sensor_calculations(mqtt_client_connected)
+            stored_energy(mqtt_client_connected)
+            ftx(mqtt_client_connected)
 
     logging.info("Consumer received event. Exiting")
 
@@ -375,18 +371,18 @@ def stored_energy(client):
 def ftx(client):
     
     if args.test_mode == "false":
-        uteluft = input_array.mean(2)[2,0]  # sensor marked 4
-        avluft = input_array.mean(2)[2,1]   # sensor marked 5
-        tilluft = input_array.mean(2)[2,2]  # sensor marked 6
-        franluft = input_array.mean(2)[2,3] # sensor marked 7
+        uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
+        avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
+        tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
+        franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
         effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
     elif args.test_mode == "true":
-        uteluft = input_array.mean(2)[2,0]  # sensor marked 4
-        avluft = input_array.mean(2)[2,1]   # sensor marked 5
-        tilluft = input_array.mean(2)[2,2]  # sensor marked 6
-        franluft = input_array.mean(2)[2,3] # sensor marked 7
+        uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
+        avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
+        tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
+        franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
         effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
