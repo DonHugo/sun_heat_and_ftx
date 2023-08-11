@@ -514,7 +514,7 @@ if __name__ == "__main__":
     event = threading.Event()
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         executor.submit(producer, pipeline, event)
-        #executor.submit(execution, pipeline, event)
+        executor.submit(execution, pipeline, event)
         executor.submit(sender, pipeline, event)
         time.sleep(0.1)
         logging.info("Main: about to set event")
