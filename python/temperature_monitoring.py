@@ -411,6 +411,7 @@ def main_sun_collector(client):
     global test_pump
     global solfångare_manuell_pump
     overheated = False
+    mode = "startup"
     state = 1
     sub_state = 0
     if args.test_mode == "false":
@@ -483,7 +484,7 @@ def main_sun_collector(client):
                 state = 0
                 sub_state = 3
             else:    
-                logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state; %s ", T2, T1, test_pump, mode, state, sub_state)
+                logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
             
     #solfångare_manuell_pump = test_pump
     msg_dict = {
