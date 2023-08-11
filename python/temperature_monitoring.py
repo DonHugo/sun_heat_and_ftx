@@ -202,10 +202,13 @@ def on_message(client, userdata, msg):
          x = json.loads(msg.payload.decode())
          temp_kok = x["state"]
          logging.info("temp_kok: %s", temp_kok)
-    # elif msg.topic == "hass/manuell_styrning":
-    #     x = json.loads(msg.payload.decode())
-    #     manuell_styrning = x["state"]
-    #     logging.info("manuell_styrning: %s", manuell_styrning)
+    elif msg.topic == "hass/manuell_styrning":
+        x = json.loads(msg.payload.decode())
+        if x["state"] == "off":
+            manuell_styrning = False
+        elif x["state"] == "on":
+            manuell_styrning = True
+        logging.info("manuell_styrning: %s", manuell_styrning)
     # elif msg.topic == "hass/manuell_pump":
     #     x = json.loads(msg.payload.decode())
     #     manuell_pump = x["state"]
