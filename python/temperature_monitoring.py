@@ -491,7 +491,7 @@ def main_sun_collector(client):
     #logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
-    publish(client,topic,msg)       
+    #publish(client,topic,msg)       
 
                 
 
