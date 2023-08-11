@@ -19,6 +19,14 @@ PORT = 1883
 SUB_TOPIC_1 = "rtd/acctank"
 SUB_TOPIC_2 = "rtd/solfangare_2"
 SUB_TOPIC_3 = "hass/pump"
+SUB_TOPIC_4 = "hass/delta_temp_start_tank_1"
+SUB_TOPIC_5 = "hass/delta_temp_stop_tank_1"
+SUB_TOPIC_6 = "hass/kylning_kollektor"
+SUB_TOPIC_7 = "hass/set_temp_tank_1"
+SUB_TOPIC_8 = "hass/temp_kok"
+SUB_TOPIC_9 = "hass/manuell_styrning"
+SUB_TOPIC_10 = "hass/manuell_pump"
+
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
 USERNAME = 'mqtt_beaches'
@@ -110,7 +118,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0 and client.is_connected():
         print("Connected to MQTT Broker!")
         #client.subscribe(SUB_TOPIC_1)
-        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0)])
+        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0)])
     else:
         print(f'Failed to connect, return code {rc}')
 
@@ -136,6 +144,17 @@ def on_disconnect(client, userdata, rc):
     FLAG_EXIT = True
 
 def on_message(client, userdata, msg):
+    global set_temp_tank_1
+    global set_temp_tank_1_hysteres
+    global dTStart_tank_1 #
+    global dTStop_tank_1
+    global kylning_kollektor
+    global temp_kok
+    global temp_kok_hysteres
+    global solfangare_manuell_styrning
+    global solfångare_manuell_pump
+    global test_pump
+
     if args.debug_mode == "true":
         print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
@@ -156,11 +175,41 @@ def on_message(client, userdata, msg):
         if args.debug_mode == "true":
             logging.info("mqtt_rtd %s", mqtt_rtd)
             logging.info("mqtt_sun %s", mqtt_sun)
-    if msg.topic == "hass/pump":
-        y = json.loads(msg.payload.decode())
-        global test_pump
-        test_pump = y["pump"]
+    elif msg.topic == "hass/pump":
+        x = json.loads(msg.payload.decode())
+        test_pump = x["pump"]
         logging.info("test_pump: %s", test_pump)
+    elif msg.topic == "hass/delta_temp_start_tank_1":
+        x = json.loads(msg.payload.decode())
+        dTStart_tank_1 = x["state"]
+        logging.info("dTStart_tank_1: %s", dTStart_tank_1)
+    elif msg.topic == "hass/delta_temp_stop_tank_1":
+        x = json.loads(msg.payload.decode())
+        dTStop_tank_1 = x["state"]
+        logging.info("dTStop_tank_1: %s", dTStop_tank_1)
+    elif msg.topic == "hass/kylning_kollektor":
+        x = json.loads(msg.payload.decode())
+        kylning_kollektor = x["state"]
+        logging.info("kylning_kollektor: %s", kylning_kollektor)
+    elif msg.topic == "hass/set_temp_tank_1":
+        x = json.loads(msg.payload.decode())
+        set_temp_tank_1 = x["state"]
+        logging.info("set_temp_tank_1: %s", set_temp_tank_1)
+    elif msg.topic == "hass/temp_kok":
+        x = json.loads(msg.payload.decode())
+        temp_kok = x["state"]
+        logging.info("temp_kok: %s", temp_kok)
+    elif msg.topic == "hass/manuell_styrning":
+        x = json.loads(msg.payload.decode())
+        manuell_styrning = x["state"]
+        logging.info("manuell_styrning: %s", manuell_styrning)
+    elif msg.topic == "hass/manuell_pump":
+        x = json.loads(msg.payload.decode())
+        manuell_pump = x["state"]
+        logging.info("manuell_pump: %s", manuell_pump)
+
+
+
     
 def connect_mqtt():
     client = mqtt_client.Client(CLIENT_ID)
@@ -410,6 +459,8 @@ def main_sun_collector(client):
     mode = "startup"
     state = 1
     sub_state = 0
+    concurrent_pump_status = lib4relind.get_relay(4, 1)
+    
     if args.test_mode == "false":
         logging.info("test_mode: %s", args.test_mode)
 
@@ -431,11 +482,13 @@ def main_sun_collector(client):
             logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
             if solfångare_manuell_pump == True:
                 test_pump = True
+                #lib4relind.set_relay(2, 1, 0)
                 mode = "06"
                 state = 0
                 sub_state = 6
             elif solfångare_manuell_pump == False:
                 test_pump = False
+                #lib4relind.set_relay(2, 1, 1)
                 mode = "07"
                 state = 0
                 sub_state = 7
@@ -456,7 +509,7 @@ def main_sun_collector(client):
                 state = 2
                 sub_state = 1
         # Om pumpen är avslagen(state 0)
-        elif state == 0:
+        elif state == 0 or mode == "startup":
             logging.info("state: %s, T1:%s", state, T1)
             # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
             if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
@@ -470,11 +523,22 @@ def main_sun_collector(client):
                 mode = "13"
                 state = 1
                 sub_state = 3
+            elif mode == "startup"
+                test_pump = True
+                mode = "14"
+                state = 1
+                sub_state = 4
         # Pumpmen är påslagen(state 1)
         elif state == 1:
             logging.info("state: %s, T1:%s", state, T1)
+            #stoppa pumpen när dT går under satt nivå
+            if dT <= dTStop_tank_1:
+                test_pump = False
+                mode = "02"
+                state = 0
+                sub_state = 2
             #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
-            if T2 >= (set_temp_tank_1_gräns) and T1 <= kylning_kollektor:
+            elif T2 >= set_temp_tank_1_gräns and T1 <= kylning_kollektor:
                 test_pump = False
                 mode = "03"
                 state = 0
