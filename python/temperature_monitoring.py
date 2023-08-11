@@ -463,7 +463,6 @@ def ftx(client):
 #========================== sun heat collector ==========================
 def main_sun_collector(client):
     global test_pump
-    global solfångare_manuell_pump
     global overheated
     global mode
     global state
@@ -559,19 +558,19 @@ def main_sun_collector(client):
                 state = 4
                 sub_state = 2
 
-    #solfångare_manuell_pump = test_pump
-    msg_dict = {
-            "name": "solfångare",
-            "pump": test_pump,
-            "mode": mode,
-            "state": state,
-            "sub_state": sub_state,
-            "overheated": overheated,
-            "dT_running": dT_running
-        }
-    print(msg_dict)
-    topic = "sequentmicrosystems/suncollector"
-    if args.debug_mode == "true" : logging.info("topic: %s", topic)
+        msg_dict = {
+                "name": "solfångare",
+                "pump": test_pump,
+                "mode": mode,
+                "state": state,
+                "sub_state": sub_state,
+                "overheated": overheated,
+                "dT_running": dT_running,
+                "dT": dT
+            }
+        print(msg_dict)
+        topic = "test/sequentmicrosystems/suncollector"
+        if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
     publish(client,topic,msg)       
