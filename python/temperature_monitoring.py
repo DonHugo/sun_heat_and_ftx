@@ -459,7 +459,7 @@ def main_sun_collector(client):
     mode = "startup"
     state = 1
     sub_state = 0
-    concurrent_pump_status = lib4relind.get_relay(4, 1)
+    #concurrent_pump_status = lib4relind.get_relay(4, 1)
     
     if args.test_mode == "false":
         logging.info("test_mode: %s", args.test_mode)
