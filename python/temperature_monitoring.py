@@ -159,8 +159,7 @@ def on_message(client, userdata, msg):
     global solfångare_manuell_pump
     global test_pump
 
-    if args.debug_mode == "true":
-        print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    if args.debug_mode == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
     if msg.topic == "rtd/acctank":
         x = json.loads(msg.payload.decode())
@@ -183,10 +182,10 @@ def on_message(client, userdata, msg):
         x = json.loads(msg.payload.decode())
         test_pump = x["pump"]
         logging.info("test_pump: %s", test_pump)
-    # elif msg.topic == "hass/delta_temp_start_tank_1":
-    #     x = json.loads(msg.payload.decode())
-    #     dTStart_tank_1 = x["state"]
-    #     logging.info("dTStart_tank_1: %s", dTStart_tank_1)
+    elif msg.topic == "hass/delta_temp_start_tank_1":
+         x = json.loads(msg.payload.decode())
+         dTStart_tank_1 = x["state"]
+         logging.info("dTStart_tank_1: %s", dTStart_tank_1)
     # elif msg.topic == "hass/delta_temp_stop_tank_1":
     #     x = json.loads(msg.payload.decode())
     #     dTStop_tank_1 = x["state"]
@@ -480,11 +479,11 @@ def main_sun_collector(client):
             dT_running = dT
         else:
             dT_running = 0
-        logging.info("dT_running: %s", dT_running)
-        logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+        if args.debug_mode == "true" : logging.info("dT_running: %s", dT_running)
+        if args.debug_mode == "true" : logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
         # kollar om manuell styrning är påslagen
         if solfangare_manuell_styrning == True:
-            logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+            if args.debug_mode == "true" : logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
             if solfångare_manuell_pump == True:
                 test_pump = True
                 #lib4relind.set_relay(2, 1, 0)
@@ -499,7 +498,7 @@ def main_sun_collector(client):
                 sub_state = 7
         # Kollar om temperaturen är över eller ha varit över temp_kok 
         elif T1 >= temp_kok or overheated == True:
-            logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
+            if args.debug_mode == "true" : logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
             if T1 >= temp_kok:
                 overheated = True
                 test_pump = False
@@ -515,7 +514,7 @@ def main_sun_collector(client):
                 sub_state = 1
         # Om pumpen är avslagen(state 0)
         elif state == 0 or mode == "startup":
-            logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
+            if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
             # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
             if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
                 test_pump = True
@@ -535,7 +534,7 @@ def main_sun_collector(client):
                 sub_state = 4
         # Pumpmen är påslagen(state 1)
         elif state == 1:
-            logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
+            if args.debug_mode == "true" : logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
             #stoppa pumpen när dT går under satt nivå
             if dT <= dTStop_tank_1:
                 test_pump = False
@@ -549,7 +548,7 @@ def main_sun_collector(client):
                 state = 0
                 sub_state = 3
             else:    
-                logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
+                if args.debug_mode == "true" : logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
             
     #solfångare_manuell_pump = test_pump
     msg_dict = {
@@ -563,12 +562,13 @@ def main_sun_collector(client):
         }
     print(msg_dict)
     topic = "sequentmicrosystems/suncollector"
-    logging.info("topic: %s", topic)
+    if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
     publish(client,topic,msg)       
 
-                
+    
+        
 
     return
 #========================== Main execution ==========================
