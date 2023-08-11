@@ -205,14 +205,16 @@ def on_message(client, userdata, msg):
     elif msg.topic == "hass/manuell_styrning":
         x = json.loads(msg.payload.decode())
         if x["state"] == 0:
-            manuell_styrning = False
+            solfangare_manuell_styrning = False
         elif x["state"] == 1:
-            manuell_styrning = True
-        logging.info("manuell_styrning: %s", manuell_styrning)
-    # elif msg.topic == "hass/manuell_pump":
-    #     x = json.loads(msg.payload.decode())
-    #     manuell_pump = x["state"]
-    #     logging.info("manuell_pump: %s", manuell_pump)
+            solfangare_manuell_styrning = True
+        logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
+    elif msg.topic == "hass/manuell_pump":
+        if x["state"] == 0:
+            solfångare_manuell_pump = False
+        elif x["state"] == 1:
+            solfångare_manuell_pump = True
+        logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
 
 
 
