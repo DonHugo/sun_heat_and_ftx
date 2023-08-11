@@ -54,6 +54,10 @@ temp_kok_hysteres = 10
 temp_kok_hysteres_gräns = temp_kok - temp_kok_hysteres
 solfangare_manuell_styrning = False
 solfångare_manuell_pump = False # pump_solfangare
+mode = "startup"
+state = 1
+sub_state = 0
+overheated = False
 
 
 #===== MQTT subscribe =====#
@@ -459,11 +463,6 @@ def main_sun_collector(client):
     global mode
     global state
     global sub_state
-
-    overheated = False
-    mode = "startup"
-    state = 1
-    sub_state = 0
     #concurrent_pump_status = lib4relind.get_relay(4, 1)
     
     if args.test_mode == "false":
