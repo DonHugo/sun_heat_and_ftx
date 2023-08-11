@@ -523,7 +523,7 @@ def main_sun_collector(client):
                 mode = "13"
                 state = 1
                 sub_state = 3
-            elif mode == "startup"
+            elif mode == "startup":
                 test_pump = True
                 mode = "14"
                 state = 1
