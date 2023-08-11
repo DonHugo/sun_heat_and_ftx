@@ -428,10 +428,10 @@ def main_sun_collector(client):
             dT_running = dT
         else:
             dT_running = 0
-        
-        
+        logging.info("dT_running: %s", dT_running)
         # kollar om manuell styrning är påslagen
         if solfangare_manuell_styrning == True:
+            logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
             if solfångare_manuell_pump == True:
                 test_pump = True
                 mode = "06"
@@ -444,6 +444,7 @@ def main_sun_collector(client):
                 sub_state = 7
         # Kollar om temperaturen är över eller ha varit över temp_kok 
         elif T1 >= temp_kok or overheated == True:
+            logging.info("T1(%s) >= temp_kok(%s)", T1, temp_kok)
             if T1 >= temp_kok:
                 overheated = True
                 test_pump = False
@@ -459,6 +460,7 @@ def main_sun_collector(client):
                 sub_state = 1
         # Om pumpen är avslagen(state 0)
         elif state == 0:
+            logging.info("state: %s, T1:%s", state, T1)
             # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
             if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
                 test_pump = True
@@ -473,6 +475,7 @@ def main_sun_collector(client):
                 sub_state = 3
         # Pumpmen är påslagen(state 1)
         elif state == 1:
+            logging.info("state: %s, T1:%s", state, T1)
             #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
             if T2 >= (set_temp_tank_1_gräns) and T1 <= kylning_kollektor:
                 test_pump = False
