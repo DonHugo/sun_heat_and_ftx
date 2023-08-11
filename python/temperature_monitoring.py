@@ -483,7 +483,7 @@ def main_sun_collector(client):
                 state = 0
                 sub_state = 3
             
-    solfångare_manuell_pump = test_pump
+    #solfångare_manuell_pump = test_pump
     msg_dict = {
             "name": "solfångare",
             "pump": test_pump,
@@ -493,9 +493,9 @@ def main_sun_collector(client):
             "overheated": overheated,
             "dT_running": dT_running
         }
-
+    print(msg_dict)
     topic = "sequentmicrosystems/suncollector"
-    #logging.info("topic: %s", topic)
+    logging.info("topic: %s", topic)
 
     msg = json.dumps(msg_dict)
     #publish(client,topic,msg)       
