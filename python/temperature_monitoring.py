@@ -553,7 +553,7 @@ def main_sun_collector(client):
                 state = 4
                 sub_state = 1
             else:    
-                if args.debug_mode == "true" : logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
+                logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
                 mode = "42"
                 state = 4
                 sub_state = 2
