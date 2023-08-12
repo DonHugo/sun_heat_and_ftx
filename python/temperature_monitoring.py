@@ -581,9 +581,14 @@ def main_sun_collector(client):
     return
 #========================== Main execution ==========================
 if __name__ == "__main__":
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,
-                        datefmt="%H:%M:%S")
+    logging.basicConfig(filename="temperature_monitor.log",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
+    #format = "%(asctime)s: %(message)s"
+    #logging.basicConfig(format=format, level=logging.INFO,
+    #                    datefmt="%H:%M:%S")
     logging.info("debug_mode: %s", args.debug_mode)
     logging.info("test_mode: %s", args.test_mode)
     mqtt_client_connected = run()
