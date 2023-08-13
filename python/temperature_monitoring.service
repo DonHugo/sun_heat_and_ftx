@@ -1,0 +1,13 @@
+#copy this file to /etc/systemd/system/
+[Unit]
+Description=My Python Script
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/sun_heat_and_ftx/python/temperature_monitoring.py
+WorkingDirectory=/home/pi/sun_heat_and_ftx/python
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
