@@ -78,53 +78,70 @@ args = parser.parse_args()
 
 def producer(queue, event):
     """Pretend we're getting a number from the network."""
-    while not event.is_set():
-        a = 1
-        while not FLAG_EXIT:
-            collect_sensor_data_mega(3,a,10)
-            a += 1
-            if a > 8:
-                if args.debug_mode == "true":
-                    logging.info("""input_array content: 
-                                %s""", input_array)
-                a = 1
-        #logging.info("""Producer got message: %s""", input_array)
-        #queue.put(input_array)
+    try:
+        while not event.is_set():
+            a = 1
+            while not FLAG_EXIT:
+                collect_sensor_data_mega(3,a,10)
+                a += 1
+                if a > 8:
+                    if args.debug_mode == "true":
+                        logging.info("""input_array content: 
+                                    %s""", input_array)
+                    a = 1
+            #logging.info("""Producer got message: %s""", input_array)
+            #queue.put(input_array)
 
-    logging.info("Producer received event. Exiting")
+        logging.info("Producer received event. Exiting")
+    except Exception as e:
+        logging.error("An error occurred in the producer function: %s" % e)
+
 
 def execution(queue, event):
-    while not event.is_set() or not queue.empty():
-        logging.info("executor started, waiting 7sec")
-        time.sleep(5)
-        while not FLAG_EXIT:
-            time.sleep(2)
-            logging.info("starting main_sun_collector!")
-            main_sun_collector(mqtt_client_connected)
+    try:
+        while not event.is_set() or not queue.empty():
+            logging.info("executor started, waiting 7sec")
+            time.sleep(5)
+            while not FLAG_EXIT:
+                time.sleep(2)
+                logging.info("starting main_sun_collector!")
+                main_sun_collector(mqtt_client_connected)
 
-
-    logging.info("Consumer received event. Exiting")
+        logging.info("Consumer received event. Exiting")
+    except Exception as e:
+        logging.error("An error occurred in the execution function: %s" % e)
 
 def sender(queue, event):
-    while not event.is_set() or not queue.empty():
-        time.sleep(5)
-        while not FLAG_EXIT:
+    try:
+        while not event.is_set() or not queue.empty():
             time.sleep(5)
-           # main_sun_collector(mqtt_client_connected)  
-            sensor_calculations(mqtt_client_connected)
-            stored_energy(mqtt_client_connected)
-            ftx(mqtt_client_connected)
+            while not FLAG_EXIT:
+                try:
+                    time.sleep(5)
+                    # main_sun_collector(mqtt_client_connected)  
+                    sensor_calculations(mqtt_client_connected)
+                    stored_energy(mqtt_client_connected)
+                    ftx(mqtt_client_connected)
+                except Exception as e:
+                    logging.error("An error occurred in the sender function: %s" % e)
 
-    logging.info("Consumer received event. Exiting")
+        logging.info("Consumer received event. Exiting")
+    except Exception as e:
+        logging.error("An error occurred in the sender function: %s" % e)
+
 
 #========================== MQTT setup ==========================
 def on_connect(client, userdata, flags, rc):
-    if rc == 0 and client.is_connected():
-        print("Connected to MQTT Broker!")
-        #client.subscribe(SUB_TOPIC_1)
-        client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0)])
-    else:
-        print(f'Failed to connect, return code {rc}')
+    try:
+        if rc == 0 and client.is_connected():
+            print("Connected to MQTT Broker!")
+            #client.subscribe(SUB_TOPIC_1)
+            client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0)])
+        else:
+            print(f'Failed to connect, return code {rc}')
+    except Exception as e:
+        print("An error occurred in the on_connect function:", e)
+
 
 def on_disconnect(client, userdata, rc):
     logging.info("Disconnected with result code: %s", rc)
@@ -248,13 +265,17 @@ def on_message(client, userdata, msg):
 
     
 def connect_mqtt():
-    client = mqtt_client.Client(CLIENT_ID)
-    client.username_pw_set(USERNAME, PASSWORD)
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(BROKER, PORT, keepalive=3)
-    client.on_disconnect = on_disconnect
-    return client
+    try:
+        client = mqtt_client.Client(CLIENT_ID)
+        client.username_pw_set(USERNAME, PASSWORD)
+        client.on_connect = on_connect
+        client.on_message = on_message
+        client.connect(BROKER, PORT, keepalive=3)
+        client.on_disconnect = on_disconnect
+        return client
+    except Exception as e:
+        print("An error occurred in the connect_mqtt function:", e)
+
 
 #========================== megabas ==========================
 def collect_sensor_data_mega(stack,input,iterations):
@@ -398,7 +419,7 @@ def run():
     
     # Catch any exceptions that may occur during execution
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred in run: {str(e)}")
         
 
 
@@ -436,7 +457,7 @@ def sensor_calculations(client):
     
     # Catch any exceptions that may occur during execution
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred in sensor_calculations: {str(e)}")
 
 
 def stored_energy(client):
@@ -500,7 +521,7 @@ def stored_energy(client):
         publish(client,topic,msg)
         return
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred in stored_energy: {str(e)}")
 
 def ftx(client):
     try:
@@ -532,7 +553,7 @@ def ftx(client):
         msg = json.dumps(msg_dict)
         publish(client,topic,msg)
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"An error occurred in ftx: {str(e)}")
     return None
 
 
@@ -653,7 +674,7 @@ def main_sun_collector(client):
         publish(client,topic,msg)       
         return
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"An error occurred in main_sun_collector: {str(e)}")
         return None
 
 #========================== Main execution ==========================
@@ -681,5 +702,5 @@ if __name__ == "__main__":
             logging.info("Main: about to set event")
             event.set()
     except Exception as e:
-        logging.error("An error occurred: %s" % e)
+        logging.error("An error occurred in __main__: %s" % e)
 
