@@ -570,17 +570,7 @@ def main_sun_collector(client):
         if args.test_mode == "treu":
             logging.info("test_mode: %s", args.test_mode)
 
-        msg_dict = {
-                    "name": "solfångare",
-                    "pump": test_pump,
-                    "mode": mode,
-                    "state": state,
-                    "sub_state": sub_state,
-                    "overheated": overheated,
-                    "dT_running": dT_running,
-                    "dT": dT
-                }
-        print(msg_dict)
+        
         topic = "sequentmicrosystems/suncollector"
         if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
@@ -670,21 +660,20 @@ def main_sun_collector(client):
                     mode = "42"
                     state = 4
                     sub_state = 2
-
-            msg_dict = {
-                    "name": "solfångare",
-                    "pump": test_pump,
-                    "mode": mode,
-                    "state": state,
-                    "sub_state": sub_state,
-                    "overheated": overheated,
-                    "dT_running": dT_running,
-                    "dT": dT
-                }
-            print(msg_dict)
             topic = "test/sequentmicrosystems/suncollector"
             if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
+        msg_dict = {
+                "name": "solfångare",
+                "pump": test_pump,
+                "mode": mode,
+                "state": state,
+                "sub_state": sub_state,
+                "overheated": overheated,
+                "dT_running": dT_running,
+                "dT": dT
+            }
+        print(msg_dict)
         msg = json.dumps(msg_dict)
         publish(client,topic,msg)       
         return
