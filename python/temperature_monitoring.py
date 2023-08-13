@@ -162,60 +162,87 @@ def on_message(client, userdata, msg):
     if args.debug_mode == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
     if msg.topic == "rtd/acctank":
-        x = json.loads(msg.payload.decode())
-        mqtt_rtd[0] = x["RTD_1"]
-        mqtt_rtd[1] = x["RTD_2"]
-        mqtt_rtd[2] = x["RTD_3"]
-        mqtt_rtd[3] = x["RTD_4"]
-        mqtt_rtd[4] = x["RTD_5"]
-        mqtt_rtd[5] = x["RTD_6"]
-        mqtt_rtd[6] = x["RTD_7"]
-        mqtt_rtd[7] = x["RTD_8"]
-        mqtt_rtd[8] = x["T3"]
-        mqtt_sun[0] = x["T1"]
-        mqtt_sun[1] = x["T2"]
-        mqtt_sun[2] = x["T3"]
-        if args.debug_mode == "true":
-            logging.info("mqtt_rtd %s", mqtt_rtd)
-            logging.info("mqtt_sun %s", mqtt_sun)
+        try:
+            x = json.loads(msg.payload.decode())
+            mqtt_rtd[0] = x["RTD_1"]
+            mqtt_rtd[1] = x["RTD_2"]
+            mqtt_rtd[2] = x["RTD_3"]
+            mqtt_rtd[3] = x["RTD_4"]
+            mqtt_rtd[4] = x["RTD_5"]
+            mqtt_rtd[5] = x["RTD_6"]
+            mqtt_rtd[6] = x["RTD_7"]
+            mqtt_rtd[7] = x["RTD_8"]
+            mqtt_rtd[8] = x["T3"]
+            mqtt_sun[0] = x["T1"]
+            mqtt_sun[1] = x["T2"]
+            mqtt_sun[2] = x["T3"]
+            if args.debug_mode == "true":
+                logging.info("mqtt_rtd %s", mqtt_rtd)
+                logging.info("mqtt_sun %s", mqtt_sun)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/pump":
-        x = json.loads(msg.payload.decode())
-        test_pump = x["pump"]
-        logging.info("test_pump: %s", test_pump)
+        try:
+            x = json.loads(msg.payload.decode())
+            test_pump = x["pump"]
+            logging.info("test_pump: %s", test_pump)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/delta_temp_start_tank_1":
-         x = json.loads(msg.payload.decode())
-         dTStart_tank_1 = x["state"]
-         logging.info("dTStart_tank_1: %s", dTStart_tank_1)
+        try:
+            x = json.loads(msg.payload.decode())
+            dTStart_tank_1 = x["state"]
+            logging.info("dTStart_tank_1: %s", dTStart_tank_1)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/delta_temp_stop_tank_1":
-         x = json.loads(msg.payload.decode())
-         dTStop_tank_1 = x["state"]
-         logging.info("dTStop_tank_1: %s", dTStop_tank_1)
+        try:
+            x = json.loads(msg.payload.decode())
+            dTStop_tank_1 = x["state"]
+            logging.info("dTStop_tank_1: %s", dTStop_tank_1)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/kylning_kollektor":
-         x = json.loads(msg.payload.decode())
-         kylning_kollektor = x["state"]
-         logging.info("kylning_kollektor: %s", kylning_kollektor)
+        try:
+            x = json.loads(msg.payload.decode())
+            kylning_kollektor = x["state"]
+            logging.info("kylning_kollektor: %s", kylning_kollektor)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/set_temp_tank_1":
+        try:
          x = json.loads(msg.payload.decode())
          set_temp_tank_1 = x["state"]
          logging.info("set_temp_tank_1: %s", set_temp_tank_1)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/temp_kok":
-         x = json.loads(msg.payload.decode())
-         temp_kok = x["state"]
-         logging.info("temp_kok: %s", temp_kok)
+        try:
+            x = json.loads(msg.payload.decode())
+            temp_kok = x["state"]
+            logging.info("temp_kok: %s", temp_kok)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/manuell_styrning":
-        x = json.loads(msg.payload.decode())
-        if x["state"] == 0:
-            solfangare_manuell_styrning = False
-        elif x["state"] == 1:
-            solfangare_manuell_styrning = True
-        logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
+        try:
+            x = json.loads(msg.payload.decode())
+            if x["state"] == 0:
+                solfangare_manuell_styrning = False
+            elif x["state"] == 1:
+                solfangare_manuell_styrning = True
+            logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/manuell_pump":
-        x = json.loads(msg.payload.decode())
-        if x["state"] == 0:
-            solfångare_manuell_pump = False
-        elif x["state"] == 1:
-            solfångare_manuell_pump = True
-        logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+        try:
+            x = json.loads(msg.payload.decode())
+            if x["state"] == 0:
+                solfångare_manuell_pump = False
+            elif x["state"] == 1:
+                solfångare_manuell_pump = True
+            logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
 
 
 
@@ -232,19 +259,21 @@ def connect_mqtt():
 #========================== megabas ==========================
 def collect_sensor_data_mega(stack,input,iterations):
     i = 0
-    
-    while i < iterations:
-        collect = read_megabas_1k(stack, input)
+    try:
+        while i < iterations:
+            collect = read_megabas_1k(stack, input)
 
-        if collect != 9999:
-            input_position = input-1
-            stack_position = stack-1
-            input_array[stack_position,input_position,i] = collect 
-        else:
-            stack_position = stack-1
-            input_position = input-1
- 
-        i += 1
+            if collect != 9999:
+                input_position = input-1
+                stack_position = stack-1
+                input_array[stack_position,input_position,i] = collect 
+            else:
+                stack_position = stack-1
+                input_position = input-1
+    
+            i += 1
+    except Exception as err:
+        logging.error("%s. from collect_sensor_data_mega: stack(%s), input(%s), iteration(%s), collect(%s)", err,stack,input,iterations,collect)
     
 def read_megabas_1k(stack, input):
     limit = [1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
@@ -253,57 +282,71 @@ def read_megabas_1k(stack, input):
     sensor = m.getRIn1K(stack, input)
     mod_sensor = sensor*1000
     megabas_temp = "No value"
-        
-    if sensor == 60:
-        megabas_temp = 9999
-    else:
-        if mod_sensor >= limit[0] and mod_sensor < limit[1]:        megabas_temp = calc_megabas_temp(mod_sensor-limit[0],delta[0],0)
-        elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[1],delta[1],10)
-        elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[2],delta[2],20)
-        elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[3],delta[3],30)
-        elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[4],delta[4],40)
-        elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[5],delta[5],50)
-        elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[6],delta[6],60)
-        elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[7],delta[7],70)
-        elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[8],delta[8],80)
-        elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[9],delta[9],90)
-        elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[10],delta[10],100)
-        elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[11],delta[11],110)
-        elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[12],delta[12],120)
-        elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[13],delta[13],130)
-        elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[14],delta[14],140)
-        elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[15],delta[15],150)
-        elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[16],delta[16],160)
-        elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[17],delta[17],170)   
-    return megabas_temp
-
+    try:    
+        if sensor == 60:
+            megabas_temp = 9999
+        else:
+            if mod_sensor >= limit[0] and mod_sensor < limit[1]:        megabas_temp = calc_megabas_temp(mod_sensor-limit[0],delta[0],0)
+            elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[1],delta[1],10)
+            elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[2],delta[2],20)
+            elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[3],delta[3],30)
+            elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[4],delta[4],40)
+            elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[5],delta[5],50)
+            elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[6],delta[6],60)
+            elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[7],delta[7],70)
+            elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[8],delta[8],80)
+            elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[9],delta[9],90)
+            elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[10],delta[10],100)
+            elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[11],delta[11],110)
+            elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[12],delta[12],120)
+            elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[13],delta[13],130)
+            elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[14],delta[14],140)
+            elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[15],delta[15],150)
+            elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[16],delta[16],160)
+            elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[17],delta[17],170)   
+        return megabas_temp
+    except Exception as err:
+        logging.error("%s. from read_megabas_1k: stack(%s), input(%s), sensor(%s), mod_sensor(%s), megabas_temp(%s)", err,stack,input,sensor,mod_sensor,megabas_temp)
+    
 def calc_megabas_temp(calc, delta, deci):
-    calculated_temp=(calc/delta)+deci
-    round_calculated_temp = (round(calculated_temp, 1))
-    return round_calculated_temp
+    try:
+        calculated_temp=(calc/delta)+deci
+        round_calculated_temp = (round(calculated_temp, 1))
+        return round_calculated_temp
+    except Exception as err:
+        logging.error("%s. from calc_megabas_temp: calc(%s), delta(%s), deci(%s), calculated_temp(%s), round_calculated_temp(%s)", err,calc,delta,deci,calculated_temp,round_calculated_temp)
+    
 
 #========================== rtd ==========================
-def collect_sensor_data_rtd(stack,input,iterations):
+def collect_sensor_data_rtd(stack, input, iterations):
     i = 0
     while i < iterations:
-        collect_rtd = read_rtd(stack, input)
-        if collect_rtd != 9999:
-            stack_position = stack-1
-            input_position = input-1
-            input_array[stack_position,input_position,i] = collect_rtd
-        else:
-            stack_position = stack-1
-            input_position = input-1
-
+        try:
+            collect_rtd = read_rtd(stack, input)
+            if collect_rtd != 9999:
+                stack_position = stack-1
+                input_position = input-1
+                input_array[stack_position,input_position,i] = collect_rtd
+            else:
+                stack_position = stack-1
+                input_position = input-1
+        except Exception as e:
+            print("An error occurred:", str(e))
+        
         i += 1
         time.sleep(0.02)
     return
 
 def read_rtd(stack,input):
-    temp = librtd.get(stack, input)
-    if temp > 200 or temp < -50:
-        temp = 9999
-    return temp
+    try:
+        temp = librtd.get(stack, input)
+        if temp > 200 or temp < -50:
+            temp = 9999
+        return temp
+    except ValueError:
+        print("Error: Invalid input parameters")
+        return None
+
 
 #========================== onewire ==========================
 def collect_sensor_data_onewire(stack):
@@ -319,132 +362,163 @@ def read_onewire():
     return
 
 #========================== MQTT publish ==========================
-def publish(client,topic,msg):
-    if not client.is_connected():
-        logging.error("publish: MQTT client is not connected!")
-        time.sleep(1)
-        return
-    result = client.publish(topic, msg)
-    status = result[0]
-    if status == 0:
-        if args.debug_mode == "true":
-            print(f'Send `{msg}` to topic `{topic}`')
-    else:
-        print(f'Failed to send message to topic {topic}')
-    time.sleep(0.1)
+def publish(client, topic, msg):
+    try:
+        if not client.is_connected():
+            logging.error("publish: MQTT client is not connected!")
+            time.sleep(1)
+            return
+        result = client.publish(topic, msg)
+        status = result[0]
+        if status == 0:
+            if args.debug_mode == "true":
+                print(f'Send `{msg}` to topic `{topic}`')
+        else:
+            print(f'Failed to send message to topic {topic}')
+        time.sleep(0.1)
+    except Exception as e:
+        print(f'An error occurred: {str(e)}')
 
 def run():
-    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s',
-                        level=logging.DEBUG)
-    client = connect_mqtt()
-    client.loop_start()
-    time.sleep(1)
-    if client.is_connected():
-        #publish(client)
-        return client
-    else:
-        client.loop_stop()
+    # Setting up the logging configuration
+    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+    
+    # Attempt to connect to MQTT and start the loop
+    try:
+        client = connect_mqtt()
+        client.loop_start()
+        time.sleep(1)
+        
+        # Check if the client is connected before publishing the message
+        if client.is_connected():
+            # publish(client)
+            return client
+        else:
+            client.loop_stop()
+    
+    # Catch any exceptions that may occur during execution
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+        
 
 
 #========================== data calculations ==========================
 def sensor_calculations(client):
-    for x in range(4):
-        for y in range(8):
-            #remove below row?! (input_array.mean(2)[x,y]), dont think its used!
-            input_array.mean(2)[x,y]
-            round_value = round(input_array.mean(2)[x,y],1)
-            stack = x+1
-            sensor = y+1
-            name = "sequentmicrosystems_{}_{}"
-            msg_dict = {
+    try:
+        # Iterate through the input array
+        for x in range(4):
+            for y in range(8):
+                # Calculate the rounded value of the mean of the input array
+                round_value = round(input_array.mean(2)[x,y],1)
+                
+                # Calculate the stack and sensor values
+                stack = x+1
+                sensor = y+1
+                
+                # Create the name of the sensor
+                name = "sequentmicrosystems_{}_{}"
+                
+                # Create a dictionary with the sensor name and temperature
+                msg_dict = {
                     "name": name.format(stack,sensor),
                     "temperature": round_value
                 }
-            
-            topic_path = "sequentmicrosystems/{}"
-            topic = topic_path.format(name.format(stack,sensor))
-            msg = json.dumps(msg_dict)
-            publish(client,topic,msg)
+                
+                # Create the topic path
+                topic_path = "sequentmicrosystems/{}"
+                topic = topic_path.format(name.format(stack,sensor))
+                
+                # Convert the message dictionary to JSON
+                msg = json.dumps(msg_dict)
+                
+                # Publish the message to the MQTT broker
+                publish(client, topic, msg)
+    
+    # Catch any exceptions that may occur during execution
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+
 
 def stored_energy(client):
-    stored_energy = np.zeros(10)
-    #logging.info("stored_energy: %s", stored_energy)
-    stored_energy_kwh = np.zeros(4)
-    #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
-    if args.test_mode == "false":
-        zero_valu = 0 #temperature of the water that is comming to to the system from the well
-        stack_1 = 2
-        stack_2 = 2
-        stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
-        stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
-        stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
-        stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
-        stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
-        stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
-        stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
-        stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-        stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
-        stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
-        stored_energy[0] = (input_array.mean(2)[2,0])
-        #logging.info("stored_energy[0]: %s", stored_energy[0])
+    try:
+        stored_energy = np.zeros(10)
         #logging.info("stored_energy: %s", stored_energy)
-        stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
-        stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
-        stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
+        stored_energy_kwh = np.zeros(4)
         #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+        if args.test_mode == "false":
+            zero_valu = 0 #temperature of the water that is comming to to the system from the well
+            stack_1 = 2
+            stack_2 = 2
+            stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
+            stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
+            stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
+            stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
+            stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
+            stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
+            stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
+            stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
+            stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
+            stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+            stored_energy[0] = (input_array.mean(2)[2,0])
+            #logging.info("stored_energy[0]: %s", stored_energy[0])
+            #logging.info("stored_energy: %s", stored_energy)
+            stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
+            stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
+            stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
+            #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
-    elif args.test_mode == "true":
-        zero_valu = 4 #temperature of the water that is comming to to the system from the well
-        stored_energy[0] = ((mqtt_rtd[0]-zero_valu)*35)
-        stored_energy[1] = ((mqtt_rtd[1]-zero_valu)*35)
-        stored_energy[2] = ((mqtt_rtd[2]-zero_valu)*35)
-        stored_energy[3] = ((mqtt_rtd[3]-zero_valu)*35)
-        stored_energy[4] = ((mqtt_rtd[4]-zero_valu)*35)
-        stored_energy[5] = ((mqtt_rtd[5]-zero_valu)*35)
-        stored_energy[6] = ((mqtt_rtd[6]-zero_valu)*35)
-        stored_energy[7] = ((mqtt_rtd[7]-zero_valu)*35)
-        stored_energy[8] = ((mqtt_rtd[8]-zero_valu)*35)
-        #logging.info("stored_energy[0]: %s", stored_energy[0])
-        #logging.info("stored_energy: %s", stored_energy)
-        stored_energy_kwh[0] = round((np.sum(stored_energy)*4200/1000/3600),2)
-        stored_energy_kwh[1] = round((np.sum(stored_energy[:5])*4200/1000/3600),2)
-        stored_energy_kwh[2] = round((np.sum(stored_energy[4:])*4200/1000/3600),2)
-        stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),2)
-        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+        elif args.test_mode == "true":
+            zero_valu = 4 #temperature of the water that is comming to to the system from the well
+            stored_energy[0] = ((mqtt_rtd[0]-zero_valu)*35)
+            stored_energy[1] = ((mqtt_rtd[1]-zero_valu)*35)
+            stored_energy[2] = ((mqtt_rtd[2]-zero_valu)*35)
+            stored_energy[3] = ((mqtt_rtd[3]-zero_valu)*35)
+            stored_energy[4] = ((mqtt_rtd[4]-zero_valu)*35)
+            stored_energy[5] = ((mqtt_rtd[5]-zero_valu)*35)
+            stored_energy[6] = ((mqtt_rtd[6]-zero_valu)*35)
+            stored_energy[7] = ((mqtt_rtd[7]-zero_valu)*35)
+            stored_energy[8] = ((mqtt_rtd[8]-zero_valu)*35)
+            #logging.info("stored_energy[0]: %s", stored_energy[0])
+            #logging.info("stored_energy: %s", stored_energy)
+            stored_energy_kwh[0] = round((np.sum(stored_energy)*4200/1000/3600),2)
+            stored_energy_kwh[1] = round((np.sum(stored_energy[:5])*4200/1000/3600),2)
+            stored_energy_kwh[2] = round((np.sum(stored_energy[4:])*4200/1000/3600),2)
+            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),2)
+            #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
 
-    msg_dict = {
-            "name": "stored_energy",
-            "stored_energy_kwh": stored_energy_kwh[0],
-            "stored_energy_top_kwh": stored_energy_kwh[2],
-            "stored_energy_bottom_kwh": stored_energy_kwh[1],
-            "average_temperature": stored_energy_kwh[3]
-        }
-    topic = "sequentmicrosystems/stored_energy"
-    #logging.info("topic: %s", topic)
+        msg_dict = {
+                "name": "stored_energy",
+                "stored_energy_kwh": stored_energy_kwh[0],
+                "stored_energy_top_kwh": stored_energy_kwh[2],
+                "stored_energy_bottom_kwh": stored_energy_kwh[1],
+                "average_temperature": stored_energy_kwh[3]
+            }
+        topic = "sequentmicrosystems/stored_energy"
+        #logging.info("topic: %s", topic)
 
-    msg = json.dumps(msg_dict)
-    publish(client,topic,msg)
-    return
+        msg = json.dumps(msg_dict)
+        publish(client,topic,msg)
+        return
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
 
 def ftx(client):
-    
-    if args.test_mode == "false":
-        uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
-        avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
-        tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
-        franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
-        effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
-        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+    try:
+        if args.test_mode == "false":
+            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
+            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
+            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
+            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
+            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
 
-    elif args.test_mode == "true":
-        uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
-        avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
-        tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
-        franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
-        effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
-        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+        elif args.test_mode == "true":
+            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
+            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
+            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
+            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
+            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
 
-    msg_dict = {
+        msg_dict = {
             "name": "ftx",
             "effekt_varmevaxlare": effekt_varmevaxlare,
             "uteluft": uteluft,
@@ -453,151 +527,159 @@ def ftx(client):
             "franluft": franluft
         }
 
-    topic = "sequentmicrosystems/ftx"
-    #logging.info("topic: %s", topic)
+        topic = "sequentmicrosystems/ftx"
 
-    msg = json.dumps(msg_dict)
-    publish(client,topic,msg)
-    return
+        msg = json.dumps(msg_dict)
+        publish(client,topic,msg)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+    return None
+
 
 #========================== sun heat collector ==========================
 def main_sun_collector(client):
-    global test_pump
-    global overheated
-    global mode
-    global state
-    global sub_state
-    #concurrent_pump_status = lib4relind.get_relay(4, 1)
-    
-    if args.test_mode == "false":
-        logging.info("test_mode: %s", args.test_mode)
-
-    elif args.test_mode == "true":
-        logging.info("sun collector in testmode")
-        T1 = mqtt_sun[0]
-        T2 = mqtt_sun[1]
-        dT = round(T1-T2,1);
-        logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+    try:
+        global test_pump
+        global overheated
+        global mode
+        global state
+        global sub_state
+        #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
-        #skapar en entitet för att mäta energimängd när pumpen är på
-        if test_pump == True:
-            dT_running = dT
-        else:
-            dT_running = 0
-        if args.debug_mode == "true" : logging.info("dT_running: %s", dT_running)
-        if args.debug_mode == "true" : logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
-        # kollar om manuell styrning är påslagen
-        if solfangare_manuell_styrning == True:
-            if args.debug_mode == "true" : logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
-            if solfångare_manuell_pump == True:
-                test_pump = True
-                #lib4relind.set_relay(2, 1, 0)
-                mode = "10"
-                state = 1
-                sub_state = 0
-            elif solfångare_manuell_pump == False:
-                test_pump = False
-                #lib4relind.set_relay(2, 1, 1)
-                mode = "11"
-                state = 1
-                sub_state = 1
-        # Kollar om temperaturen är över eller ha varit över temp_kok 
-        elif T1 >= temp_kok or overheated == True:
-            if args.debug_mode == "true" : logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
-            if T1 >= temp_kok:
-                overheated = True
-                test_pump = False
-                mode = "20"
-                state = 2
-                sub_state = 0
-                #När temperaturen i kollktorn har varit över temp_kok-gränsen men har gått under hysteresgränsen
-            elif overheated == True and T1 < temp_kok_hysteres_gräns:
-                overheated = False
-                test_pump = True
-                mode = "21"
-                state = 2
-                sub_state = 1
-        # Om pumpen är avslagen eller startup läge
-        elif test_pump == False or mode == "startup":
-            if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
-            # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
-            if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
-                test_pump = True
-                mode = "30"
-                state = 3
-                sub_state = 0
-            # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
-            elif T1 >= kylning_kollektor:
-                test_pump = True
-                mode = "31"
-                state = 3
-                sub_state = 1
-            elif mode == "startup":
-                test_pump = True
-                mode = "32"
-                state = 3
-                sub_state = 2
-        # Pumpmen är påslagen
-        elif test_pump == True:
-            if args.debug_mode == "true" : logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
-            #stoppa pumpen när dT går under satt nivå
-            if dT <= dTStop_tank_1:
-                test_pump = False
-                mode = "40"
-                state = 4
-                sub_state = 0
-            #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
-            elif T2 >= set_temp_tank_1_gräns and T1 <= kylning_kollektor:
-                test_pump = False
-                mode = "41"
-                state = 4
-                sub_state = 1
-            else:    
-                logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
-                mode = "42"
-                state = 4
-                sub_state = 2
+        if args.test_mode == "false":
+            logging.info("test_mode: %s", args.test_mode)
 
-        msg_dict = {
-                "name": "solfångare",
-                "pump": test_pump,
-                "mode": mode,
-                "state": state,
-                "sub_state": sub_state,
-                "overheated": overheated,
-                "dT_running": dT_running,
-                "dT": dT
-            }
-        print(msg_dict)
-        topic = "test/sequentmicrosystems/suncollector"
-        if args.debug_mode == "true" : logging.info("topic: %s", topic)
+        elif args.test_mode == "true":
+            logging.info("sun collector in testmode")
+            T1 = mqtt_sun[0]
+            T2 = mqtt_sun[1]
+            dT = round(T1-T2,1);
+            logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+            
+            #skapar en entitet för att mäta energimängd när pumpen är på
+            if test_pump == True:
+                dT_running = dT
+            else:
+                dT_running = 0
+            if args.debug_mode == "true" : logging.info("dT_running: %s", dT_running)
+            if args.debug_mode == "true" : logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+            # kollar om manuell styrning är påslagen
+            if solfangare_manuell_styrning == True:
+                if args.debug_mode == "true" : logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+                if solfångare_manuell_pump == True:
+                    test_pump = True
+                    #lib4relind.set_relay(2, 1, 0)
+                    mode = "10"
+                    state = 1
+                    sub_state = 0
+                elif solfångare_manuell_pump == False:
+                    test_pump = False
+                    #lib4relind.set_relay(2, 1, 1)
+                    mode = "11"
+                    state = 1
+                    sub_state = 1
+            # Kollar om temperaturen är över eller ha varit över temp_kok 
+            elif T1 >= temp_kok or overheated == True:
+                if args.debug_mode == "true" : logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
+                if T1 >= temp_kok:
+                    overheated = True
+                    test_pump = False
+                    mode = "20"
+                    state = 2
+                    sub_state = 0
+                    #När temperaturen i kollktorn har varit över temp_kok-gränsen men har gått under hysteresgränsen
+                elif overheated == True and T1 < temp_kok_hysteres_gräns:
+                    overheated = False
+                    test_pump = True
+                    mode = "21"
+                    state = 2
+                    sub_state = 1
+            # Om pumpen är avslagen eller startup läge
+            elif test_pump == False or mode == "startup":
+                if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
+                # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
+                if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
+                    test_pump = True
+                    mode = "30"
+                    state = 3
+                    sub_state = 0
+                # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
+                elif T1 >= kylning_kollektor:
+                    test_pump = True
+                    mode = "31"
+                    state = 3
+                    sub_state = 1
+                elif mode == "startup":
+                    test_pump = True
+                    mode = "32"
+                    state = 3
+                    sub_state = 2
+            # Pumpmen är påslagen
+            elif test_pump == True:
+                if args.debug_mode == "true" : logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
+                #stoppa pumpen när dT går under satt nivå
+                if dT <= dTStop_tank_1:
+                    test_pump = False
+                    mode = "40"
+                    state = 4
+                    sub_state = 0
+                #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
+                elif T2 >= set_temp_tank_1_gräns and T1 <= kylning_kollektor:
+                    test_pump = False
+                    mode = "41"
+                    state = 4
+                    sub_state = 1
+                else:    
+                    logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
+                    mode = "42"
+                    state = 4
+                    sub_state = 2
 
-    msg = json.dumps(msg_dict)
-    publish(client,topic,msg)       
+            msg_dict = {
+                    "name": "solfångare",
+                    "pump": test_pump,
+                    "mode": mode,
+                    "state": state,
+                    "sub_state": sub_state,
+                    "overheated": overheated,
+                    "dT_running": dT_running,
+                    "dT": dT
+                }
+            print(msg_dict)
+            topic = "test/sequentmicrosystems/suncollector"
+            if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
-    
-        
+        msg = json.dumps(msg_dict)
+        publish(client,topic,msg)       
+        return
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return None
 
-    return
 #========================== Main execution ==========================
+
 if __name__ == "__main__":
-    logging.basicConfig(filename="temperature_monitor.log",
-                    filemode='a',
-                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
-    #format = "%(asctime)s: %(message)s"
-    #logging.basicConfig(format=format, level=logging.INFO,
-    #                    datefmt="%H:%M:%S")
-    logging.info("debug_mode: %s", args.debug_mode)
-    logging.info("test_mode: %s", args.test_mode)
-    mqtt_client_connected = run()
-    pipeline = queue.Queue(maxsize=10)
-    event = threading.Event()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-        executor.submit(producer, pipeline, event)
-        executor.submit(execution, pipeline, event)
-        executor.submit(sender, pipeline, event)
-        time.sleep(0.1)
-        logging.info("Main: about to set event")
-        event.set()
+    try:
+        logging.basicConfig(filename="temperature_monitor.log",
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.DEBUG)
+        #format = "%(asctime)s: %(message)s"
+        #logging.basicConfig(format=format, level=logging.INFO,
+        #                    datefmt="%H:%M:%S")
+        logging.info("debug_mode: %s", args.debug_mode)
+        logging.info("test_mode: %s", args.test_mode)
+        mqtt_client_connected = run()
+        pipeline = queue.Queue(maxsize=10)
+        event = threading.Event()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            executor.submit(producer, pipeline, event)
+            executor.submit(execution, pipeline, event)
+            executor.submit(sender, pipeline, event)
+            time.sleep(0.1)
+            logging.info("Main: about to set event")
+            event.set()
+    except Exception as e:
+        logging.error("An error occurred: %s" % e)
+
