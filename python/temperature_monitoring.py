@@ -567,10 +567,24 @@ def main_sun_collector(client):
         global sub_state
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
-        if args.test_mode == "false":
+        if args.test_mode == "treu":
             logging.info("test_mode: %s", args.test_mode)
 
-        elif args.test_mode == "true":
+        msg_dict = {
+                    "name": "solfångare",
+                    "pump": test_pump,
+                    "mode": mode,
+                    "state": state,
+                    "sub_state": sub_state,
+                    "overheated": overheated,
+                    "dT_running": dT_running,
+                    "dT": dT
+                }
+        print(msg_dict)
+        topic = "sequentmicrosystems/suncollector"
+        if args.debug_mode == "true" : logging.info("topic: %s", topic)
+
+        elif args.test_mode == "false":
             logging.info("sun collector in testmode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
@@ -584,6 +598,7 @@ def main_sun_collector(client):
                 dT_running = 0
             if args.debug_mode == "true" : logging.info("dT_running: %s", dT_running)
             if args.debug_mode == "true" : logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+            
             # kollar om manuell styrning är påslagen
             if solfangare_manuell_styrning == True:
                 if args.debug_mode == "true" : logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
