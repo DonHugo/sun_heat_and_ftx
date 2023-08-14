@@ -657,9 +657,9 @@ def main_sun_collector(client):
                     sub_state = 1
                 else:    
                     logging.info("T2:%s, T1:%s, , dT:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, test_pump, mode, state, sub_state)
-                    mode = "42"
-                    state = 4
-                    sub_state = 2
+                    #mode = "42"
+                    #state = 4
+                    #sub_state = 2
             topic = "test/sequentmicrosystems/suncollector"
             if args.debug_mode == "true" : logging.info("topic: %s", topic)
 
