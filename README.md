@@ -11,7 +11,8 @@ git push
 RTD Data Acquisition:
 ```
 https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
-
+```
+```
 ~$ sudo apt-get update
 ~$ sudo apt-get install build-essential python-pip python-dev python-smbus git
 ~$ git clone https://github.com/SequentMicrosystems/rtd-rpi.git
@@ -21,7 +22,8 @@ https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
 Building Automation V4 
 ```
 https://sequentmicrosystems.com/pages/building-automation-downloads
-
+```
+```
 ~$ sudo apt-get update
 ~$ sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
 ~$ git clone https://github.com/SequentMicrosystems/megabas-rpi.git
@@ -31,7 +33,8 @@ https://sequentmicrosystems.com/pages/building-automation-downloads
 Four Relays four HV Inputs 
 ```
 https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
-
+```
+```
 ~$ sudo apt-get update
 ~$ sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
 ~$ git clone https://github.com/SequentMicrosystems/4relind-rpi.git
