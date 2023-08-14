@@ -40,6 +40,8 @@ https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
 ```
 pypi:
 ```
-pip install statistics
+pip3 install statistics
+pip3 install numpy
+pip3 install paho-mqtt
 
 ```
