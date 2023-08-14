@@ -1,11 +1,11 @@
 # copy this file to /etc/systemd/system/
 # sudo cp temperature_monitoring.service /etc/systemd/system/
 # usage:
-# sudo systemctl start temperature_monitoring         start the service
-# sudo systemctl stop temperature_monitoring          stop the service
-# sudo systemctl enable temperature_monitoring        enable the service to start automatically at boot
-# sudo systemctl disable temperature_monitoring       disable automatic start at boot
-# sudo systemctl daemon-reload                        Make sure to reload systemd after making any changes to the service file
+# sudo systemctl start temperature_monitoring.service       start the service
+# sudo systemctl stop temperature_monitoring.service        stop the service
+# sudo systemctl enable temperature_monitoring.service      enable the service to start automatically at boot
+# sudo systemctl disable temperature_monitoring.service     disable automatic start at boot
+# sudo systemctl daemon-reload                              Make sure to reload systemd after making any changes to the service file
 
 
 [Unit]

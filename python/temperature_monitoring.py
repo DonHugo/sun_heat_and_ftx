@@ -45,15 +45,15 @@ loops = 10
 
 set_temp_tank_1 = 70 # Maximal temperatur i tanken under normal drift. (Inställbar 15 °C till 90 °C med fabriksinställning 65 °C)
 set_temp_tank_1_hysteres = 2
-set_temp_tank_1_gräns = set_temp_tank_1 + set_temp_tank_1_hysteres
+set_temp_tank_1_gräns = set_temp_tank_1 - set_temp_tank_1_hysteres
 dTStart_tank_1 = 8 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
-dTStop_tank_1 = 4 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till (Set tank1 -2 °C) med fabriksinställning 3 °C)
+dTStop_tank_1 = 4 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till ? (Set tank1 -2 °C) med fabriksinställning 3 °C)
 kylning_kollektor = 90
 temp_kok = 150
 temp_kok_hysteres = 10
 temp_kok_hysteres_gräns = temp_kok - temp_kok_hysteres
-solfangare_manuell_styrning = False
-solfångare_manuell_pump = False # pump_solfangare
+solfangare_manuell_styrning = False # manuell kontroll av styrningen
+solfångare_manuell_pump = False # manuell strning av pumpen
 mode = "startup"
 state = 1
 sub_state = 0
@@ -624,7 +624,7 @@ def main_sun_collector(client):
             elif test_pump == False or mode == "startup":
                 if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
                 # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
-                if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1:
+                if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1_gräns:
                     test_pump = True
                     mode = "30"
                     state = 3
@@ -650,13 +650,13 @@ def main_sun_collector(client):
                     state = 4
                     sub_state = 0
                 #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
-                elif T2 >= set_temp_tank_1_gräns and T1 <= kylning_kollektor:
+                elif T2 >= set_temp_tank_1 and T1 <= kylning_kollektor:
                     test_pump = False
                     mode = "41"
                     state = 4
                     sub_state = 1
                 else:    
-                    logging.info("T2:%s, T1:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, test_pump, mode, state, sub_state)
+                    logging.info("T2:%s, T1:%s, , dT:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, test_pump, mode, state, sub_state)
                     mode = "42"
                     state = 4
                     sub_state = 2
