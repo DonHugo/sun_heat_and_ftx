@@ -9,6 +9,7 @@ git push
 ```
 
 ```
+https://github.com/SequentMicrosystems/4relind-rpi/tree/main/python#get_relaystack-relay
 pip install statistics
 
 ```
