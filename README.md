@@ -1,14 +1,8 @@
 # sun_heat_and_ftx
 
-```
-git add --all
-git commit -m "."
-git push
-git pull
-git push
-```
+##install software for sequentmicrosystems boards
 
-RTD Data Acquisition:
+###RTD Data Acquisition:
 ```
 https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
 ```
@@ -19,7 +13,7 @@ https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
 ~$ cd rtd-rpi/python/rtd/
 ~/rtd-rpi/python/rtd$ sudo python3 setup.py install
 ```
-Building Automation V4 
+###Building Automation V4 
 ```
 https://sequentmicrosystems.com/pages/building-automation-downloads
 ```
@@ -30,7 +24,7 @@ https://sequentmicrosystems.com/pages/building-automation-downloads
 ~$ cd megabas-rpi/python/
 ~/megabas-rpi/python$ sudo python3 setup.py install
 ```
-Four Relays four HV Inputs 
+###Four Relays four HV Inputs 
 ```
 https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
 ```
@@ -41,7 +35,7 @@ https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
 ~$ cd 4relind-rpi/python/4relind/
 ~/4relind-rpi/python/4relind$ sudo python3 setup.py install
 ```
-pypi:
+##pypi:
 ```
 pip3 install statistics
 pip3 install numpy
