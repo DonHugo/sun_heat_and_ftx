@@ -148,12 +148,14 @@ def logging_testmode(queue, event):
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.INFO)
-                            
-                logging.info("debug_mode: %s", args.debug_mode)
-                logging.info("test_mode: %s", args.test_mode)
 
                 if args.test_mode == "true":
                     test_mode = True 
+                
+                if
+                #logging.info("debug_mode: %s", args.debug_mode)
+                #logging.info("test_mode: %s", args.test_mode)
+
 
         logging.info("Consumer received event. Exiting")
     except Exception as e:
