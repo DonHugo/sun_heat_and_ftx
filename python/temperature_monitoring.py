@@ -628,6 +628,7 @@ def main_sun_collector(client):
         global state
         global sub_state
         dT_running = 0
+        dt = 0
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
         if args.test_mode == True:
