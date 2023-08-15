@@ -578,21 +578,14 @@ def stored_energy(client):
 
 def ftx(client):
     try:
-        if args.test_mode == False:
+        if test_mode == False:
             uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
             avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
             tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
             franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
             effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
-
-        elif args.test_mode == True:
-            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
-            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
-            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
-            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
-            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
-
-        msg_dict = {
+           
+            msg_dict = {
             "name": "ftx",
             "effekt_varmevaxlare": effekt_varmevaxlare,
             "uteluft": uteluft,
@@ -600,6 +593,22 @@ def ftx(client):
             "tilluft": tilluft,
             "franluft": franluft
         }
+
+        elif test_mode == True:
+            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
+            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
+            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
+            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
+            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
+
+            msg_dict = {
+                "name": "ftx",
+                "effekt_varmevaxlare": effekt_varmevaxlare,
+                "uteluft": uteluft,
+                "avluft": avluft,
+                "tilluft": tilluft,
+                "franluft": franluft
+            }
 
         topic = "sequentmicrosystems/ftx"
 
@@ -622,14 +631,7 @@ def main_sun_collector(client):
         
         if args.test_mode == True:
             logging.info("test_mode: %s", args.test_mode)
-            logging.info("sun collector in productionmode")
-
-        
-            topic = "sequentmicrosystems/suncollector"
-            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
-
-        elif args.test_mode == False:
-            logging.info("sun collector in testmode")
+            logging.info("sun collector in production mode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
             dT = round(T1-T2,1);
@@ -640,8 +642,29 @@ def main_sun_collector(client):
                 dT_running = dT
             else:
                 dT_running = 0
-            if args.debug_mode == "true" : logging.debug("dT_running: %s", dT_running)
-            if args.debug_mode == "true" : logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+            logging.debug("dT_running: %s", dT_running)
+            logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+            #######################
+
+
+            #######################
+            topic = "sequentmicrosystems/suncollector"
+            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
+
+        elif args.test_mode == False:
+            logging.info("sun collector in test mode")
+            T1 = mqtt_sun[0]
+            T2 = mqtt_sun[1]
+            dT = round(T1-T2,1);
+            logging.debug("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+            
+            #skapar en entitet för att mäta energimängd när pumpen är på
+            if test_pump == True:
+                dT_running = dT
+            else:
+                dT_running = 0
+            logging.debug("dT_running: %s", dT_running)
+            logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             
             # kollar om manuell styrning är påslagen
             if solfangare_manuell_styrning == True:
