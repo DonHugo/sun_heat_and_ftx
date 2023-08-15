@@ -26,6 +26,8 @@ SUB_TOPIC_7 = "hass/set_temp_tank_1"
 SUB_TOPIC_8 = "hass/temp_kok"
 SUB_TOPIC_9 = "hass/manuell_styrning"
 SUB_TOPIC_10 = "hass/manuell_pump"
+SUB_TOPIC_11 = "hass/test_mode"
+SUB_TOPIC_12 = "hass/log_level"
 
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
@@ -58,6 +60,8 @@ mode = "startup"
 state = 1
 sub_state = 0
 overheated = False
+log_level = "info"
+test_mode = False
 
 
 #===== MQTT subscribe =====#
@@ -77,7 +81,6 @@ args = parser.parse_args()
 
 
 def producer(queue, event):
-    """Pretend we're getting a number from the network."""
     try:
         while not event.is_set():
             a = 1
@@ -85,12 +88,9 @@ def producer(queue, event):
                 collect_sensor_data_mega(3,a,10)
                 a += 1
                 if a > 8:
-                    if args.debug_mode == "true":
-                        logging.info("""input_array content: 
+                    logging.debug("""input_array content: 
                                     %s""", input_array)
                     a = 1
-            #logging.info("""Producer got message: %s""", input_array)
-            #queue.put(input_array)
 
         logging.info("Producer received event. Exiting")
     except Exception as e:
@@ -104,7 +104,7 @@ def execution(queue, event):
             time.sleep(5)
             while not FLAG_EXIT:
                 time.sleep(2)
-                logging.info("starting main_sun_collector!")
+                logging.debug("starting main_sun_collector!")
                 main_sun_collector(mqtt_client_connected)
 
         logging.info("Consumer received event. Exiting")
@@ -128,6 +128,36 @@ def sender(queue, event):
         logging.info("Consumer received event. Exiting")
     except Exception as e:
         logging.error("An error occurred in the sender function: %s" % e)
+
+def logging_testmode(queue, event):
+    global test_mode
+    global log_level
+    try:
+        while not event.is_set() or not queue.empty():
+            while not FLAG_EXIT:
+                
+                if log_level == "debug" or args.debug_mode == "true":       
+                    logging.basicConfig(filename="temperature_monitor.log",
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.DEBUG)
+                else:
+                    logging.basicConfig(filename="temperature_monitor.log",
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.INFO)
+                            
+                logging.info("debug_mode: %s", args.debug_mode)
+                logging.info("test_mode: %s", args.test_mode)
+
+                if args.test_mode == "true":
+                    test_mode = True 
+
+        logging.info("Consumer received event. Exiting")
+    except Exception as e:
+        logging.error("An error occurred in the execution function: %s" % e)
 
 
 #========================== MQTT setup ==========================
@@ -175,6 +205,8 @@ def on_message(client, userdata, msg):
     global solfangare_manuell_styrning
     global solfångare_manuell_pump
     global test_pump
+    global test_mode
+    global log_level
 
     if args.debug_mode == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
@@ -194,50 +226,50 @@ def on_message(client, userdata, msg):
             mqtt_sun[1] = x["T2"]
             mqtt_sun[2] = x["T3"]
             if args.debug_mode == "true":
-                logging.info("mqtt_rtd %s", mqtt_rtd)
-                logging.info("mqtt_sun %s", mqtt_sun)
+                logging.debug("mqtt_rtd %s", mqtt_rtd)
+                logging.debug("mqtt_sun %s", mqtt_sun)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/pump":
         try:
             x = json.loads(msg.payload.decode())
             test_pump = x["pump"]
-            logging.info("test_pump: %s", test_pump)
+            logging.debug("test_pump: %s", test_pump)
         except Exception as err:
-            logging.error("%s. message from topic == %s", err, msg.topic)
+            logging.debug("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/delta_temp_start_tank_1":
         try:
             x = json.loads(msg.payload.decode())
             dTStart_tank_1 = x["state"]
-            logging.info("dTStart_tank_1: %s", dTStart_tank_1)
+            logging.debug("dTStart_tank_1: %s", dTStart_tank_1)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/delta_temp_stop_tank_1":
         try:
             x = json.loads(msg.payload.decode())
             dTStop_tank_1 = x["state"]
-            logging.info("dTStop_tank_1: %s", dTStop_tank_1)
+            logging.debug("dTStop_tank_1: %s", dTStop_tank_1)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/kylning_kollektor":
         try:
             x = json.loads(msg.payload.decode())
             kylning_kollektor = x["state"]
-            logging.info("kylning_kollektor: %s", kylning_kollektor)
+            logging.debug("kylning_kollektor: %s", kylning_kollektor)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/set_temp_tank_1":
         try:
          x = json.loads(msg.payload.decode())
          set_temp_tank_1 = x["state"]
-         logging.info("set_temp_tank_1: %s", set_temp_tank_1)
+         logging.debug("set_temp_tank_1: %s", set_temp_tank_1)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/temp_kok":
         try:
             x = json.loads(msg.payload.decode())
             temp_kok = x["state"]
-            logging.info("temp_kok: %s", temp_kok)
+            logging.debug("temp_kok: %s", temp_kok)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/manuell_styrning":
@@ -247,7 +279,7 @@ def on_message(client, userdata, msg):
                 solfangare_manuell_styrning = False
             elif x["state"] == 1:
                 solfangare_manuell_styrning = True
-            logging.info("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
+            logging.debug("solfangare_manuell_styrning: %s", solfangare_manuell_styrning)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/manuell_pump":
@@ -257,7 +289,24 @@ def on_message(client, userdata, msg):
                 solfångare_manuell_pump = False
             elif x["state"] == 1:
                 solfångare_manuell_pump = True
-            logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+            logging.debug("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
+    elif msg.topic == "hass/test_mode":
+        try:
+            x = json.loads(msg.payload.decode())
+            if x["state"] == 0:
+                test_mode = False
+            elif x["state"] == 1:
+                test_mode = True
+            logging.debug("test_mode: %s", test_mode)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
+    elif msg.topic == "hass/log_level":
+        try:
+            x = json.loads(msg.payload.decode())
+            log_level = x["state"]
+            logging.debug("log_level: %s", log_level)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
 
@@ -402,8 +451,10 @@ def publish(client, topic, msg):
 
 def run():
     # Setting up the logging configuration
-    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    
+    if log_level == "debug":
+        logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+    else:
+        logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
     # Attempt to connect to MQTT and start the loop
     try:
         client = connect_mqtt()
@@ -463,10 +514,10 @@ def sensor_calculations(client):
 def stored_energy(client):
     try:
         stored_energy = np.zeros(10)
-        #logging.info("stored_energy: %s", stored_energy)
+        logging.debug("stored_energy: %s", stored_energy)
         stored_energy_kwh = np.zeros(4)
-        #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
-        if args.test_mode == "false":
+        logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
+        if args.test_mode == False:
             zero_valu = 0 #temperature of the water that is comming to to the system from the well
             stack_1 = 2
             stack_2 = 2
@@ -481,14 +532,14 @@ def stored_energy(client):
             stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
             stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
             stored_energy[0] = (input_array.mean(2)[2,0])
-            #logging.info("stored_energy[0]: %s", stored_energy[0])
-            #logging.info("stored_energy: %s", stored_energy)
+            #logging.debug("stored_energy[0]: %s", stored_energy[0])
+            #logging.debug("stored_energy: %s", stored_energy)
             stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
             stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-            #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+            #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
-        elif args.test_mode == "true":
+        elif args.test_mode == True:
             zero_valu = 4 #temperature of the water that is comming to to the system from the well
             stored_energy[0] = ((mqtt_rtd[0]-zero_valu)*35)
             stored_energy[1] = ((mqtt_rtd[1]-zero_valu)*35)
@@ -499,13 +550,13 @@ def stored_energy(client):
             stored_energy[6] = ((mqtt_rtd[6]-zero_valu)*35)
             stored_energy[7] = ((mqtt_rtd[7]-zero_valu)*35)
             stored_energy[8] = ((mqtt_rtd[8]-zero_valu)*35)
-            #logging.info("stored_energy[0]: %s", stored_energy[0])
-            #logging.info("stored_energy: %s", stored_energy)
+            #logging.debug("stored_energy[0]: %s", stored_energy[0])
+            #logging.debug("stored_energy: %s", stored_energy)
             stored_energy_kwh[0] = round((np.sum(stored_energy)*4200/1000/3600),2)
             stored_energy_kwh[1] = round((np.sum(stored_energy[:5])*4200/1000/3600),2)
             stored_energy_kwh[2] = round((np.sum(stored_energy[4:])*4200/1000/3600),2)
             stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),2)
-            #logging.info("stored_energy_kwh: %s", stored_energy_kwh)
+            #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         msg_dict = {
                 "name": "stored_energy",
@@ -515,7 +566,7 @@ def stored_energy(client):
                 "average_temperature": stored_energy_kwh[3]
             }
         topic = "sequentmicrosystems/stored_energy"
-        #logging.info("topic: %s", topic)
+        logging.debug("topic: %s", topic)
 
         msg = json.dumps(msg_dict)
         publish(client,topic,msg)
@@ -525,14 +576,14 @@ def stored_energy(client):
 
 def ftx(client):
     try:
-        if args.test_mode == "false":
+        if args.test_mode == False:
             uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
             avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
             tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
             franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
             effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
 
-        elif args.test_mode == "true":
+        elif args.test_mode == True:
             uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
             avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
             tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
@@ -567,31 +618,32 @@ def main_sun_collector(client):
         global sub_state
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
-        if args.test_mode == "treu":
+        if args.test_mode == True:
             logging.info("test_mode: %s", args.test_mode)
+            logging.info("sun collector in productionmode")
 
         
-        topic = "sequentmicrosystems/suncollector"
-        if args.debug_mode == "true" : logging.info("topic: %s", topic)
+            topic = "sequentmicrosystems/suncollector"
+            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
 
-        elif args.test_mode == "false":
+        elif args.test_mode == False:
             logging.info("sun collector in testmode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
             dT = round(T1-T2,1);
-            logging.info("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+            logging.debug("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
             
             #skapar en entitet för att mäta energimängd när pumpen är på
             if test_pump == True:
                 dT_running = dT
             else:
                 dT_running = 0
-            if args.debug_mode == "true" : logging.info("dT_running: %s", dT_running)
-            if args.debug_mode == "true" : logging.info("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+            if args.debug_mode == "true" : logging.debug("dT_running: %s", dT_running)
+            if args.debug_mode == "true" : logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             
             # kollar om manuell styrning är påslagen
             if solfangare_manuell_styrning == True:
-                if args.debug_mode == "true" : logging.info("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+                if args.debug_mode == "true" : logging.debug("solfångare_manuell_pump: %s", solfångare_manuell_pump)
                 if solfångare_manuell_pump == True:
                     test_pump = True
                     #lib4relind.set_relay(2, 1, 0)
@@ -606,7 +658,7 @@ def main_sun_collector(client):
                     sub_state = 1
             # Kollar om temperaturen är över eller ha varit över temp_kok 
             elif T1 >= temp_kok or overheated == True:
-                if args.debug_mode == "true" : logging.info("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
+                if args.debug_mode == "true" : logging.debug("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
                 if T1 >= temp_kok:
                     overheated = True
                     test_pump = False
@@ -622,7 +674,7 @@ def main_sun_collector(client):
                     sub_state = 1
             # Om pumpen är avslagen eller startup läge
             elif test_pump == False or mode == "startup":
-                if args.debug_mode == "true" : logging.info("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
+                if args.debug_mode == "true" : logging.debug("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
                 # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
                 if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1_gräns:
                     test_pump = True
@@ -640,9 +692,11 @@ def main_sun_collector(client):
                     mode = "32"
                     state = 3
                     sub_state = 2
+                else:    
+                    logging.debug("T2:%s, T1:%s, , dT:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, test_pump, mode, state, sub_state)
             # Pumpmen är påslagen
             elif test_pump == True:
-                if args.debug_mode == "true" : logging.info("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
+                if args.debug_mode == "true" : logging.debug("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
                 #stoppa pumpen när dT går under satt nivå
                 if dT <= dTStop_tank_1:
                     test_pump = False
@@ -656,12 +710,12 @@ def main_sun_collector(client):
                     state = 4
                     sub_state = 1
                 else:    
-                    logging.info("T2:%s, T1:%s, , dT:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, test_pump, mode, state, sub_state)
+                    logging.debug("T2:%s, T1:%s, , dT:%s, test_pump:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, test_pump, mode, state, sub_state)
                     #mode = "42"
                     #state = 4
                     #sub_state = 2
             topic = "test/sequentmicrosystems/suncollector"
-            if args.debug_mode == "true" : logging.info("topic: %s", topic)
+            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
 
         msg_dict = {
                 "name": "solfångare",
@@ -671,7 +725,9 @@ def main_sun_collector(client):
                 "sub_state": sub_state,
                 "overheated": overheated,
                 "dT_running": dT_running,
-                "dT": dT
+                "dT": dT,
+                "test_mode": test_mode,
+                "log_level": log_level
             }
         print(msg_dict)
         msg = json.dumps(msg_dict)
@@ -685,20 +741,26 @@ def main_sun_collector(client):
 
 if __name__ == "__main__":
     try:
-        logging.basicConfig(filename="temperature_monitor.log",
-                        filemode='a',
-                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S',
-                        level=logging.DEBUG)
-        #format = "%(asctime)s: %(message)s"
-        #logging.basicConfig(format=format, level=logging.INFO,
-        #                    datefmt="%H:%M:%S")
-        logging.info("debug_mode: %s", args.debug_mode)
-        logging.info("test_mode: %s", args.test_mode)
+        # if log_level == "debug":       
+        #     logging.basicConfig(filename="temperature_monitor.log",
+        #         filemode='a',
+        #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        #         datefmt='%H:%M:%S',
+        #         level=logging.DEBUG)
+        # else:
+        #     logging.basicConfig(filename="temperature_monitor.log",
+        #         filemode='a',
+        #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        #         datefmt='%H:%M:%S',
+        #         level=logging.INFO)
+                            
+        # logging.info("debug_mode: %s", args.debug_mode)
+        # logging.info("test_mode: %s", args.test_mode)
         mqtt_client_connected = run()
         pipeline = queue.Queue(maxsize=10)
         event = threading.Event()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            executor.submit(logging_testmode, pipeline, event)
             executor.submit(producer, pipeline, event)
             executor.submit(execution, pipeline, event)
             executor.submit(sender, pipeline, event)
