@@ -640,10 +640,13 @@ def main_sun_collector(client):
             #skapar en entitet för att mäta energimängd när pumpen är på
             if test_pump == True:
                 dT_running = dT
+                logging.debug("dT_running: %s", dT_running)
+                logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+
             else:
                 dT_running = 0
-            logging.debug("dT_running: %s", dT_running)
-            logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+                logging.debug("dT_running: %s", dT_running)
+                logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             #######################
 
 
@@ -661,10 +664,12 @@ def main_sun_collector(client):
             #skapar en entitet för att mäta energimängd när pumpen är på
             if test_pump == True:
                 dT_running = dT
+                logging.debug("dT_running: %s", dT_running)
+                logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             else:
                 dT_running = 0
-            logging.debug("dT_running: %s", dT_running)
-            logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
+                logging.debug("dT_running: %s", dT_running)
+                logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             
             # kollar om manuell styrning är påslagen
             if solfangare_manuell_styrning == True:
