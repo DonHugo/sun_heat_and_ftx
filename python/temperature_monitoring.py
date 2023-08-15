@@ -152,7 +152,7 @@ def logging_testmode(queue, event):
                 if args.test_mode == "true":
                     test_mode = True 
                 
-                if
+                
                 #logging.info("debug_mode: %s", args.debug_mode)
                 #logging.info("test_mode: %s", args.test_mode)
 
