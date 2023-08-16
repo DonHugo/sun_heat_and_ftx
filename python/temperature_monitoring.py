@@ -457,12 +457,6 @@ def publish(client, topic, msg):
         print(f'An error occurred: {str(e)}')
 
 def run():
-    # Setting up the logging configuration
-    #if log_level == "debug":
-    #    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    #else:
-    #    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
-    # Attempt to connect to MQTT and start the loop
     try:
         client = connect_mqtt()
         client.loop_start()
@@ -627,7 +621,9 @@ def main_sun_collector(client):
         dT_running = 0
         dT = 0
         topic = "test/sequentmicrosystems/problem"
-        #concurrent_pump_status = lib4relind.get_relay(4, 1)
+        current_pump_status = True
+        start_pump = None 
+        stop_pump = None
         
         if test_mode == False:
             logging.info("test_mode: %s", test_mode)
@@ -635,20 +631,97 @@ def main_sun_collector(client):
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
             dT = round(T1-T2,1);
-            logging.debug("T1: %s, T2: %s, dT: %s, test_pump: %s", T1, T2, dT, test_pump)
+            #start_pump = set_relay(4, 1, 0)
+            #stop_pump = set_relay(4, 1, 1)
+            logging.debug("T1: %s, T2: %s, dT: %s, current_pump_status: %s", T1, T2, dT, current_pump_status)
             
+            #Pumpen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
+            if lib4relind.get_relay(4, 1) == 0:
+                current_pump_status = True
+            elif lib4relind.get_relay(4, 1) == 1:
+                current_pump_status = False
+
             #skapar en entitet för att mäta energimängd när pumpen är på
-            if test_pump == True:
+            if current_pump_status == True:
                 dT_running = dT
                 logging.debug("dT_running: %s", dT_running)
                 logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
-
             else:
                 dT_running = 0
                 logging.debug("dT_running: %s", dT_running)
                 logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             #######################
-
+            # kollar om manuell styrning är påslagen
+            if solfangare_manuell_styrning == True:
+                logging.debug("solfångare_manuell_pump: %s", solfångare_manuell_pump)
+                if solfångare_manuell_pump == True:
+                    start_pump
+                    mode = "10"
+                    state = 1
+                    sub_state = 0
+                elif solfångare_manuell_pump == False:
+                    stop_pump
+                    mode = "11"
+                    state = 1
+                    sub_state = 1
+            # Kollar om temperaturen är över eller ha varit över temp_kok 
+            elif T1 >= temp_kok or overheated == True:
+                logging.debug("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
+                if T1 >= temp_kok:
+                    overheated = True
+                    stop_pump
+                    mode = "20"
+                    state = 2
+                    sub_state = 0
+                    #När temperaturen i kollktorn har varit över temp_kok-gränsen men har gått under hysteresgränsen
+                elif overheated == True and T1 < temp_kok_hysteres_gräns:
+                    overheated = False
+                    start_pump
+                    mode = "21"
+                    state = 2
+                    sub_state = 1
+            # Om pumpen är avslagen eller startup läge
+            elif current_pump_status == False or mode == "startup":
+                logging.debug("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
+                # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
+                if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1_gräns:
+                    start_pump
+                    mode = "30"
+                    state = 3
+                    sub_state = 0
+                # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
+                elif T1 >= kylning_kollektor:
+                    start_pump
+                    mode = "31"
+                    state = 3
+                    sub_state = 1
+                elif mode == "startup":
+                    start_pump
+                    mode = "32"
+                    state = 3
+                    sub_state = 2
+                else:    
+                    logging.debug("T2:%s, T1:%s, , dT:%s, current_pump_status:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, current_pump_status, mode, state, sub_state)
+            # Pumpmen är påslagen
+            elif current_pump_status == True:
+                logging.debug("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
+                #stoppa pumpen när dT går under satt nivå
+                if dT <= dTStop_tank_1:
+                    stop_pump
+                    mode = "40"
+                    state = 4
+                    sub_state = 0
+                #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
+                elif T2 >= set_temp_tank_1 and T1 <= kylning_kollektor:
+                    stop_pump
+                    mode = "41"
+                    state = 4
+                    sub_state = 1
+                else:    
+                    logging.debug("T2:%s, T1:%s, , dT:%s, current_pump_status:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, current_pump_status, mode, state, sub_state)
+                    #mode = "42"
+                    #state = 4
+                    #sub_state = 2
 
             #######################
             topic = "sequentmicrosystems/suncollector"
@@ -772,21 +845,6 @@ def main_sun_collector(client):
 
 if __name__ == "__main__":
     try:
-        # if log_level == "debug":       
-        #     logging.basicConfig(filename="temperature_monitoring.log",
-        #         filemode='a',
-        #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-        #         datefmt='%H:%M:%S',
-        #         level=logging.DEBUG)
-        # else:
-        #     logging.basicConfig(filename="temperature_monitoring.log",
-        #         filemode='a',
-        #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-        #         datefmt='%H:%M:%S',
-        #         level=logging.INFO)
-                            
-        # logging.info("debug_mode: %s", args.debug_mode)
-        # logging.info("test_mode: %s", args.test_mode)
         mqtt_client_connected = run()
         pipeline = queue.Queue(maxsize=10)
         event = threading.Event()
@@ -800,4 +858,3 @@ if __name__ == "__main__":
             event.set()
     except Exception as e:
         logging.error("An error occurred in __main__: %s" % e)
-
