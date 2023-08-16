@@ -135,8 +135,12 @@ def logging_testmode(queue, event):
     try:
         while not event.is_set() or not queue.empty():
             while not FLAG_EXIT:
-                
-                if log_level == "debug" or args.debug_mode == "true":       
+                if args.debug_mode == "true":
+                    log_level = "debug"
+                else:
+                    log_level = "info"
+
+                if log_level == "debug":       
                     logging.basicConfig(filename="temperature_monitor.log",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
@@ -168,7 +172,7 @@ def on_connect(client, userdata, flags, rc):
         if rc == 0 and client.is_connected():
             print("Connected to MQTT Broker!")
             #client.subscribe(SUB_TOPIC_1)
-            client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0)])
+            client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0),(SUB_TOPIC_11, 0),(SUB_TOPIC_12, 0)])
         else:
             print(f'Failed to connect, return code {rc}')
     except Exception as e:
@@ -307,7 +311,10 @@ def on_message(client, userdata, msg):
     elif msg.topic == "hass/log_level":
         try:
             x = json.loads(msg.payload.decode())
-            log_level = x["state"]
+            if x["state"] == 0:
+                log_level = "info"
+            elif x["state"] == 1:
+                log_level = "debug"
             logging.debug("log_level: %s", log_level)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
@@ -453,10 +460,10 @@ def publish(client, topic, msg):
 
 def run():
     # Setting up the logging configuration
-    if log_level == "debug":
-        logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-    else:
-        logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+    #if log_level == "debug":
+    #    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+    #else:
+    #    logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
     # Attempt to connect to MQTT and start the loop
     try:
         client = connect_mqtt()
@@ -519,7 +526,7 @@ def stored_energy(client):
         logging.debug("stored_energy: %s", stored_energy)
         stored_energy_kwh = np.zeros(4)
         logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
-        if args.test_mode == False:
+        if test_mode == False:
             zero_valu = 0 #temperature of the water that is comming to to the system from the well
             stack_1 = 2
             stack_2 = 2
@@ -541,7 +548,7 @@ def stored_energy(client):
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
-        elif args.test_mode == True:
+        elif test_mode == True:
             zero_valu = 4 #temperature of the water that is comming to to the system from the well
             stored_energy[0] = ((mqtt_rtd[0]-zero_valu)*35)
             stored_energy[1] = ((mqtt_rtd[1]-zero_valu)*35)
@@ -578,21 +585,13 @@ def stored_energy(client):
 
 def ftx(client):
     try:
+        effekt_varmevaxlare = 0
         if test_mode == False:
             uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
             avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
             tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
             franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
             effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
-           
-            msg_dict = {
-            "name": "ftx",
-            "effekt_varmevaxlare": effekt_varmevaxlare,
-            "uteluft": uteluft,
-            "avluft": avluft,
-            "tilluft": tilluft,
-            "franluft": franluft
-        }
 
         elif test_mode == True:
             uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
@@ -601,14 +600,14 @@ def ftx(client):
             franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
             effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
 
-            msg_dict = {
-                "name": "ftx",
-                "effekt_varmevaxlare": effekt_varmevaxlare,
-                "uteluft": uteluft,
-                "avluft": avluft,
-                "tilluft": tilluft,
-                "franluft": franluft
-            }
+        msg_dict = {
+            "name": "ftx",
+            "effekt_varmevaxlare": effekt_varmevaxlare,
+            "uteluft": uteluft,
+            "avluft": avluft,
+            "tilluft": tilluft,
+            "franluft": franluft
+        }
 
         topic = "sequentmicrosystems/ftx"
 
@@ -632,7 +631,7 @@ def main_sun_collector(client):
         topic = "hass/problem"
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
-        if test_mode == True:
+        if test_mode == False:
             logging.info("test_mode: %s", args.test_mode)
             logging.info("sun collector in production mode")
             T1 = mqtt_sun[0]
@@ -657,7 +656,8 @@ def main_sun_collector(client):
             topic = "sequentmicrosystems/suncollector"
             if args.debug_mode == "true" : logging.debug("topic: %s", topic)
 
-        elif test_mode == False:
+        elif test_mode == True:
+            logging.info("test_mode: %s", args.test_mode)
             logging.info("sun collector in test mode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
