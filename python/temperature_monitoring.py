@@ -141,13 +141,13 @@ def logging_testmode(queue, event):
                     log_level = "info"
 
                 if log_level == "debug":       
-                    logging.basicConfig(filename="temperature_monitor.log",
+                    logging.basicConfig(filename="temperature_monitoring.log",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
                 else:
-                    logging.basicConfig(filename="temperature_monitor.log",
+                    logging.basicConfig(filename="temperature_monitoring.log",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
@@ -628,7 +628,7 @@ def main_sun_collector(client):
         global sub_state
         dT_running = 0
         dT = 0
-        topic = "hass/problem"
+        topic = "test/sequentmicrosystems/problem"
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
         if test_mode == False:
@@ -775,13 +775,13 @@ def main_sun_collector(client):
 if __name__ == "__main__":
     try:
         # if log_level == "debug":       
-        #     logging.basicConfig(filename="temperature_monitor.log",
+        #     logging.basicConfig(filename="temperature_monitoring.log",
         #         filemode='a',
         #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         #         datefmt='%H:%M:%S',
         #         level=logging.DEBUG)
         # else:
-        #     logging.basicConfig(filename="temperature_monitor.log",
+        #     logging.basicConfig(filename="temperature_monitoring.log",
         #         filemode='a',
         #         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         #         datefmt='%H:%M:%S',
