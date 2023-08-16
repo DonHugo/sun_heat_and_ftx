@@ -156,8 +156,8 @@ def logging_testmode(queue, event):
                     test_mode = True 
                 
                 
-                #logging.info("debug_mode: %s", args.debug_mode)
-                #logging.info("test_mode: %s", args.test_mode)
+                #logging.info("debug_mode: %s", debug_mode)
+                #logging.info("test_mode: %s", test_mode)
 
 
         logging.info("Consumer received event. Exiting")
@@ -213,7 +213,7 @@ def on_message(client, userdata, msg):
     global test_mode
     global log_level
 
-    if args.debug_mode == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
+    if log_level == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
     if msg.topic == "rtd/acctank":
         try:
@@ -230,9 +230,8 @@ def on_message(client, userdata, msg):
             mqtt_sun[0] = x["T1"]
             mqtt_sun[1] = x["T2"]
             mqtt_sun[2] = x["T3"]
-            if args.debug_mode == "true":
-                logging.debug("mqtt_rtd %s", mqtt_rtd)
-                logging.debug("mqtt_sun %s", mqtt_sun)
+            logging.debug("mqtt_rtd %s", mqtt_rtd)
+            logging.debug("mqtt_sun %s", mqtt_sun)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
     elif msg.topic == "hass/pump":
@@ -449,7 +448,7 @@ def publish(client, topic, msg):
         result = client.publish(topic, msg)
         status = result[0]
         if status == 0:
-            if args.debug_mode == "true":
+            if log_level == "true":
                 print(f'Send `{msg}` to topic `{topic}`')
         else:
             print(f'Failed to send message to topic {topic}')
@@ -631,7 +630,7 @@ def main_sun_collector(client):
         #concurrent_pump_status = lib4relind.get_relay(4, 1)
         
         if test_mode == False:
-            logging.info("test_mode: %s", args.test_mode)
+            logging.info("test_mode: %s", test_mode)
             logging.info("sun collector in production mode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
@@ -653,10 +652,10 @@ def main_sun_collector(client):
 
             #######################
             topic = "sequentmicrosystems/suncollector"
-            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
+            logging.debug("topic: %s", topic)
 
         elif test_mode == True:
-            logging.info("test_mode: %s", args.test_mode)
+            logging.info("test_mode: %s", test_mode)
             logging.info("sun collector in test mode")
             T1 = mqtt_sun[0]
             T2 = mqtt_sun[1]
@@ -747,7 +746,7 @@ def main_sun_collector(client):
                     #state = 4
                     #sub_state = 2
             topic = "test/sequentmicrosystems/suncollector"
-            if args.debug_mode == "true" : logging.debug("topic: %s", topic)
+            logging.debug("topic: %s", topic)
 
         msg_dict = {
                 "name": "solfångare",
