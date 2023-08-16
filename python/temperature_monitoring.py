@@ -137,8 +137,7 @@ def logging_testmode(queue, event):
             while not FLAG_EXIT:
                 if args.debug_mode == "true":
                     log_level = "debug"
-                else:
-                    log_level = "info"
+
 
                 if log_level == "debug":       
                     logging.basicConfig(filename="temperature_monitoring.log",
