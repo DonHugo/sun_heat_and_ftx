@@ -521,7 +521,7 @@ def stored_energy(client):
         logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
         if test_mode == False:
             zero_valu = 0 #temperature of the water that is comming to to the system from the well
-            stack_1 = 2
+            stack_1 = 0
             stack_2 = 2
             stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
             stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
@@ -531,8 +531,8 @@ def stored_energy(client):
             stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
             stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
             stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-            stored_energy[8] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)
-            stored_energy[9] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)
+            stored_energy[8] = ((input_array.mean(2)[stack_2,6]-zero_valu)*35)
+            stored_energy[9] = ((input_array.mean(2)[stack_2,7]-zero_valu)*35)
             stored_energy[0] = (input_array.mean(2)[2,0])
             #logging.debug("stored_energy[0]: %s", stored_energy[0])
             #logging.debug("stored_energy: %s", stored_energy)
