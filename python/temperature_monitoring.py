@@ -637,9 +637,9 @@ def main_sun_collector(client):
             logging.debug("T1: %s, T2: %s, dT: %s, current_pump_status: %s", T1, T2, dT, current_pump_status)
             
             #Pumpen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
-            if lib4relind.get_relay(2, 1) == 0:
+            if lib4relind.get_relay(2, 1) == 1:
                 current_pump_status = True
-            elif lib4relind.get_relay(2, 1) == 1:
+            elif lib4relind.get_relay(2, 1) == 0:
                 current_pump_status = False
 
             #skapar en entitet för att mäta energimängd när pumpen är på
