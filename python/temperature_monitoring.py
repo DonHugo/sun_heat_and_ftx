@@ -632,8 +632,8 @@ def main_sun_collector(client):
             T2 = round(input_array.mean(2)[2,6],2) # sensor marked II
             #T3 = round(input_array.mean(2)[2,7],2)  # sensor marked III
             dT = round(T1-T2,1);
-            start_pump = lib4relind.set_relay(2, 1, 0)
-            stop_pump = lib4relind.set_relay(2, 1, 1)
+            #start_pump = lib4relind.set_relay(2, 1, 0)
+            #stop_pump = lib4relind.set_relay(2, 1, 1)
             logging.debug("T1: %s, T2: %s, dT: %s, current_pump_status: %s", T1, T2, dT, current_pump_status)
             
             #Pumpen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
