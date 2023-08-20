@@ -621,7 +621,7 @@ def main_sun_collector(client):
         dT_running = 0
         dT = 0
         topic = "test/sequentmicrosystems/problem"
-        current_pump_status = True
+        current_pump_status = None
         start_pump = None 
         stop_pump = None
         
