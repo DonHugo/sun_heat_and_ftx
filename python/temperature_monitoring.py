@@ -86,6 +86,7 @@ def producer(queue, event):
             a = 1
             while not FLAG_EXIT:
                 collect_sensor_data_mega(3,a,10)
+                #collect_sensor_data_rtd(1,a,10)
                 a += 1
                 if a > 8:
                     logging.debug("""input_array content: 
@@ -628,8 +629,9 @@ def main_sun_collector(client):
         if test_mode == False:
             logging.info("test_mode: %s", test_mode)
             logging.info("sun collector in production mode")
-            T1 = mqtt_sun[0]
-            T2 = mqtt_sun[1]
+            T1 = round(input_array.mean(2)[2,5],2)  # sensor marked I
+            T2 = round(input_array.mean(2)[2,6],2) # sensor marked II
+            #T3 = round(input_array.mean(2)[2,7],2)  # sensor marked III
             dT = round(T1-T2,1);
             #start_pump = set_relay(4, 1, 0)
             #stop_pump = set_relay(4, 1, 1)
@@ -651,7 +653,7 @@ def main_sun_collector(client):
                 logging.debug("dT_running: %s", dT_running)
                 logging.debug("solfangare_manuell_styrning: %s, T1:%s, temp_kok:%s, overheated:%s, state:%s , mode:%s", solfangare_manuell_styrning, T1, temp_kok,overheated, state, mode)
             #######################
-            # kollar om manuell styrning är påslagen
+            # kollar om manuell styrning är påslagen, mode "10-11"
             if solfangare_manuell_styrning == True:
                 logging.debug("solfångare_manuell_pump: %s", solfångare_manuell_pump)
                 if solfångare_manuell_pump == True:
@@ -664,7 +666,7 @@ def main_sun_collector(client):
                     mode = "11"
                     state = 1
                     sub_state = 1
-            # Kollar om temperaturen är över eller ha varit över temp_kok 
+            # Kollar om temperaturen är över eller ha varit över temp_kok, mode "20-21" 
             elif T1 >= temp_kok or overheated == True:
                 logging.debug("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
                 if T1 >= temp_kok:
@@ -680,7 +682,7 @@ def main_sun_collector(client):
                     mode = "21"
                     state = 2
                     sub_state = 1
-            # Om pumpen är avslagen eller startup läge
+            # Om pumpen är avslagen eller startup läge, mode "30-32"
             elif current_pump_status == False or mode == "startup":
                 logging.debug("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
                 # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
@@ -702,7 +704,7 @@ def main_sun_collector(client):
                     sub_state = 2
                 else:    
                     logging.debug("T2:%s, T1:%s, , dT:%s, current_pump_status:%s, mode;%s, state:%s, sub_state:%s", T2, T1, dT, current_pump_status, mode, state, sub_state)
-            # Pumpmen är påslagen
+            # Pumpmen är påslagen, mode "40-41
             elif current_pump_status == True:
                 logging.debug("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
                 #stoppa pumpen när dT går under satt nivå
