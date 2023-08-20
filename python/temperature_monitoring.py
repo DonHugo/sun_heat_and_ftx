@@ -520,7 +520,7 @@ def stored_energy(client):
         stored_energy_kwh = np.zeros(4)
         logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
         if test_mode == False:
-            zero_valu = 0 #temperature of the water that is comming to to the system from the well
+            zero_valu = 4 #temperature of the water that is comming to to the system from the well
             stack_1 = 0
             stack_2 = 2
             stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
