@@ -89,8 +89,8 @@ def producer(queue, event):
                 collect_sensor_data_rtd(0,a,10)
                 a += 1
                 if a > 8:
-                    logging.debug("""input_array content: 
-                                    %s""", input_array)
+                    #logging.debug("""input_array content: 
+                    #                %s""", input_array)
                     a = 1
 
         logging.info("Producer received event. Exiting")
