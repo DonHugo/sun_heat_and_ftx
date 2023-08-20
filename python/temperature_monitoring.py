@@ -403,11 +403,11 @@ def collect_sensor_data_rtd(stack, input, iterations):
             collect_rtd = read_rtd(stack, input)
             if collect_rtd != 9999:
                 stack_position = stack
-                input_position = input
+                input_position = input-1
                 input_array[stack_position,input_position,i] = collect_rtd
             else:
                 stack_position = stack
-                input_position = input
+                input_position = input-1
         except Exception as e:
             print("An error occurred:", str(e))
         
