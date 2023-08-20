@@ -86,7 +86,7 @@ def producer(queue, event):
             a = 1
             while not FLAG_EXIT:
                 collect_sensor_data_mega(3,a,10)
-                #collect_sensor_data_rtd(1,a,10)
+                collect_sensor_data_rtd(0,a,10)
                 a += 1
                 if a > 8:
                     logging.debug("""input_array content: 
