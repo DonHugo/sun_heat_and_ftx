@@ -632,14 +632,14 @@ def main_sun_collector(client):
             T2 = round(input_array.mean(2)[2,6],2) # sensor marked II
             #T3 = round(input_array.mean(2)[2,7],2)  # sensor marked III
             dT = round(T1-T2,1);
-            start_pump = lib4relind.set_relay(2, 1, 1)
-            stop_pump = lib4relind.set_relay(2, 1, 0)
+            start_pump = lib4relind.set_relay(2, 1, 0)
+            stop_pump = lib4relind.set_relay(2, 1, 1)
             logging.debug("T1: %s, T2: %s, dT: %s, current_pump_status: %s", T1, T2, dT, current_pump_status)
             
             #Pumpen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
-            if lib4relind.get_relay(2, 0) == 1:
+            if lib4relind.get_relay(2, 1) == 1:
                 current_pump_status = True
-            elif lib4relind.get_relay(2, 0) == 0:
+            elif lib4relind.get_relay(2, 1) == 0:
                 current_pump_status = False
 
             #skapar en entitet för att mäta energimängd när pumpen är på
@@ -656,12 +656,12 @@ def main_sun_collector(client):
             if solfangare_manuell_styrning == True:
                 logging.debug("solfångare_manuell_pump: %s", solfångare_manuell_pump)
                 if solfångare_manuell_pump == True:
-                    start_pump
+                    lib4relind.set_relay(2, 1, 0)
                     mode = "10"
                     state = 1
                     sub_state = 0
                 elif solfångare_manuell_pump == False:
-                    stop_pump
+                    lib4relind.set_relay(2, 1, 1)
                     mode = "11"
                     state = 1
                     sub_state = 1
@@ -670,14 +670,14 @@ def main_sun_collector(client):
                 logging.debug("T1(%s) >= temp_kok(%s), overheated(%s) == True and T1(%s) < temp_kok_hysteres_gräns(%s)", T1, temp_kok,overheated,T1,temp_kok_hysteres_gräns)
                 if T1 >= temp_kok:
                     overheated = True
-                    stop_pump
+                    lib4relind.set_relay(2, 1, 1)
                     mode = "20"
                     state = 2
                     sub_state = 0
                     #När temperaturen i kollktorn har varit över temp_kok-gränsen men har gått under hysteresgränsen
                 elif overheated == True and T1 < temp_kok_hysteres_gräns:
                     overheated = False
-                    start_pump
+                    lib4relind.set_relay(2, 1, 0)
                     mode = "21"
                     state = 2
                     sub_state = 1
@@ -686,18 +686,18 @@ def main_sun_collector(client):
                 logging.debug("dT(%s) >= dTStart_tank_1(%s) and T2(%s) <= set_temp_tank_1(%s), T1(%s) >= kylning_kollektor(%s), mode(%s)", dT, dTStart_tank_1, T2, set_temp_tank_1, T1, kylning_kollektor, mode)
                 # starta pumpen om dT är lika med eller större än satt nivå och T2 är under satt nivå
                 if dT >= dTStart_tank_1 and T2 <= set_temp_tank_1_gräns:
-                    start_pump
+                    lib4relind.set_relay(2, 1, 0)
                     mode = "30"
                     state = 3
                     sub_state = 0
                 # starta pump om kollektor blir för varm men inte om den överstiger "temp_kok" grader
                 elif T1 >= kylning_kollektor:
-                    start_pump
+                    lib4relind.set_relay(2, 1, 0)
                     mode = "31"
                     state = 3
                     sub_state = 1
                 elif mode == "startup":
-                    start_pump
+                    lib4relind.set_relay(2, 1, 0)
                     mode = "32"
                     state = 3
                     sub_state = 2
@@ -708,13 +708,13 @@ def main_sun_collector(client):
                 logging.debug("dT(%s) <= dTStop_tank_1(%s), T2(%s) >= set_temp_tank_1_gräns(%s) and T1(%s) <= kylning_kollektor(%s)", dT, dTStop_tank_1, T2, set_temp_tank_1_gräns, T1, kylning_kollektor)
                 #stoppa pumpen när dT går under satt nivå
                 if dT <= dTStop_tank_1:
-                    stop_pump
+                    lib4relind.set_relay(2, 1, 1)
                     mode = "40"
                     state = 4
                     sub_state = 0
                 #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
                 elif T2 >= set_temp_tank_1 and T1 <= kylning_kollektor:
-                    stop_pump
+                    lib4relind.set_relay(2, 1, 1)
                     mode = "41"
                     state = 4
                     sub_state = 1
