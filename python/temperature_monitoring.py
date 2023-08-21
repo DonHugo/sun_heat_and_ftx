@@ -538,7 +538,7 @@ def stored_energy(client):
             stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
             stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-            stored_energy_kwh[3] = round(np.mean(stored_energy[:9]),1)
+            stored_energy_kwh[3] = round(((input_array.mean(2)[stack_1,0])+(input_array.mean(2)[stack_1,1])+(input_array.mean(2)[stack_1,2])+(input_array.mean(2)[stack_1,3])+(input_array.mean(2)[stack_1,4])+(input_array.mean(2)[stack_1,5])+(input_array.mean(2)[stack_1,6])+(input_array.mean(2)[stack_1,7])+(input_array.mean(2)[stack_2,7]))/9,1)
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         elif test_mode == True:
