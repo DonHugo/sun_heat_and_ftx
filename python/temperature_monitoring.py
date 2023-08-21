@@ -538,6 +538,7 @@ def stored_energy(client):
             stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
             stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
+            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),21
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         elif test_mode == True:
@@ -556,7 +557,7 @@ def stored_energy(client):
             stored_energy_kwh[0] = round((np.sum(stored_energy)*4200/1000/3600),2)
             stored_energy_kwh[1] = round((np.sum(stored_energy[:5])*4200/1000/3600),2)
             stored_energy_kwh[2] = round((np.sum(stored_energy[4:])*4200/1000/3600),2)
-            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),2)
+            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),1)
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         msg_dict = {
@@ -579,18 +580,18 @@ def ftx(client):
     try:
         effekt_varmevaxlare = 0
         if test_mode == False:
-            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
-            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
-            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
-            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
-            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
+            uteluft = round(input_array.mean(2)[2,0],1)  # sensor marked 4
+            avluft = round(input_array.mean(2)[2,1],1)   # sensor marked 5
+            tilluft = round(input_array.mean(2)[2,2],1)  # sensor marked 6
+            franluft = round(input_array.mean(2)[2,3],1) # sensor marked 7
+            effekt_varmevaxlare = round(100 - (avluft/franluft*100),1)
 
         elif test_mode == True:
-            uteluft = round(input_array.mean(2)[2,0],2)  # sensor marked 4
-            avluft = round(input_array.mean(2)[2,1],2)   # sensor marked 5
-            tilluft = round(input_array.mean(2)[2,2],2)  # sensor marked 6
-            franluft = round(input_array.mean(2)[2,3],2) # sensor marked 7
-            effekt_varmevaxlare = round(100 - (avluft/franluft*100),2)
+            uteluft = round(input_array.mean(2)[2,0],1)  # sensor marked 4
+            avluft = round(input_array.mean(2)[2,1],1)   # sensor marked 5
+            tilluft = round(input_array.mean(2)[2,2],1)  # sensor marked 6
+            franluft = round(input_array.mean(2)[2,3],1) # sensor marked 7
+            effekt_varmevaxlare = round(100 - (avluft/franluft*100),1)
 
         msg_dict = {
             "name": "ftx",
@@ -628,9 +629,9 @@ def main_sun_collector(client):
         if test_mode == False:
             logging.info("test_mode: %s", test_mode)
             logging.info("sun collector in production mode")
-            T1 = round(input_array.mean(2)[2,5],2)  # sensor marked I
-            T2 = round(input_array.mean(2)[2,6],2) # sensor marked II
-            #T3 = round(input_array.mean(2)[2,7],2)  # sensor marked III
+            T1 = round(input_array.mean(2)[2,5],1)  # sensor marked I
+            T2 = round(input_array.mean(2)[2,6],1) # sensor marked II
+            #T3 = round(input_array.mean(2)[2,7],1)  # sensor marked III
             dT = round(T1-T2,1);
             #start_pump = lib4relind.set_relay(2, 1, 0)
             #stop_pump = lib4relind.set_relay(2, 1, 1)
