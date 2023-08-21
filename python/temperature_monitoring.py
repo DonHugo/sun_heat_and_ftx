@@ -822,9 +822,15 @@ def main_sun_collector(client):
             topic = "test/sequentmicrosystems/suncollector"
             logging.debug("topic: %s", topic)
 
+        #Pumpen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
+        if lib4relind.get_relay(2, 1) == 0:
+            current_pump_status = True
+        elif lib4relind.get_relay(2, 1) == 1:
+            current_pump_status = False
+
         msg_dict = {
                 "name": "solfångare",
-                "pump": test_pump,
+                "pump": current_pump_status,
                 "mode": mode,
                 "state": state,
                 "sub_state": sub_state,
