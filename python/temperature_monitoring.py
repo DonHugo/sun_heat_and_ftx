@@ -531,14 +531,14 @@ def stored_energy(client):
             stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
             stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
             stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-#            stored_energy[8] = ((input_array.mean(2)[stack_2,6]-zero_valu)*35) # T2
-            stored_energy[9] = ((input_array.mean(2)[stack_2,7]-zero_valu)*35) # T3
+            #stored_energy[8] = ((input_array.mean(2)[stack_2,6]-zero_valu)*35) # T2
+            stored_energy[8] = ((input_array.mean(2)[stack_2,7]-zero_valu)*35) # T3
             #logging.debug("stored_energy[0]: %s", stored_energy[0])
             #logging.debug("stored_energy: %s", stored_energy)
             stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
             stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:8]),21
+            stored_energy_kwh[3] = round(np.mean(mqtt_rtd[:9]),1)
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         elif test_mode == True:
@@ -569,7 +569,7 @@ def stored_energy(client):
             }
         topic = "sequentmicrosystems/stored_energy"
         logging.debug("topic: %s", topic)
-
+        
         msg = json.dumps(msg_dict)
         publish(client,topic,msg)
         return
