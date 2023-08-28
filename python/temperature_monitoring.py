@@ -28,6 +28,7 @@ SUB_TOPIC_9 = "hass/manuell_styrning"
 SUB_TOPIC_10 = "hass/manuell_pump"
 SUB_TOPIC_11 = "hass/test_mode"
 SUB_TOPIC_12 = "hass/log_level"
+SUB_TOPIC_13 = "hass/elpatron"
 
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
@@ -51,6 +52,8 @@ set_temp_tank_1_gräns = set_temp_tank_1 - set_temp_tank_1_hysteres
 dTStart_tank_1 = 8 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen startar laddnig mot tanken. (Inställbar 3 °C till 40 °C med fabriksinställning 7 °C)
 dTStop_tank_1 = 4 # Temperaturdifferens mellan kollektor (T1) och Tank1 (T2) vid vilken pumpen stannar. (Inställbar 2 till ? (Set tank1 -2 °C) med fabriksinställning 3 °C)
 kylning_kollektor = 90
+kylning_kollektor_hysteres = 4
+kylning_kollektor_hysteres_gräns = kylning_kollektor - kylning_kollektor_hysteres
 temp_kok = 150
 temp_kok_hysteres = 10
 temp_kok_hysteres_gräns = temp_kok - temp_kok_hysteres
@@ -62,6 +65,8 @@ sub_state = 0
 overheated = False
 log_level = "info"
 test_mode = False
+elpatron = False
+elpatron_status = None
 
 
 #===== MQTT subscribe =====#
@@ -104,9 +109,12 @@ def execution(queue, event):
             logging.info("executor started, waiting 7sec")
             time.sleep(5)
             while not FLAG_EXIT:
-                time.sleep(2)
+                time.sleep(1)
                 logging.debug("starting main_sun_collector!")
                 main_sun_collector(mqtt_client_connected)
+                logging.debug("starting cartridge_heater!")
+                cartridge_heater(mqtt_client_connected)
+                
 
         logging.info("Consumer received event. Exiting")
     except Exception as e:
@@ -213,6 +221,7 @@ def on_message(client, userdata, msg):
     global test_pump
     global test_mode
     global log_level
+    global elpatron
 
     if log_level == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
@@ -317,8 +326,16 @@ def on_message(client, userdata, msg):
             logging.debug("log_level: %s", log_level)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
-
-
+    elif msg.topic == "hass/elpatron":
+        try:
+            x = json.loads(msg.payload.decode())
+            if x["state"] == 0:
+                elpatron = "info"
+            elif x["state"] == 1:
+                elpatron = "debug"
+            logging.debug("elpatron: %s", elpatron)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
 
     
 def connect_mqtt():
@@ -810,7 +827,7 @@ def main_sun_collector(client):
                     state = 4
                     sub_state = 0
                 #stäng av pumpen när den nåt rätt nivå och kollektor inte är för varm
-                elif T2 >= set_temp_tank_1 and T1 <= kylning_kollektor:
+                elif T2 >= set_temp_tank_1 and T1 <= kylning_kollektor_hysteres_gräns:
                     test_pump = False
                     mode = "41"
                     state = 4
@@ -828,7 +845,7 @@ def main_sun_collector(client):
             current_pump_status = True
         elif lib4relind.get_relay(2, 1) == 1:
             current_pump_status = False
-
+        
         msg_dict = {
                 "name": "solfångare",
                 "pump": current_pump_status,
@@ -849,6 +866,35 @@ def main_sun_collector(client):
         print(f"An error occurred in main_sun_collector: {str(e)}")
         return None
 
+#========================== Cartridge heater controll ==========================
+def cartridge_heater(client):
+    try:
+        global elpatron_status
+
+        if elpatron == True:
+             lib4relind.set_relay(2, 2, 0)
+        elif elpatron == False:
+             lib4relind.set_relay(2, 2, 1)
+
+        #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
+        if lib4relind.get_relay(2, 2) == 0:
+            elpatron_status = "on"
+        elif lib4relind.get_relay(2, 2) == 1:
+            elpatron_status = "off"
+
+        topic = "sequentmicrosystems/cartridge_heater"
+        msg_dict = {
+                "name": "elpatron",
+                "elpatron_status": elpatron_status
+            }
+        print(msg_dict)
+        msg = json.dumps(msg_dict)
+        publish(client,topic,msg)       
+        
+        return
+    except Exception as e:
+        print(f"An error occurred in cartridge_heater: {str(e)}")
+        return None
 #========================== Main execution ==========================
 
 if __name__ == "__main__":
