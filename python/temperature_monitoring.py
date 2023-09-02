@@ -65,7 +65,7 @@ sub_state = 0
 overheated = False
 log_level = "info"
 test_mode = False
-elpatron = False
+elpatron = "false"
 elpatron_status = None
 
 
@@ -330,9 +330,9 @@ def on_message(client, userdata, msg):
         try:
             x = json.loads(msg.payload.decode())
             if x["state"] == 0:
-                elpatron = False
+                elpatron = "false"
             elif x["state"] == 1:
-                elpatron = True
+                elpatron = "true"
             logging.debug("elpatron: %s", elpatron)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
@@ -872,9 +872,9 @@ def cartridge_heater(client):
         global elpatron_status
         global elpatron
 
-        if elpatron == True:
+        if elpatron == "true":
              lib4relind.set_relay(2, 2, 0)
-        elif elpatron == False:
+        elif elpatron == "false":
              lib4relind.set_relay(2, 2, 1)
 
         #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
