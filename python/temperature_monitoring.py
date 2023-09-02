@@ -870,6 +870,7 @@ def main_sun_collector(client):
 def cartridge_heater(client):
     try:
         global elpatron_status
+        global elpatron
 
         if elpatron == True:
              lib4relind.set_relay(2, 2, 0)
@@ -885,6 +886,7 @@ def cartridge_heater(client):
         topic = "sequentmicrosystems/cartridge_heater"
         msg_dict = {
                 "name": "elpatron",
+                "elpatron_input": elpatron,
                 "elpatron_status": elpatron_status
             }
         print(msg_dict)
