@@ -330,9 +330,9 @@ def on_message(client, userdata, msg):
         try:
             x = json.loads(msg.payload.decode())
             if x["state"] == 0:
-                elpatron = "info"
+                elpatron = False
             elif x["state"] == 1:
-                elpatron = "debug"
+                elpatron = True
             logging.debug("elpatron: %s", elpatron)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
