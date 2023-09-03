@@ -16,19 +16,22 @@ import lib4relind
 BROKER = '192.168.0.110'
 PORT = 1883
 #TOPIC = "python-mqtt/tcp"
-SUB_TOPIC_1 = "rtd/acctank"
-SUB_TOPIC_2 = "rtd/solfangare_2"
-SUB_TOPIC_3 = "hass/pump"
-SUB_TOPIC_4 = "hass/delta_temp_start_tank_1"
-SUB_TOPIC_5 = "hass/delta_temp_stop_tank_1"
-SUB_TOPIC_6 = "hass/kylning_kollektor"
-SUB_TOPIC_7 = "hass/set_temp_tank_1"
-SUB_TOPIC_8 = "hass/temp_kok"
-SUB_TOPIC_9 = "hass/manuell_styrning"
-SUB_TOPIC_10 = "hass/manuell_pump"
-SUB_TOPIC_11 = "hass/test_mode"
-SUB_TOPIC_12 = "hass/log_level"
-SUB_TOPIC_13 = "hass/elpatron"
+SUB_TOPIC_1 = "rtd/#"
+SUB_TOPIC_2 = "hass/#"
+
+#SUB_TOPIC_1 = "rtd/acctank"
+#SUB_TOPIC_2 = "rtd/solfangare_2"
+#SUB_TOPIC_3 = "hass/pump"
+#SUB_TOPIC_4 = "hass/delta_temp_start_tank_1"
+#SUB_TOPIC_5 = "hass/delta_temp_stop_tank_1"
+#SUB_TOPIC_6 = "hass/kylning_kollektor"
+#SUB_TOPIC_7 = "hass/set_temp_tank_1"
+#SUB_TOPIC_8 = "hass/temp_kok"
+#SUB_TOPIC_9 = "hass/manuell_styrning"
+#SUB_TOPIC_10 = "hass/manuell_pump"
+#SUB_TOPIC_11 = "hass/test_mode"
+#SUB_TOPIC_12 = "hass/log_level"
+#SUB_TOPIC_13 = "hass/elpatron"
 
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
@@ -65,7 +68,7 @@ sub_state = 0
 overheated = False
 log_level = "info"
 test_mode = False
-elpatron = "false"
+elpatron = False
 elpatron_status = None
 
 
@@ -180,7 +183,7 @@ def on_connect(client, userdata, flags, rc):
         if rc == 0 and client.is_connected():
             print("Connected to MQTT Broker!")
             #client.subscribe(SUB_TOPIC_1)
-            client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0), (SUB_TOPIC_3, 0),(SUB_TOPIC_4, 0), (SUB_TOPIC_5, 0), (SUB_TOPIC_6, 0), (SUB_TOPIC_7, 0), (SUB_TOPIC_8, 0), (SUB_TOPIC_9, 0),(SUB_TOPIC_10, 0),(SUB_TOPIC_11, 0),(SUB_TOPIC_12, 0)])
+            client.subscribe([(SUB_TOPIC_1, 0), (SUB_TOPIC_2, 0)])
         else:
             print(f'Failed to connect, return code {rc}')
     except Exception as e:
@@ -330,9 +333,9 @@ def on_message(client, userdata, msg):
         try:
             x = json.loads(msg.payload.decode())
             if x["state"] == 0:
-                elpatron = "false"
+                elpatron = False
             elif x["state"] == 1:
-                elpatron = "true"
+                elpatron = True
             logging.debug("elpatron: %s", elpatron)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
@@ -872,9 +875,9 @@ def cartridge_heater(client):
         global elpatron_status
         global elpatron
 
-        if elpatron == "true":
+        if elpatron == True:
              lib4relind.set_relay(2, 2, 0)
-        elif elpatron == "false":
+        elif elpatron == False:
              lib4relind.set_relay(2, 2, 1)
 
         #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
