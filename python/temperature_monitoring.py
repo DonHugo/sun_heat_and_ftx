@@ -343,7 +343,7 @@ def on_message(client, userdata, msg):
             logging.debug("elpatron: %s", elpatron)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
-    elif msg.topic == "hass/switch":
+    elif msg.topic == "hass/test_switch":
         try:
             x = json.loads(msg.payload.decode())
             if x["state"] == 0:
