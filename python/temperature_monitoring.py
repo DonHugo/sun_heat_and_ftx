@@ -70,6 +70,8 @@ log_level = "info"
 test_mode = False
 elpatron = False
 elpatron_status = None
+switch = False
+switch_status = None
 
 
 #===== MQTT subscribe =====#
@@ -918,21 +920,21 @@ def test_switch(client):
         global switch
 
         if switch == True:
-             lib4relind.set_relay(2, 2, 0)
+             lib4relind.set_relay(2, 3, 0)
         elif switch == False:
-             lib4relind.set_relay(2, 2, 1)
+             lib4relind.set_relay(2, 3, 1)
 
         #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
-        if lib4relind.get_relay(2, 2) == 0:
+        if lib4relind.get_relay(2, 3) == 0:
             switch_status = "on"
-        elif lib4relind.get_relay(2, 2) == 1:
+        elif lib4relind.get_relay(2, 3) == 1:
             switch_status = "off"
 
         topic = "hass/test_switch"
         msg_dict = {
                 "name": "test_switch",
-                "elpatron_input": switch,
-                "elpatron_status": switch_status
+                "switch_input": switch,
+                "switch_status": switch_status
             }
         print(msg_dict)
         msg = json.dumps(msg_dict)
