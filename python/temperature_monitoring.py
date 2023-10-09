@@ -117,6 +117,7 @@ def execution(queue, event):
                 main_sun_collector(mqtt_client_connected)
                 logging.debug("starting cartridge_heater!")
                 cartridge_heater(mqtt_client_connected)
+                test_switch(mqtt_client_connected)
                 
 
         logging.info("Consumer received event. Exiting")
@@ -225,6 +226,7 @@ def on_message(client, userdata, msg):
     global test_mode
     global log_level
     global elpatron
+    global switch
 
     if log_level == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
@@ -339,8 +341,17 @@ def on_message(client, userdata, msg):
             logging.debug("elpatron: %s", elpatron)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
+    elif msg.topic == "hass/switch":
+        try:
+            x = json.loads(msg.payload.decode())
+            if x["state"] == 0:
+                switch = False
+            elif x["state"] == 1:
+                switch = True
+            logging.debug("switch: %s", switch)
+        except Exception as err:
+            logging.error("%s. message from topic == %s", err, msg.topic)
 
-    
 def connect_mqtt():
     try:
         client = mqtt_client.Client(CLIENT_ID)
@@ -899,6 +910,37 @@ def cartridge_heater(client):
         return
     except Exception as e:
         print(f"An error occurred in cartridge_heater: {str(e)}")
+        return None
+#========================== test switch ==========================
+def test_switch(client):
+    try:
+        global switch_status
+        global switch
+
+        if switch == True:
+             lib4relind.set_relay(2, 2, 0)
+        elif switch == False:
+             lib4relind.set_relay(2, 2, 1)
+
+        #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
+        if lib4relind.get_relay(2, 2) == 0:
+            switch_status = "on"
+        elif lib4relind.get_relay(2, 2) == 1:
+            switch_status = "off"
+
+        topic = "hass/test_switch"
+        msg_dict = {
+                "name": "test_switch",
+                "elpatron_input": switch,
+                "elpatron_status": switch_status
+            }
+        print(msg_dict)
+        msg = json.dumps(msg_dict)
+        publish(client,topic,msg)       
+        
+        return
+    except Exception as e:
+        print(f"An error occurred in test_switch: {str(e)}")
         return None
 #========================== Main execution ==========================
 
