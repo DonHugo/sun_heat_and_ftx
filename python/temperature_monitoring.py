@@ -924,7 +924,7 @@ def test_switch(client):
         elif switch == False:
              lib4relind.set_relay(2, 3, 1)
 
-        #elpatrornen är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
+        #relä är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
         if lib4relind.get_relay(2, 3) == 0:
             switch_status = "on"
         elif lib4relind.get_relay(2, 3) == 1:
@@ -933,6 +933,7 @@ def test_switch(client):
         topic = "hass/test_switch"
         msg_dict = {
                 "name": "test_switch",
+                "value": switch_status,
                 "switch_input": switch,
                 "switch_status": switch_status
             }
