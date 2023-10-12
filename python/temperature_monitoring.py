@@ -347,10 +347,10 @@ def on_message(client, userdata, msg):
         try:
             x = json.loads(msg.payload.decode())
             if x["state"] == 0:
-                switch = False
+                test_switch = False
             elif x["state"] == 1:
-                switch = True
-            logging.debug("switch: %s", switch)
+                test_switch = True
+            logging.debug("test_switch: %s", test_switch)
         except Exception as err:
             logging.error("%s. message from topic == %s", err, msg.topic)
 
