@@ -930,7 +930,7 @@ def test_switch_funktion(client):
         elif lib4relind.get_relay(2, 3) == 1:
             test_switch_status = "off"
 
-        topic = "hass/test_switch"
+        topic = "sequentmicrosystems/test_switch"
         msg_dict = {
                 "name": "test_switch",
                 "value": test_switch_status,
