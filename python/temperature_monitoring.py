@@ -70,8 +70,8 @@ log_level = "info"
 test_mode = False
 elpatron = False
 elpatron_status = None
-switch = False
-switch_status = None
+test_switch = False
+test_switch_status = None
 
 
 #===== MQTT subscribe =====#
@@ -119,7 +119,7 @@ def execution(queue, event):
                 main_sun_collector(mqtt_client_connected)
                 logging.debug("starting cartridge_heater!")
                 cartridge_heater(mqtt_client_connected)
-                test_switch(mqtt_client_connected)
+                test_switch_funktion(mqtt_client_connected)
                 
 
         logging.info("Consumer received event. Exiting")
@@ -228,7 +228,7 @@ def on_message(client, userdata, msg):
     global test_mode
     global log_level
     global elpatron
-    global switch
+    global test_switch
 
     if log_level == "true": print(f'Received `{msg.payload.decode()}` from `{msg.topic}` SUB_TOPIC')
     
@@ -914,28 +914,28 @@ def cartridge_heater(client):
         print(f"An error occurred in cartridge_heater: {str(e)}")
         return None
 #========================== test switch ==========================
-def test_switch(client):
+def test_switch_funktion(client):
     try:
-        global switch_status
-        global switch
+        global test_switch_status
+        global test_switch
 
-        if switch == True:
+        if test_switch == True:
              lib4relind.set_relay(2, 3, 0)
-        elif switch == False:
+        elif test_switch == False:
              lib4relind.set_relay(2, 3, 1)
 
         #relä är kopplad som NC(Normaly Closed) så värdena måste inverteras i koden
         if lib4relind.get_relay(2, 3) == 0:
-            switch_status = "on"
+            test_switch_status = "on"
         elif lib4relind.get_relay(2, 3) == 1:
-            switch_status = "off"
+            test_switch_status = "off"
 
         topic = "hass/test_switch"
         msg_dict = {
                 "name": "test_switch",
-                "value": switch_status,
-                "switch_input": switch,
-                "switch_status": switch_status
+                "value": test_switch_status,
+                "switch_input": test_switch,
+                "switch_status": test_switch_status
             }
         print(msg_dict)
         msg = json.dumps(msg_dict)
