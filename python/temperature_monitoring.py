@@ -387,8 +387,8 @@ def collect_sensor_data_mega(stack,input,iterations):
         logging.error("%s. from collect_sensor_data_mega: stack(%s), input(%s), iteration(%s), collect(%s)", err,stack,input,iterations,collect)
     
 def read_megabas_1k(stack, input):
-    limit = [882.2,921.6,960.9,1000,1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
-    delta = [4,4,3.9,3.9,3.9,3.89,3.88,3.87,3.86,3.84,3.84,3.82,3.81,3.8,3.78,3.78,3.76,3.75,3.75,3.72,3.72,3.71]
+    limit = [882.2,921.6,960.9,1000,1039,1077.9,1116.7,1155.4,1194,1232.4,1270.8,1309,1347.1,1385.1,1422.9,1460.7,1498.3,1535.8,1573.3,1610.5,1647.7,1684.8]
+    delta = [4,3.9,3.9,3.9,3.89,3.88,3.87,3.86,3.84,3.84,3.82,3.81,3.8,3.78,3.78,3.76,3.75,3.75,3.72,3.72,3.71]
 
     sensor = m.getRIn1K(stack, input)
     mod_sensor = sensor*1000
@@ -401,24 +401,23 @@ def read_megabas_1k(stack, input):
             elif mod_sensor >= limit[1] and mod_sensor < limit[2]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[1],delta[1],-20)
             elif mod_sensor >= limit[2] and mod_sensor < limit[3]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[2],delta[2],-10)
             elif mod_sensor >= limit[3] and mod_sensor < limit[4]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[3],delta[3],0)
-            elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[4],delta[4],0)
-            elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[5],delta[5],10)
-            elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[6],delta[6],20)
-            elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[7],delta[7],30)
-            elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[8],delta[8],40)
-            elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[9],delta[9],50)
-            elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[10],delta[10],60)
-            elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[11],delta[11],70)
-            elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[12],delta[12],80)
-            elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[13],delta[13],90)
-            elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[14],delta[14],100)
-            elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[15],delta[15],110)
-            elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[16],delta[16],120)
-            elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[17],delta[17],130)
-            elif mod_sensor >= limit[18] and mod_sensor < limit[19]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[18],delta[18],140)
-            elif mod_sensor >= limit[19] and mod_sensor < limit[20]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[19],delta[19],150)
-            elif mod_sensor >= limit[20] and mod_sensor < limit[21]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[20],delta[20],160)
-            elif mod_sensor >= limit[21] and mod_sensor < limit[22]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[21],delta[21],170)   
+            elif mod_sensor >= limit[4] and mod_sensor < limit[5]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[4],delta[4],10)
+            elif mod_sensor >= limit[5] and mod_sensor < limit[6]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[5],delta[5],20)
+            elif mod_sensor >= limit[6] and mod_sensor < limit[7]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[6],delta[6],30)
+            elif mod_sensor >= limit[7] and mod_sensor < limit[8]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[7],delta[7],40)
+            elif mod_sensor >= limit[8] and mod_sensor < limit[9]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[8],delta[8],50)
+            elif mod_sensor >= limit[9] and mod_sensor < limit[10]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[9],delta[9],60)
+            elif mod_sensor >= limit[10] and mod_sensor < limit[11]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[10],delta[10],70)
+            elif mod_sensor >= limit[11] and mod_sensor < limit[12]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[11],delta[11],80)
+            elif mod_sensor >= limit[12] and mod_sensor < limit[13]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[12],delta[12],90)
+            elif mod_sensor >= limit[13] and mod_sensor < limit[14]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[13],delta[13],100)
+            elif mod_sensor >= limit[14] and mod_sensor < limit[15]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[14],delta[14],110)
+            elif mod_sensor >= limit[15] and mod_sensor < limit[16]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[15],delta[15],120)
+            elif mod_sensor >= limit[16] and mod_sensor < limit[17]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[16],delta[16],130)
+            elif mod_sensor >= limit[17] and mod_sensor < limit[18]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[17],delta[17],140)
+            elif mod_sensor >= limit[18] and mod_sensor < limit[19]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[18],delta[18],150)
+            elif mod_sensor >= limit[19] and mod_sensor < limit[20]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[19],delta[19],160)
+            elif mod_sensor >= limit[20] and mod_sensor < limit[21]:      megabas_temp = calc_megabas_temp(mod_sensor-limit[20],delta[20],170)   
         return megabas_temp
     except Exception as err:
         logging.error("%s. from read_megabas_1k: stack(%s), input(%s), sensor(%s), mod_sensor(%s), megabas_temp(%s)", err,stack,input,sensor,mod_sensor,megabas_temp)
