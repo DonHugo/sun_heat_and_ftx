@@ -67,6 +67,10 @@ class TemperatureMonitoringSystem:
             self.mqtt_handler = MQTTHandler(self.mqtt_config, self.handle_mqtt_message)
             client = self.mqtt_handler.connect()
             client.loop_start()
+
+            # ----- Home Assistant MQTT Discovery -----
+            from mqtt_discovery import publish_discovery   # ny liten fil (se nedan)
+            publish_discovery(self.mqtt_handler.client)
             
             # Start main loops
             self.running = True
