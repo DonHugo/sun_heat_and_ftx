@@ -1,5 +1,26 @@
 # sun_heat_and_ftx
 
+## TaskMaster AI Integration
+
+This project now includes TaskMaster AI integration for intelligent task management and system optimization. See [README_TASKMASTER.md](README_TASKMASTER.md) for detailed documentation.
+
+### Quick Start with TaskMaster AI
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp env.example .env
+# Edit .env with your TaskMaster AI API key
+
+# Run the demo
+python taskmaster_demo.py
+
+# Run integration with existing system
+python integrate_with_existing.py
+```
+
 ## install software for sequentmicrosystems boards
 
 ### RTD Data Acquisition:

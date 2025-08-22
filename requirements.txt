@@ -1,0 +1,15 @@
+# Core dependencies
+taskmaster-ai>=0.1.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.5.0
+
+# Existing project dependencies
+statistics
+numpy
+paho-mqtt
+
+# Additional dependencies for taskmaster-ai
+python-dotenv>=1.0.0
+httpx>=0.25.0
+asyncio-mqtt>=0.16.0
