@@ -21,7 +21,7 @@ This guide shows you how to use the automated deployment script to set up your s
 wget https://raw.githubusercontent.com/DonHugo/sun_heat_and_ftx/main/python/automated_deployment.sh
 
 # Or copy it from your development machine
-scp automated_deployment.sh pi@your-pi-ip-address:~/
+scp automated_deployment.sh pi@192.168.0.17:~/
 ```
 
 ### **Step 2: Update Configuration**
