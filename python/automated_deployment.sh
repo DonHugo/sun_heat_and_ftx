@@ -129,7 +129,7 @@ install_hardware_libraries() {
     
     # Clean up
     cd ~
-    rm -rf "$TEMP_DIR"
+    sudo rm -rf "$TEMP_DIR"
     
     log "✅ Hardware libraries installed"
 }
