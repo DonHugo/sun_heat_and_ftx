@@ -31,14 +31,14 @@ scp automated_deployment.sh pi@192.168.0.17:~/
 nano automated_deployment.sh
 ```
 
-**Find and update this line:**
+
 ```bash
-REPO_URL="https://github.com/yourusername/sun_heat_and_ftx.git"
+REPO_URL="https://github.com/DonHugo/sun_heat_and_ftx.git"
 ```
 
-**Change to your actual repository URL:**
+
 ```bash
-REPO_URL="https://github.com/YOUR_ACTUAL_USERNAME/sun_heat_and_ftx.git"
+REPO_URL="https://github.com/DonHugo/sun_heat_and_ftx.git"
 ```
 
 ### **Step 3: Make Script Executable**
