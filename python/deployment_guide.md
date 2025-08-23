@@ -36,18 +36,41 @@ sudo apt install libi2c-dev i2c-tools -y
 ### **Step 2: Install Sequent Microsystems Libraries**
 
 ```bash
-# Download and install Sequent Microsystems libraries
-# (You'll need to get these from Sequent Microsystems)
+# Install required system packages
+sudo apt-get update
+sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
 
-# Example installation (adjust paths as needed):
-sudo cp megabas.so /usr/local/lib/
-sudo cp librtd.so /usr/local/lib/
-sudo cp lib4relind.so /usr/local/lib/
+# Install RTD Data Acquisition
+git clone https://github.com/SequentMicrosystems/rtd-rpi.git
+cd rtd-rpi/python/rtd/
+sudo python3 setup.py install
+cd ~
 
-# Update library path
-echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
-source ~/.bashrc
+# Install Building Automation V4 (MegaBAS)
+git clone https://github.com/SequentMicrosystems/megabas-rpi.git
+cd megabas-rpi/python/
+sudo python3 setup.py install
+cd ~
+
+# Install Four Relays four HV Inputs
+git clone https://github.com/SequentMicrosystems/4relind-rpi.git
+cd 4relind-rpi/python/4relind/
+sudo python3 setup.py install
+cd ~
+
+# Clean up installation files
+rm -rf rtd-rpi megabas-rpi 4relind-rpi
+
+# Verify installation
+python3 -c "import librtd; print('✅ RTD library installed')"
+python3 -c "import megabas; print('✅ MegaBAS library installed')"
+python3 -c "import lib4relind; print('✅ 4RELIND library installed')"
 ```
+
+**Download Links:**
+- **RTD Data Acquisition**: https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
+- **Building Automation V4**: https://sequentmicrosystems.com/pages/building-automation-downloads  
+- **Four Relays four HV Inputs**: https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
 
 ### **Step 3: Clone and Setup Project**
 
