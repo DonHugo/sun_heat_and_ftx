@@ -96,22 +96,49 @@ install_hardware_libraries() {
     # Install RTD Data Acquisition
     log "Installing RTD Data Acquisition..."
     git clone https://github.com/SequentMicrosystems/rtd-rpi.git
-    cd rtd-rpi/python/rtd/
-    sudo python3 setup.py install
+    cd rtd-rpi
+    # Check which directory structure exists
+    if [ -d "python/rtd" ]; then
+        cd python/rtd/
+        sudo python3 setup.py install
+    elif [ -d "python" ]; then
+        cd python/
+        sudo python3 setup.py install
+    else
+        # Try installing from root directory
+        sudo python3 setup.py install
+    fi
     cd "$TEMP_DIR"
     
     # Install Building Automation V4 (MegaBAS)
     log "Installing Building Automation V4 (MegaBAS)..."
     git clone https://github.com/SequentMicrosystems/megabas-rpi.git
-    cd megabas-rpi/python/
-    sudo python3 setup.py install
+    cd megabas-rpi
+    # Check which directory structure exists
+    if [ -d "python" ]; then
+        cd python/
+        sudo python3 setup.py install
+    else
+        # Try installing from root directory
+        sudo python3 setup.py install
+    fi
     cd "$TEMP_DIR"
     
     # Install Four Relays four HV Inputs
     log "Installing Four Relays four HV Inputs..."
     git clone https://github.com/SequentMicrosystems/4relind-rpi.git
-    cd 4relind-rpi/python/4relind/
-    sudo python3 setup.py install
+    cd 4relind-rpi
+    # Check which directory structure exists
+    if [ -d "python/4relind" ]; then
+        cd python/4relind/
+        sudo python3 setup.py install
+    elif [ -d "python" ]; then
+        cd python/
+        sudo python3 setup.py install
+    else
+        # Try installing from root directory
+        sudo python3 setup.py install
+    fi
     cd "$TEMP_DIR"
     
     # Clean up
