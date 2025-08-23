@@ -90,56 +90,42 @@ install_hardware_libraries() {
     
     # Create temporary directory
     TEMP_DIR="/tmp/solar_heating_install"
+    rm -rf "$TEMP_DIR"  # Clean up any existing directory
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
     
     # Install RTD Data Acquisition
     log "Installing RTD Data Acquisition..."
-    git clone https://github.com/SequentMicrosystems/rtd-rpi.git
-    cd rtd-rpi
-    # Check which directory structure exists
-    if [ -d "python/rtd" ]; then
-        cd python/rtd/
+    if git clone https://github.com/SequentMicrosystems/rtd-rpi.git; then
+        cd rtd-rpi/python/
         sudo python3 setup.py install
-    elif [ -d "python" ]; then
-        cd python/
-        sudo python3 setup.py install
+        cd "$TEMP_DIR"
+        log "✅ RTD Data Acquisition installed"
     else
-        # Try installing from root directory
-        sudo python3 setup.py install
+        warn "Failed to clone RTD repository"
     fi
-    cd "$TEMP_DIR"
     
     # Install Building Automation V4 (MegaBAS)
     log "Installing Building Automation V4 (MegaBAS)..."
-    git clone https://github.com/SequentMicrosystems/megabas-rpi.git
-    cd megabas-rpi
-    # Check which directory structure exists
-    if [ -d "python" ]; then
-        cd python/
+    if git clone https://github.com/SequentMicrosystems/megabas-rpi.git; then
+        cd megabas-rpi/python/
         sudo python3 setup.py install
+        cd "$TEMP_DIR"
+        log "✅ MegaBAS installed"
     else
-        # Try installing from root directory
-        sudo python3 setup.py install
+        warn "Failed to clone MegaBAS repository"
     fi
-    cd "$TEMP_DIR"
     
     # Install Four Relays four HV Inputs
     log "Installing Four Relays four HV Inputs..."
-    git clone https://github.com/SequentMicrosystems/4relind-rpi.git
-    cd 4relind-rpi
-    # Check which directory structure exists
-    if [ -d "python/4relind" ]; then
-        cd python/4relind/
+    if git clone https://github.com/SequentMicrosystems/4relind-rpi.git; then
+        cd 4relind-rpi/python/
         sudo python3 setup.py install
-    elif [ -d "python" ]; then
-        cd python/
-        sudo python3 setup.py install
+        cd "$TEMP_DIR"
+        log "✅ 4RELIND installed"
     else
-        # Try installing from root directory
-        sudo python3 setup.py install
+        warn "Failed to clone 4RELIND repository"
     fi
-    cd "$TEMP_DIR"
     
     # Clean up
     cd ~
