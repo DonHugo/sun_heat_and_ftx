@@ -21,7 +21,15 @@ NC='\033[0m' # No Color
 
 # Logging function
 log() {
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
+    if [ -n "$START_TIME" ]; then
+        CURRENT_TIME=$(date +%s)
+        ELAPSED=$((CURRENT_TIME - START_TIME))
+        ELAPSED_MIN=$((ELAPSED / 60))
+        ELAPSED_SEC=$((ELAPSED % 60))
+        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] [${ELAPSED_MIN}m${ELAPSED_SEC}s] $1${NC}"
+    else
+        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
+    fi
 }
 
 warn() {
@@ -51,7 +59,7 @@ check_raspberry_pi() {
 # Update system packages
 update_system() {
     log "Updating system packages..."
-    sudo apt update && sudo apt upgrade -y
+    sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
     log "✅ System updated"
 }
 
@@ -455,10 +463,15 @@ completion_message() {
 
 # Main deployment function
 main() {
+    # Start timer
+    START_TIME=$(date +%s)
+    
     echo "🚀 Automated Solar Heating System Deployment"
     echo "============================================"
     echo "This script will deploy both v1 and v3 systems"
     echo "on your Raspberry Pi Zero 2W"
+    echo ""
+    echo "⏱️  Deployment started at: $(date)"
     echo ""
     
     # Check if running as root
@@ -474,27 +487,81 @@ main() {
         exit 0
     fi
     
-    # Run deployment steps
+    # Run deployment steps with timing
+    log "🚀 Starting deployment process..."
+    
+    log "Step 1/19: Checking Raspberry Pi..."
     check_raspberry_pi
+    
+    log "Step 2/19: Updating system packages..."
     update_system
+    
+    log "Step 3/19: Installing essential packages..."
     install_essentials
+    
+    log "Step 4/19: Enabling I2C interface..."
     enable_i2c
+    
+    log "Step 5/19: Installing hardware libraries..."
     install_hardware_libraries
+    
+    log "Step 6/19: Verifying hardware libraries..."
     verify_hardware_libraries
+    
+    log "Step 7/19: Cloning repository..."
     clone_repository
+    
+    log "Step 8/19: Setting up v1 system..."
     setup_v1_system
+    
+    log "Step 9/19: Setting up v3 system..."
     setup_v3_system
+    
+    log "Step 10/19: Setting up system switch..."
     setup_system_switch
+    
+    log "Step 11/19: Setting up update script..."
     setup_update_script
+    
+    log "Step 12/19: Creating health check..."
     create_health_check
+    
+    log "Step 13/19: Creating sensor test..."
     create_sensor_test
+    
+    log "Step 14/19: Setting up backup..."
     setup_backup
+    
+    log "Step 15/19: Configuring log rotation..."
     setup_log_rotation
+    
+    log "Step 16/19: Setting permissions..."
     set_permissions
+    
+    log "Step 17/19: Testing MQTT..."
     test_mqtt
+    
+    log "Step 18/19: Testing hardware..."
     test_hardware
+    
+    log "Step 19/19: Final system check..."
     final_check
+    
     completion_message
+    
+    # Calculate and display execution time
+    END_TIME=$(date +%s)
+    EXECUTION_TIME=$((END_TIME - START_TIME))
+    MINUTES=$((EXECUTION_TIME / 60))
+    SECONDS=$((EXECUTION_TIME % 60))
+    
+    echo ""
+    echo "⏱️  DEPLOYMENT TIMING"
+    echo "===================="
+    echo "Started at:  $(date -d "@$START_TIME")"
+    echo "Completed at: $(date -d "@$END_TIME")"
+    echo "Total time:   ${MINUTES}m ${SECONDS}s"
+    echo ""
 }
 
 # Run main function
