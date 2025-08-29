@@ -203,15 +203,28 @@ setup_v3_system() {
     if [ -d "$PROJECT_DIR/python/v3" ]; then
         cd "$PROJECT_DIR/python/v3"
         
-        # Create virtual environment
+        # Create virtual environment with system packages access
         log "Creating Python virtual environment..."
-        python3 -m venv venv
+        python3 -m venv venv --system-site-packages
         source venv/bin/activate
         
         # Install dependencies
         log "Installing Python dependencies..."
         pip install --upgrade pip
-        pip install -r requirements.txt
+        
+        # Install PyPI dependencies (excluding hardware libraries)
+        log "Installing PyPI dependencies..."
+        if [ -f "requirements_virtual.txt" ]; then
+            pip install -r requirements_virtual.txt
+        else
+            # Fallback to individual package installation
+            pip install paho-mqtt asyncio-mqtt numpy pandas fastapi uvicorn pydantic influxdb-client httpx python-dotenv pydantic-settings structlog pytest pytest-asyncio black flake8 mypy
+        fi
+        
+        # Note: taskmaster-ai package may not be available on PyPI - will be handled separately if needed
+        
+        # Note: Hardware libraries (megabas, librtd, lib4relind) are already installed system-wide
+        log "Hardware libraries already installed system-wide"
         
         # Create service file
         log "Creating v3 service file..."
