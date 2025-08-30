@@ -559,22 +559,30 @@ def stored_energy(client):
             zero_valu = 4 #temperature of the water that is comming to to the system from the well
             stack_1 = 3  # MegaBAS on stack 3
             stack_2 = 0  # RTD on stack 0
-            stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
-            stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
-            stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)
-            stored_energy[3] = ((input_array.mean(2)[stack_1,3]-zero_valu)*35)
-            stored_energy[4] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)
-            stored_energy[5] = ((input_array.mean(2)[stack_1,5]-zero_valu)*35)
-            stored_energy[6] = ((input_array.mean(2)[stack_1,6]-zero_valu)*35)
-            stored_energy[7] = ((input_array.mean(2)[stack_1,7]-zero_valu)*35)
-            #stored_energy[8] = ((input_array.mean(2)[stack_2,6]-zero_valu)*35) # T2
-            stored_energy[8] = ((input_array.mean(2)[stack_2,7]-zero_valu)*35) # T3
+            
+            # Use RTD sensors (stack 0) for energy calculations - these are the real temperature sensors
+            stored_energy[0] = ((input_array.mean(2)[stack_2,0]-zero_valu)*35)  # RTD sensor 1
+            stored_energy[1] = ((input_array.mean(2)[stack_2,1]-zero_valu)*35)  # RTD sensor 2
+            stored_energy[2] = ((input_array.mean(2)[stack_2,2]-zero_valu)*35)  # RTD sensor 3
+            stored_energy[3] = ((input_array.mean(2)[stack_2,3]-zero_valu)*35)  # RTD sensor 4
+            stored_energy[4] = ((input_array.mean(2)[stack_2,4]-zero_valu)*35)  # RTD sensor 5
+            stored_energy[5] = ((input_array.mean(2)[stack_2,5]-zero_valu)*35)  # RTD sensor 6
+            stored_energy[6] = ((input_array.mean(2)[stack_2,6]-zero_valu)*35)  # RTD sensor 7
+            stored_energy[7] = ((input_array.mean(2)[stack_2,7]-zero_valu)*35)  # RTD sensor 8
+            stored_energy[8] = ((input_array.mean(2)[stack_1,4]-zero_valu)*35)  # MegaBAS input 5 (60.0°C)
+            
             #logging.debug("stored_energy[0]: %s", stored_energy[0])
             #logging.debug("stored_energy: %s", stored_energy)
             stored_energy_kwh[0] = round(np.sum(stored_energy)*4200/1000/3600,2)
             stored_energy_kwh[1] = round(np.sum(stored_energy[:5])*4200/1000/3600,2)
             stored_energy_kwh[2] = round(np.sum(stored_energy[5:])*4200/1000/3600,2)
-            stored_energy_kwh[3] = round(((input_array.mean(2)[stack_1,0])+(input_array.mean(2)[stack_1,1])+(input_array.mean(2)[stack_1,2])+(input_array.mean(2)[stack_1,3])+(input_array.mean(2)[stack_1,4])+(input_array.mean(2)[stack_1,5])+(input_array.mean(2)[stack_1,6])+(input_array.mean(2)[stack_1,7])+(input_array.mean(2)[stack_2,7]))/9,1)
+            
+            # Calculate average temperature using RTD sensors (real temperatures)
+            avg_temp = (input_array.mean(2)[stack_2,0] + input_array.mean(2)[stack_2,1] + 
+                       input_array.mean(2)[stack_2,2] + input_array.mean(2)[stack_2,3] + 
+                       input_array.mean(2)[stack_2,4] + input_array.mean(2)[stack_2,5] + 
+                       input_array.mean(2)[stack_2,6] + input_array.mean(2)[stack_2,7]) / 8
+            stored_energy_kwh[3] = round(avg_temp, 1)
             #logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
 
         elif test_mode == True:
