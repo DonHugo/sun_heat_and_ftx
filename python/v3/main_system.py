@@ -161,13 +161,13 @@ class SolarHeatingSystem:
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
             
-            # Read MegaBAS sensors
+            # Read MegaBAS sensors (MegaBAS uses 1-8, not 0-7)
             for sensor_name, sensor_id in [
-                ('heat_exchanger_in', 0),
-                ('heat_exchanger_out', 1),
-                ('storage_tank_top', 2),
-                ('storage_tank_bottom', 3),
-                ('ambient_air', 4)
+                ('heat_exchanger_in', 1),
+                ('heat_exchanger_out', 2),
+                ('storage_tank_top', 3),
+                ('storage_tank_bottom', 4),
+                ('ambient_air', 5)
             ]:
                 temp = self.hardware.read_megabas_temperature(sensor_id)
                 self.temperatures[sensor_name] = temp
