@@ -3,7 +3,7 @@
 # usage:
 # sudo systemctl start temperature_monitoring.service       start the service
 # sudo systemctl stop temperature_monitoring.service        stop the service
-# sudo systemctl restart temperature_monitoring.service     restart the servic
+# sudo systemctl restart temperature_monitoring.service     restart the service
 # sudo systemctl status temperature_monitoring.service      Get the current status of the service
 # sudo systemctl enable temperature_monitoring.service      enable the service to start automatically at boot
 # sudo systemctl disable temperature_monitoring.service     disable automatic start at boot
@@ -11,16 +11,15 @@
 
 
 [Unit]
-Description=My Python Script
+Description=Temperature Monitoring Service
 After=network.target
+Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/pi/sun_heat_and_ftx/python/temperature_monitoring.py
-WorkingDirectory=/home/pi/sun_heat_and_ftx/python
+ExecStart=/usr/bin/python3 /home/pi/solar_heating/python/temperature_monitoring.py
+WorkingDirectory=/home/pi/solar_heating/python
 Restart=always
 User=pi
 
 [Install]
 WantedBy=multi-user.target
-Wants=network-online.target
-After=network-online.target
