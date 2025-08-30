@@ -78,9 +78,132 @@ stop_service() {
     fi
 }
 
+# Function to check if hardware libraries are already available
+check_hardware_libraries() {
+    log "Checking for existing hardware libraries..."
+    
+    # Activate virtual environment
+    source /opt/solar_heating_v3/bin/activate
+    
+    local all_available=true
+    
+    # Check megabas
+    if python3 -c "import megabas" 2>/dev/null; then
+        log "✅ megabas library already available"
+    else
+        log "❌ megabas library not found"
+        all_available=false
+    fi
+    
+    # Check librtd
+    if python3 -c "import librtd" 2>/dev/null; then
+        log "✅ librtd library already available"
+    else
+        log "❌ librtd library not found"
+        all_available=false
+    fi
+    
+    # Check lib4relind
+    if python3 -c "import lib4relind" 2>/dev/null; then
+        log "✅ lib4relind library already available"
+    else
+        log "❌ lib4relind library not found"
+        all_available=false
+    fi
+    
+    if $all_available; then
+        log "✅ All hardware libraries are already available!"
+        return 0
+    else
+        log "⚠️ Some hardware libraries are missing"
+        return 1
+    fi
+}
+
 # Function to install hardware libraries with better error handling
 install_hardware_libraries() {
     log "Installing hardware libraries..."
+    
+    # First check if libraries are already available
+    if check_hardware_libraries; then
+        log "✅ Hardware libraries already installed - skipping installation"
+        return 0
+    fi
+    
+    # Check if egg files exist in system packages
+    log "Checking for system-installed egg files..."
+    if [[ -f "/usr/local/lib/python3.11/dist-packages/smmegabas-1.0.3-py3.11.egg" ]] && \
+       [[ -f "/usr/local/lib/python3.11/dist-packages/smrtd-1.0.3-py3.11.egg" ]] && \
+       [[ -f "/usr/local/lib/python3.11/dist-packages/sm4relind-1.0.5-py3.11.egg" ]]; then
+        
+        log "Found system egg files - installing in virtual environment..."
+        
+        # Create temporary directory
+        TEMP_DIR="/tmp/hardware_libs_$$"
+        mkdir -p "$TEMP_DIR"
+        cd "$TEMP_DIR"
+        
+        # Extract and install egg files
+        log "Extracting and installing egg files..."
+        
+        # Extract megabas
+        if unzip -q "/usr/local/lib/python3.11/dist-packages/smmegabas-1.0.3-py3.11.egg"; then
+            if [[ -d "megabas" ]]; then
+                cp -r megabas /opt/solar_heating_v3/lib/python3.11/site-packages/
+                log "✅ megabas installed from egg file"
+            else
+                error "Failed to extract megabas from egg file"
+                return 1
+            fi
+        else
+            error "Failed to extract megabas egg file"
+            return 1
+        fi
+        
+        # Extract librtd
+        if unzip -q "/usr/local/lib/python3.11/dist-packages/smrtd-1.0.3-py3.11.egg"; then
+            if [[ -d "librtd" ]]; then
+                cp -r librtd /opt/solar_heating_v3/lib/python3.11/site-packages/
+                log "✅ librtd installed from egg file"
+            else
+                error "Failed to extract librtd from egg file"
+                return 1
+            fi
+        else
+            error "Failed to extract librtd egg file"
+            return 1
+        fi
+        
+        # Extract lib4relind
+        if unzip -q "/usr/local/lib/python3.11/dist-packages/sm4relind-1.0.5-py3.11.egg"; then
+            if [[ -d "lib4relind" ]]; then
+                cp -r lib4relind /opt/solar_heating_v3/lib/python3.11/site-packages/
+                log "✅ lib4relind installed from egg file"
+            else
+                error "Failed to extract lib4relind from egg file"
+                return 1
+            fi
+        else
+            error "Failed to extract lib4relind egg file"
+            return 1
+        fi
+        
+        # Clean up
+        cd /home/pi/solar_heating/python/v3
+        rm -rf "$TEMP_DIR"
+        
+        # Verify installation
+        if check_hardware_libraries; then
+            log "✅ All hardware libraries installed successfully from egg files"
+            return 0
+        else
+            error "Failed to install libraries from egg files"
+            return 1
+        fi
+    fi
+    
+    # Fallback to GitHub installation (original method)
+    log "No system egg files found - trying GitHub installation..."
     
     # Create temporary directory
     TEMP_DIR="/tmp/hardware_libs_$$"
