@@ -78,7 +78,7 @@ stop_service() {
     fi
 }
 
-# Function to install hardware libraries
+# Function to install hardware libraries with better error handling
 install_hardware_libraries() {
     log "Installing hardware libraries..."
     
@@ -87,51 +87,173 @@ install_hardware_libraries() {
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
     
-    # Install megabas
-    log "Installing megabas library..."
-    if git clone https://github.com/SequentMicrosystems/megabas-rpi.git 2>/dev/null; then
-        cd megabas-rpi
-        if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
-            log "✅ megabas installed successfully"
-        else
-            error "Failed to install megabas"
-            return 1
+    # Try different repository URLs and installation methods
+    install_megabas() {
+        log "Installing megabas library..."
+        
+        # Try multiple repository URLs
+        local repos=(
+            "https://github.com/SequentMicrosystems/megabas-rpi.git"
+            "https://github.com/SequentMicrosystems/megabas.git"
+            "https://github.com/SequentMicrosystems/megabas-rpi"
+        )
+        
+        for repo in "${repos[@]}"; do
+            log "Trying repository: $repo"
+            if git clone "$repo" megabas-temp 2>/dev/null; then
+                cd megabas-temp
+                
+                # Try different installation methods
+                if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
+                    log "✅ megabas installed successfully"
+                    cd ..
+                    rm -rf megabas-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/pip install . >/dev/null 2>&1; then
+                    log "✅ megabas installed successfully"
+                    cd ..
+                    rm -rf megabas-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/python3 setup.py install >/dev/null 2>&1; then
+                    log "✅ megabas installed successfully"
+                    cd ..
+                    rm -rf megabas-temp
+                    return 0
+                else
+                    cd ..
+                    rm -rf megabas-temp
+                    warn "Failed to install from $repo"
+                fi
+            else
+                warn "Failed to clone $repo"
+            fi
+        done
+        
+        # If all methods fail, try manual installation
+        log "Trying manual megabas installation..."
+        if /opt/solar_heating_v3/bin/pip install megabas >/dev/null 2>&1; then
+            log "✅ megabas installed via pip"
+            return 0
         fi
-        cd ..
-    else
-        error "Failed to clone megabas repository"
+        
+        error "All megabas installation methods failed"
+        return 1
+    }
+    
+    install_librtd() {
+        log "Installing librtd library..."
+        
+        # Try multiple repository URLs
+        local repos=(
+            "https://github.com/SequentMicrosystems/rtd-rpi.git"
+            "https://github.com/SequentMicrosystems/rtd.git"
+            "https://github.com/SequentMicrosystems/rtd-rpi"
+        )
+        
+        for repo in "${repos[@]}"; do
+            log "Trying repository: $repo"
+            if git clone "$repo" rtd-temp 2>/dev/null; then
+                cd rtd-temp
+                
+                # Try different installation methods
+                if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
+                    log "✅ librtd installed successfully"
+                    cd ..
+                    rm -rf rtd-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/pip install . >/dev/null 2>&1; then
+                    log "✅ librtd installed successfully"
+                    cd ..
+                    rm -rf rtd-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/python3 setup.py install >/dev/null 2>&1; then
+                    log "✅ librtd installed successfully"
+                    cd ..
+                    rm -rf rtd-temp
+                    return 0
+                else
+                    cd ..
+                    rm -rf rtd-temp
+                    warn "Failed to install from $repo"
+                fi
+            else
+                warn "Failed to clone $repo"
+            fi
+        done
+        
+        # If all methods fail, try manual installation
+        log "Trying manual librtd installation..."
+        if /opt/solar_heating_v3/bin/pip install librtd >/dev/null 2>&1; then
+            log "✅ librtd installed via pip"
+            return 0
+        fi
+        
+        error "All librtd installation methods failed"
+        return 1
+    }
+    
+    install_lib4relind() {
+        log "Installing lib4relind library..."
+        
+        # Try multiple repository URLs
+        local repos=(
+            "https://github.com/SequentMicrosystems/4relind-rpi.git"
+            "https://github.com/SequentMicrosystems/4relind.git"
+            "https://github.com/SequentMicrosystems/4relind-rpi"
+        )
+        
+        for repo in "${repos[@]}"; do
+            log "Trying repository: $repo"
+            if git clone "$repo" 4relind-temp 2>/dev/null; then
+                cd 4relind-temp
+                
+                # Try different installation methods
+                if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
+                    log "✅ lib4relind installed successfully"
+                    cd ..
+                    rm -rf 4relind-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/pip install . >/dev/null 2>&1; then
+                    log "✅ lib4relind installed successfully"
+                    cd ..
+                    rm -rf 4relind-temp
+                    return 0
+                elif /opt/solar_heating_v3/bin/python3 setup.py install >/dev/null 2>&1; then
+                    log "✅ lib4relind installed successfully"
+                    cd ..
+                    rm -rf 4relind-temp
+                    return 0
+                else
+                    cd ..
+                    rm -rf 4relind-temp
+                    warn "Failed to install from $repo"
+                fi
+            else
+                warn "Failed to clone $repo"
+            fi
+        done
+        
+        # If all methods fail, try manual installation
+        log "Trying manual lib4relind installation..."
+        if /opt/solar_heating_v3/bin/pip install lib4relind >/dev/null 2>&1; then
+            log "✅ lib4relind installed via pip"
+            return 0
+        fi
+        
+        error "All lib4relind installation methods failed"
+        return 1
+    }
+    
+    # Install each library
+    if ! install_megabas; then
         return 1
     fi
     
-    # Install librtd
-    log "Installing librtd library..."
-    if git clone https://github.com/SequentMicrosystems/rtd-rpi.git 2>/dev/null; then
-        cd rtd-rpi
-        if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
-            log "✅ librtd installed successfully"
-        else
-            error "Failed to install librtd"
-            return 1
-        fi
-        cd ..
-    else
-        error "Failed to clone librtd repository"
+    if ! install_librtd; then
         return 1
     fi
     
-    # Install lib4relind
-    log "Installing lib4relind library..."
-    if git clone https://github.com/SequentMicrosystems/4relind-rpi.git 2>/dev/null; then
-        cd 4relind-rpi
-        if /opt/solar_heating_v3/bin/pip install -e . >/dev/null 2>&1; then
-            log "✅ lib4relind installed successfully"
-        else
-            error "Failed to install lib4relind"
-            return 1
-        fi
-        cd ..
-    else
-        error "Failed to clone lib4relind repository"
+    if ! install_lib4relind; then
         return 1
     fi
     
@@ -345,6 +467,16 @@ main() {
     # Install hardware libraries
     if ! install_hardware_libraries; then
         error "Hardware library installation failed"
+        echo
+        echo "Troubleshooting tips:"
+        echo "1. Check internet connection"
+        echo "2. Try manual installation:"
+        echo "   source /opt/solar_heating_v3/bin/activate"
+        echo "   pip install megabas librtd lib4relind"
+        echo "3. Check if hardware libraries are available from Sequent Microsystems"
+        echo "4. Try installing from source:"
+        echo "   git clone https://github.com/SequentMicrosystems/[library-name].git"
+        echo "   cd [library-name] && python3 setup.py install"
         exit 1
     fi
     
