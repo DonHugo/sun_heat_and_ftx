@@ -180,12 +180,12 @@ class SolarHeatingSystem:
             # Basic control logic (simplified version)
             if solar_collector > storage_tank + self.control_params['dTStart_tank_1']:
                 if not self.system_state['primary_pump']:
-                    self.hardware.set_primary_pump(True)
+                    self.hardware.set_relay_state(1, True)  # Primary pump relay
                     self.system_state['primary_pump'] = True
                     logger.info("Primary pump started")
             elif solar_collector < storage_tank + self.control_params['dTStop_tank_1']:
                 if self.system_state['primary_pump']:
-                    self.hardware.set_primary_pump(False)
+                    self.hardware.set_relay_state(1, False)  # Primary pump relay
                     self.system_state['primary_pump'] = False
                     logger.info("Primary pump stopped")
                     
@@ -215,8 +215,8 @@ class SolarHeatingSystem:
         
         # Stop pumps
         if self.hardware:
-            self.hardware.set_primary_pump(False)
-            self.hardware.set_secondary_pump(False)
+            self.hardware.set_relay_state(1, False)  # Primary pump
+            self.hardware.set_relay_state(2, False)  # Secondary pump
         
         # Disconnect MQTT
         if self.mqtt:

@@ -67,9 +67,9 @@ def test_hardware():
         
         # Test relay control
         logger.info("Testing relay control...")
-        hardware.set_primary_pump(True)
+        hardware.set_relay_state(1, True)  # Primary pump relay
         time.sleep(1)
-        hardware.set_primary_pump(False)
+        hardware.set_relay_state(1, False)  # Primary pump relay
         logger.info("✅ Hardware interface test completed")
         
         return True
