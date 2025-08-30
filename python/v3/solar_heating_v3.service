@@ -1,0 +1,16 @@
+[Unit]
+Description=Solar Heating System v3
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/solar_heating/python/v3
+ExecStart=/opt/solar_heating_v3/bin/python3 main_system.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
