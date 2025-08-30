@@ -85,8 +85,8 @@ class SolarHeatingSystem:
             
             # Connect to MQTT broker
             if not self.mqtt.connect():
-                logger.error("Failed to connect to MQTT broker")
-                return False
+                logger.warning("Failed to connect to MQTT broker - continuing without MQTT")
+                self.mqtt = None
             
             # Set up signal handlers for graceful shutdown
             signal.signal(signal.SIGINT, self._signal_handler)
@@ -201,7 +201,7 @@ class SolarHeatingSystem:
                 'timestamp': time.time()
             }
             
-            if self.mqtt:
+            if self.mqtt and self.mqtt.is_connected():
                 self.mqtt.publish_status(status_data)
                 
         except Exception as e:
@@ -219,7 +219,7 @@ class SolarHeatingSystem:
             self.hardware.set_relay_state(2, False)  # Secondary pump
         
         # Disconnect MQTT
-        if self.mqtt:
+        if self.mqtt and self.mqtt.is_connected():
             self.mqtt.disconnect()
         
         logger.info("Solar Heating System v3 stopped")

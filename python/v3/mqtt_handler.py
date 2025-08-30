@@ -334,6 +334,10 @@ class MQTTHandler:
         }
         return self.publish(topic, message)
     
+    def publish_status(self, status_data: Dict[str, Any]):
+        """Publish status data (alias for publish_system_status)"""
+        return self.publish_system_status(status_data)
+    
     def publish_pump_status(self, pump_id: str, status: bool, mode: str = "auto"):
         """Publish pump status"""
         topic = f"{mqtt_topics.status_pump}/{pump_id}"
