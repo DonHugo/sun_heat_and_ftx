@@ -111,7 +111,7 @@ class SolarHeatingSystem:
             self.temperatures = {}
             
             # Test hardware
-            hardware_test = self.hardware.test_hardware()
+            hardware_test = self.hardware.test_hardware_connection()
             logger.info(f"Hardware test results: {hardware_test}")
             
             logger.info("Solar Heating System v3 (System-Wide) started successfully")
