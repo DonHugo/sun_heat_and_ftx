@@ -41,7 +41,10 @@ class MQTTHandler:
     def connect(self) -> bool:
         """Connect to MQTT broker"""
         try:
-            self.client = mqtt_client.Client(self.client_id)
+            self.client = mqtt_client.Client(
+                client_id=self.client_id,
+                callback_api_version=mqtt_client.CallbackAPIVersion.VERSION1
+            )
             self.client.username_pw_set(self.username, self.password)
             self.client.on_connect = self._on_connect
             self.client.on_disconnect = self._on_disconnect
