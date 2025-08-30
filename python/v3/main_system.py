@@ -69,46 +69,196 @@ class SolarHeatingSystem:
     
     async def start(self):
         """Start the solar heating system"""
-        logger.info("Starting Solar Heating System v3 (System-Wide)...")
+        logger.info("Solar Heating System v3 (System-Wide) starting...")
         
         try:
             # Initialize hardware interface
-            # Force simulation mode if hardware libraries are not available
             from hardware_interface import HARDWARE_AVAILABLE
             simulation_mode = config.test_mode or not HARDWARE_AVAILABLE
             if not HARDWARE_AVAILABLE:
                 logger.warning("Hardware libraries not available - forcing simulation mode")
-            
             self.hardware = HardwareInterface(simulation_mode=simulation_mode)
-            
-            # Test hardware connections
-            hardware_test = self.hardware.test_hardware_connection()
-            logger.info(f"Hardware test results: {hardware_test}")
             
             # Initialize MQTT handler
             self.mqtt = MQTTHandler()
-            self.mqtt.set_system_event_callback(self._handle_system_event)
-            
-            # Connect to MQTT broker
             if not self.mqtt.connect():
                 logger.warning("Failed to connect to MQTT broker - continuing without MQTT")
                 self.mqtt = None
             
-            # Set up signal handlers for graceful shutdown
-            signal.signal(signal.SIGINT, self._signal_handler)
-            signal.signal(signal.SIGTERM, self._signal_handler)
+            # Publish Home Assistant discovery configuration
+            if self.mqtt and self.mqtt.is_connected():
+                await self._publish_hass_discovery()
             
-            self.running = True
+            # Initialize system state
+            self.system_state = {
+                'primary_pump': False,
+                'secondary_pump': False,
+                'cartridge_heater': False,
+                'test_mode': config.test_mode,
+                'manual_control': False
+            }
+            
+            # Initialize control parameters
+            self.control_params = {
+                'set_temp_tank_1': config.set_temp_tank_1,
+                'dTStart_tank_1': config.dTStart_tank_1,
+                'dTStop_tank_1': config.dTStop_tank_1,
+                'kylning_kollektor': config.kylning_kollektor,
+                'temp_kok': config.temp_kok
+            }
+            
+            # Initialize temperature storage
+            self.temperatures = {}
+            
+            # Test hardware
+            hardware_test = self.hardware.test_hardware()
+            logger.info(f"Hardware test results: {hardware_test}")
+            
             logger.info("Solar Heating System v3 (System-Wide) started successfully")
+            logger.info("Starting main control loop...")
             
-            # Start main system loop
-            await self._main_loop()
-            
+            # Start main control loop
+            self.running = True
+            while self.running:
+                await self._read_temperatures()
+                await self._process_control_logic()
+                await self._publish_status()
+                await asyncio.sleep(config.temperature_update_interval)
+                
         except Exception as e:
             logger.error(f"Error starting system: {e}")
-            return False
-        
-        return True
+            raise
+    
+    async def _publish_hass_discovery(self):
+        """Publish Home Assistant discovery configuration for all sensors"""
+        try:
+            # Define sensor configurations
+            sensors = []
+            
+            # Add ALL RTD sensors (0-7, 8 total)
+            for i in range(8):
+                sensors.append({
+                    'name': f'RTD Sensor {i}',
+                    'entity_id': f'rtd_sensor_{i}',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                })
+            
+            # Add ALL MegaBAS sensors (1-8, 8 total)
+            for i in range(1, 9):
+                sensors.append({
+                    'name': f'MegaBAS Sensor {i}',
+                    'entity_id': f'megabas_sensor_{i}',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                })
+            
+            # Add named sensors for backward compatibility
+            named_sensors = [
+                {
+                    'name': 'Solar Collector Temperature',
+                    'entity_id': 'solar_collector',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Temperature',
+                    'entity_id': 'storage_tank',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Return Line Temperature',
+                    'entity_id': 'return_line',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Heat Exchanger In Temperature',
+                    'entity_id': 'heat_exchanger_in',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Heat Exchanger Out Temperature',
+                    'entity_id': 'heat_exchanger_out',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Top Temperature',
+                    'entity_id': 'storage_tank_top',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Bottom Temperature',
+                    'entity_id': 'storage_tank_bottom',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Outside Air Temperature',
+                    'entity_id': 'uteluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Exhaust Air Temperature',
+                    'entity_id': 'avluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Supply Air Temperature',
+                    'entity_id': 'tilluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Return Air Temperature',
+                    'entity_id': 'franluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Heat Exchanger Efficiency',
+                    'entity_id': 'heat_exchanger_efficiency',
+                    'device_class': None,
+                    'unit_of_measurement': '%'
+                }
+            ]
+            
+            sensors.extend(named_sensors)
+            
+            # Publish discovery configuration for each sensor
+            for sensor in sensors:
+                config = {
+                    "name": sensor['name'],
+                    "unit_of_measurement": sensor['unit_of_measurement'],
+                    "state_topic": f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/state",
+                    "device": {
+                        "name": "Solar Heating System v3",
+                        "identifiers": ["solar_heating_v3"],
+                        "manufacturer": "Custom",
+                        "model": "Solar Heating System v3"
+                    }
+                }
+                
+                # Add device_class for temperature sensors
+                if sensor['device_class']:
+                    config["device_class"] = sensor['device_class']
+                    config["value_template"] = "{{ value_json.temperature }}"
+                else:
+                    # For non-temperature sensors (like efficiency)
+                    config["value_template"] = "{{ value_json.value }}"
+                
+                topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
+                self.mqtt.publish(topic, config, retain=True)
+                logger.info(f"Published HA discovery for {sensor['name']}")
+                
+        except Exception as e:
+            logger.error(f"Error publishing Home Assistant discovery: {e}")
     
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals"""
@@ -151,27 +301,45 @@ class SolarHeatingSystem:
     async def _read_temperatures(self):
         """Read all temperature sensors"""
         try:
-            # Read RTD sensors
-            for sensor_name, sensor_id in [
-                ('solar_collector', 5),
-                ('storage_tank', 6),
-                ('return_line', 7)
-            ]:
+            # Read ALL RTD sensors (0-7, 8 total sensors)
+            for sensor_id in range(8):
+                sensor_name = f'rtd_sensor_{sensor_id}'
                 temp = self.hardware.read_rtd_temperature(sensor_id)
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
             
-            # Read MegaBAS sensors (MegaBAS uses 1-8, not 0-7)
-            for sensor_name, sensor_id in [
-                ('heat_exchanger_in', 1),
-                ('heat_exchanger_out', 2),
-                ('storage_tank_top', 3),
-                ('storage_tank_bottom', 4),
-                ('ambient_air', 5)
-            ]:
+            # Read ALL MegaBAS sensors (1-8, 8 total sensors)
+            for sensor_id in range(1, 9):
+                sensor_name = f'megabas_sensor_{sensor_id}'
                 temp = self.hardware.read_megabas_temperature(sensor_id)
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
+            
+            # Map specific sensors to meaningful names for backward compatibility
+            # RTD sensors (based on existing mapping)
+            self.temperatures['solar_collector'] = self.temperatures.get('rtd_sensor_5', 0)  # T1 - sensor marked I
+            self.temperatures['storage_tank'] = self.temperatures.get('rtd_sensor_6', 0)     # T2 - sensor marked II
+            self.temperatures['return_line'] = self.temperatures.get('rtd_sensor_7', 0)      # T3 - sensor marked III
+            
+            # MegaBAS sensors (based on existing mapping)
+            self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
+            self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2', 0)
+            self.temperatures['storage_tank_top'] = self.temperatures.get('megabas_sensor_3', 0)
+            self.temperatures['storage_tank_bottom'] = self.temperatures.get('megabas_sensor_4', 0)
+            
+            # FTX sensors (MegaBAS inputs 1-4)
+            self.temperatures['uteluft'] = self.temperatures.get('megabas_sensor_1', 0)      # sensor marked 4
+            self.temperatures['avluft'] = self.temperatures.get('megabas_sensor_2', 0)       # sensor marked 5
+            self.temperatures['tilluft'] = self.temperatures.get('megabas_sensor_3', 0)      # sensor marked 6
+            self.temperatures['franluft'] = self.temperatures.get('megabas_sensor_4', 0)     # sensor marked 7
+            
+            # Calculate heat exchanger efficiency
+            avluft = self.temperatures.get('avluft', 0)
+            franluft = self.temperatures.get('franluft', 0)
+            if franluft > 0:  # Avoid division by zero
+                effekt_varmevaxlare = round(100 - (avluft/franluft*100), 1)
+                self.temperatures['heat_exchanger_efficiency'] = effekt_varmevaxlare
+                logger.debug(f"heat_exchanger_efficiency: {effekt_varmevaxlare}%")
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
@@ -201,6 +369,31 @@ class SolarHeatingSystem:
     async def _publish_status(self):
         """Publish system status to MQTT"""
         try:
+            # Publish individual sensors for Home Assistant
+            for sensor_name, value in self.temperatures.items():
+                if self.mqtt and self.mqtt.is_connected():
+                    # Publish to Home Assistant compatible topic
+                    topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    
+                    # Determine if this is a temperature sensor or other type
+                    if sensor_name == 'heat_exchanger_efficiency':
+                        message = {
+                            "value": value,
+                            "unit": "percent",
+                            "timestamp": time.time()
+                        }
+                        logger.debug(f"Published {sensor_name}: {value}% to {topic}")
+                    else:
+                        message = {
+                            "temperature": value,
+                            "unit": "celsius",
+                            "timestamp": time.time()
+                        }
+                        logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
+                    
+                    self.mqtt.publish(topic, message)
+            
+            # Publish system status
             status_data = {
                 'system_state': self.system_state,
                 'temperatures': self.temperatures,
