@@ -73,7 +73,13 @@ class SolarHeatingSystem:
         
         try:
             # Initialize hardware interface
-            self.hardware = HardwareInterface(simulation_mode=config.test_mode)
+            # Force simulation mode if hardware libraries are not available
+            from hardware_interface import HARDWARE_AVAILABLE
+            simulation_mode = config.test_mode or not HARDWARE_AVAILABLE
+            if not HARDWARE_AVAILABLE:
+                logger.warning("Hardware libraries not available - forcing simulation mode")
+            
+            self.hardware = HardwareInterface(simulation_mode=simulation_mode)
             
             # Test hardware connections
             hardware_test = self.hardware.test_hardware_connection()
