@@ -87,6 +87,41 @@ enable_i2c() {
         echo "dtparam=i2c_arm=on" | sudo tee -a /boot/config.txt
         log "✅ I2C enabled (reboot required)"
     fi
+    
+    # Configure I2C permissions and ensure both buses are available
+    log "Configuring I2C permissions..."
+    
+    # Add user to i2c group if not already added
+    if ! groups $USER | grep -q i2c; then
+        sudo usermod -a -G i2c $USER
+        log "✅ Added user to i2c group"
+    fi
+    
+    # Ensure I2C devices exist and have correct permissions
+    if [ -e /dev/i2c-1 ]; then
+        sudo chmod 666 /dev/i2c-1
+        sudo chown root:i2c /dev/i2c-1
+        log "✅ I2C bus 1 permissions configured"
+    fi
+    
+    if [ -e /dev/i2c-2 ]; then
+        sudo chmod 666 /dev/i2c-2
+        sudo chown root:i2c /dev/i2c-2
+        log "✅ I2C bus 2 permissions configured"
+    fi
+    
+    # Test I2C bus detection
+    log "Testing I2C bus detection..."
+    if command -v i2cdetect >/dev/null 2>&1; then
+        if sudo i2cdetect -l >/dev/null 2>&1; then
+            log "✅ I2C bus detection working"
+        else
+            warn "I2C bus detection failed - may need reboot"
+        fi
+    else
+        warn "i2cdetect not available - installing i2c-tools"
+        sudo apt install -y i2c-tools
+    fi
 }
 
 # Install Sequent Microsystems libraries
@@ -181,6 +216,53 @@ verify_v1_dependencies() {
         log "✅ NumPy library verified"
     else
         error "NumPy library verification failed"
+    fi
+}
+
+# Test hardware detection on correct stacks
+test_hardware_detection() {
+    log "Testing hardware detection on correct stacks..."
+    
+    # Test MegaBAS on stack 3
+    if python3 -c "
+import megabas
+try:
+    result = megabas.getRIn1K(3, 1)
+    print(f'MegaBAS stack 3, input 1: {result}')
+except Exception as e:
+    print(f'MegaBAS error: {e}')
+" 2>/dev/null | grep -q "MegaBAS stack 3"; then
+        log "✅ MegaBAS detected on stack 3"
+    else
+        warn "MegaBAS not detected on stack 3"
+    fi
+    
+    # Test RTD on stack 0
+    if python3 -c "
+import librtd
+try:
+    result = librtd.get(0, 1)
+    print(f'RTD stack 0, sensor 1: {result}')
+except Exception as e:
+    print(f'RTD error: {e}')
+" 2>/dev/null | grep -q "RTD stack 0"; then
+        log "✅ RTD detected on stack 0"
+    else
+        warn "RTD not detected on stack 0"
+    fi
+    
+    # Test 4RELIND on stack 2
+    if python3 -c "
+import lib4relind
+try:
+    result = lib4relind.get_relay(2, 1)
+    print(f'4RELIND stack 2, relay 1: {result}')
+except Exception as e:
+    print(f'4RELIND error: {e}')
+" 2>/dev/null | grep -q "4RELIND stack 2"; then
+        log "✅ 4RELIND detected on stack 2"
+    else
+        warn "4RELIND not detected on stack 2"
     fi
 }
 
@@ -446,6 +528,9 @@ test_hardware() {
     else
         warn "i2cdetect not available"
     fi
+    
+    # Test hardware detection on correct stacks
+    test_hardware_detection
 }
 
 # Final system check
@@ -490,11 +575,16 @@ completion_message() {
     echo "✅ Your solar heating system is now deployed!"
     echo ""
     echo "📋 Next steps:"
-    echo "1. Connect your hardware boards"
+    echo "1. Connect your hardware boards (if not already connected)"
     echo "2. Reboot the system: sudo reboot"
     echo "3. Test v1 system: sudo systemctl start temperature_monitoring.service"
     echo "4. Test v3 system: cd $PROJECT_DIR/python/v3 && source venv/bin/activate && python3 main.py"
     echo "5. Use system switching: system_switch.py status"
+    echo ""
+    echo "🔍 Hardware Configuration:"
+    echo "  MegaBAS: Stack 3 (temperature sensors)"
+    echo "  RTD: Stack 0 (high-precision temperature sensors)"
+    echo "  4RELIND: Stack 2 (relay control)"
     echo ""
     echo "🔧 Useful commands:"
     echo "  system_switch.py status    # Check system status"
@@ -540,28 +630,28 @@ main() {
     # Run deployment steps with timing
     log "🚀 Starting deployment process..."
     
-    log "Step 1/19: Checking Raspberry Pi..."
+    log "Step 1/20: Checking Raspberry Pi..."
     check_raspberry_pi
     
-    log "Step 2/19: Updating system packages..."
+    log "Step 2/20: Updating system packages..."
     update_system
     
-    log "Step 3/19: Installing essential packages..."
+    log "Step 3/20: Installing essential packages..."
     install_essentials
     
-    log "Step 4/19: Enabling I2C interface..."
+    log "Step 4/20: Enabling I2C interface..."
     enable_i2c
     
-    log "Step 5/19: Installing hardware libraries..."
+    log "Step 5/20: Installing hardware libraries..."
     install_hardware_libraries
     
-    log "Step 6/19: Verifying hardware libraries..."
+    log "Step 6/20: Verifying hardware libraries..."
     verify_hardware_libraries
     
-    log "Step 7/19: Verifying v1 dependencies..."
+    log "Step 7/20: Verifying v1 dependencies..."
     verify_v1_dependencies
     
-    log "Step 8/19: Cloning repository..."
+    log "Step 8/20: Cloning repository..."
     clone_repository
     
     log "Step 9/20: Setting up v1 system..."
