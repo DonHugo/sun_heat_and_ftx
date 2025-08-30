@@ -95,8 +95,8 @@ def producer(queue, event):
         while not event.is_set():
             a = 1
             while not FLAG_EXIT:
-                collect_sensor_data_mega(3,a,10)
-                collect_sensor_data_rtd(0,a,10)
+                collect_sensor_data_mega(3,a,10)  # MegaBAS on stack 3
+                collect_sensor_data_rtd(0,a,10)   # RTD on stack 0
                 a += 1
                 if a > 8:
                     #logging.debug("""input_array content: 
@@ -557,8 +557,8 @@ def stored_energy(client):
         logging.debug("stored_energy_kwh: %s", stored_energy_kwh)
         if test_mode == False:
             zero_valu = 4 #temperature of the water that is comming to to the system from the well
-            stack_1 = 0
-            stack_2 = 2
+            stack_1 = 3  # MegaBAS on stack 3
+            stack_2 = 0  # RTD on stack 0
             stored_energy[0] = ((input_array.mean(2)[stack_1,0]-zero_valu)*35)
             stored_energy[1] = ((input_array.mean(2)[stack_1,1]-zero_valu)*35)
             stored_energy[2] = ((input_array.mean(2)[stack_1,2]-zero_valu)*35)

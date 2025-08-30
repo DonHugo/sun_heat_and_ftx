@@ -67,6 +67,11 @@ update_system() {
 install_essentials() {
     log "Installing essential packages..."
     sudo apt install -y git curl wget htop vim build-essential python3-pip python3-dev python3-smbus mosquitto-clients
+    
+    # Install Python dependencies for v1 system (global environment)
+    log "Installing Python dependencies for v1 system..."
+    sudo apt install -y python3-paho-mqtt python3-numpy
+    
     log "✅ Essential packages installed"
 }
 
@@ -157,6 +162,25 @@ verify_hardware_libraries() {
         log "✅ 4RELIND library verified"
     else
         error "4RELIND library verification failed"
+    fi
+}
+
+# Verify v1 system dependencies
+verify_v1_dependencies() {
+    log "Verifying v1 system dependencies..."
+    
+    # Test MQTT library
+    if python3 -c "from paho.mqtt import client as mqtt_client; print('MQTT library OK')" 2>/dev/null; then
+        log "✅ MQTT library verified"
+    else
+        error "MQTT library verification failed"
+    fi
+    
+    # Test NumPy library
+    if python3 -c "import numpy; print('NumPy library OK')" 2>/dev/null; then
+        log "✅ NumPy library verified"
+    else
+        error "NumPy library verification failed"
     fi
 }
 
@@ -534,43 +558,46 @@ main() {
     log "Step 6/19: Verifying hardware libraries..."
     verify_hardware_libraries
     
-    log "Step 7/19: Cloning repository..."
+    log "Step 7/19: Verifying v1 dependencies..."
+    verify_v1_dependencies
+    
+    log "Step 8/19: Cloning repository..."
     clone_repository
     
-    log "Step 8/19: Setting up v1 system..."
+    log "Step 9/20: Setting up v1 system..."
     setup_v1_system
     
-    log "Step 9/19: Setting up v3 system..."
+    log "Step 10/20: Setting up v3 system..."
     setup_v3_system
     
-    log "Step 10/19: Setting up system switch..."
+    log "Step 11/20: Setting up system switch..."
     setup_system_switch
     
-    log "Step 11/19: Setting up update script..."
+    log "Step 12/20: Setting up update script..."
     setup_update_script
     
-    log "Step 12/19: Creating health check..."
+    log "Step 13/20: Creating health check..."
     create_health_check
     
-    log "Step 13/19: Creating sensor test..."
+    log "Step 14/20: Creating sensor test..."
     create_sensor_test
     
-    log "Step 14/19: Setting up backup..."
+    log "Step 15/20: Setting up backup..."
     setup_backup
     
-    log "Step 15/19: Configuring log rotation..."
+    log "Step 16/20: Configuring log rotation..."
     setup_log_rotation
     
-    log "Step 16/19: Setting permissions..."
+    log "Step 17/20: Setting permissions..."
     set_permissions
     
-    log "Step 17/19: Testing MQTT..."
+    log "Step 18/20: Testing MQTT..."
     test_mqtt
     
-    log "Step 18/19: Testing hardware..."
+    log "Step 19/20: Testing hardware..."
     test_hardware
     
-    log "Step 19/19: Final system check..."
+    log "Step 20/20: Final system check..."
     final_check
     
     completion_message

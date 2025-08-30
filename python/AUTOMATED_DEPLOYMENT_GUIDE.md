@@ -62,18 +62,19 @@ The script automatically performs all these steps:
 
 1. ✅ **System Check** - Verifies Raspberry Pi
 2. ✅ **System Update** - Updates all packages
-3. ✅ **Install Dependencies** - Installs essential packages
+3. ✅ **Install Dependencies** - Installs essential packages and Python libraries
 4. ✅ **Enable I2C** - Configures I2C interface
 5. ✅ **Install Hardware Libraries** - Sequent Microsystems libraries
-6. ✅ **Verify Libraries** - Tests all hardware libraries
-7. ✅ **Clone Repository** - Downloads your code
-8. ✅ **Setup v1 System** - Configures original system
-9. ✅ **Setup v3 System** - Configures new system
-10. ✅ **Install Scripts** - System switching and updates
-11. ✅ **Create Utilities** - Health check and sensor test
-12. ✅ **Configure Services** - Auto-start and logging
-13. ✅ **Test Connections** - MQTT and hardware
-14. ✅ **Final Verification** - Complete system check
+6. ✅ **Verify Hardware Libraries** - Tests all hardware libraries
+7. ✅ **Verify v1 Dependencies** - Tests MQTT and NumPy libraries
+8. ✅ **Clone Repository** - Downloads your code
+9. ✅ **Setup v1 System** - Configures original system
+10. ✅ **Setup v3 System** - Configures new system
+11. ✅ **Install Scripts** - System switching and updates
+12. ✅ **Create Utilities** - Health check and sensor test
+13. ✅ **Configure Services** - Auto-start and logging
+14. ✅ **Test Connections** - MQTT and hardware
+15. ✅ **Final Verification** - Complete system check
 
 ## 📊 **Expected Output**
 
