@@ -668,6 +668,9 @@ class SolarHeatingSystem:
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
             
+            logger.info(f"MegaBAS sensors read: {[self.temperatures.get(f'megabas_sensor_{i}', 'None') for i in range(1, 9)]}")
+            logger.debug("Starting sensor mapping and calculations...")
+            
             # MegaBAS sensors with improved naming (based on v1 mapping)
             # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
             self.temperatures['outdoor_air_temp'] = self.temperatures.get('megabas_sensor_1', 0)      # Outdoor air intake
@@ -680,6 +683,7 @@ class SolarHeatingSystem:
             self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
             self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
             
+            logger.debug("Starting water heater sensor mapping...")
             # All water heater RTD sensors with height-based naming
             self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_0', 0)    # RTD sensor 0 - 0cm from bottom (coldest)
             self.temperatures['water_heater_20cm'] = self.temperatures.get('rtd_sensor_1', 0)     # RTD sensor 1 - 20cm from bottom
