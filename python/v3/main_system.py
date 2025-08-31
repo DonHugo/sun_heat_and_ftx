@@ -49,6 +49,7 @@ class SolarHeatingSystem:
         self.system_state = {
             'mode': 'startup',
             'primary_pump': False,
+            'primary_pump_manual': False,
             'cartridge_heater': False,
             'test_mode': config.test_mode,
             'manual_control': False,
@@ -115,8 +116,9 @@ class SolarHeatingSystem:
             # Initialize system state
             self.system_state = {
                 'mode': 'startup',
-                            'primary_pump': False,
-            'cartridge_heater': False,
+                'primary_pump': False,
+                'primary_pump_manual': False,
+                'cartridge_heater': False,
                 'test_mode': config.test_mode,
                 'manual_control': False,
                 'overheated': False,
@@ -662,6 +664,11 @@ class SolarHeatingSystem:
                     'name': 'Primary Pump',
                     'entity_id': 'primary_pump',
                     'icon': 'mdi:pump'
+                },
+                {
+                    'name': 'Primary Pump Manual Control',
+                    'entity_id': 'primary_pump_manual',
+                    'icon': 'mdi:pump-off'
                 },
                 {
                     'name': 'Cartridge Heater',
@@ -1291,6 +1298,7 @@ class SolarHeatingSystem:
             if self.mqtt and self.mqtt.is_connected():
                 logger.info("Publishing switch states...")
                 self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
+                self._publish_switch_state('primary_pump_manual', self.system_state['primary_pump_manual'])
                 self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
                 logger.info("Switch states published successfully")
             
@@ -1454,6 +1462,16 @@ class SolarHeatingSystem:
                 # Update system state
                 if switch_name == 'primary_pump':
                     self.system_state['primary_pump'] = state
+                
+                elif switch_name == 'primary_pump_manual':
+                    self.system_state['primary_pump_manual'] = state
+                    # When manual control is enabled, override automatic control
+                    if state:
+                        self.system_state['primary_pump'] = True
+                        logger.info("Primary pump manual control enabled - pump turned ON")
+                    else:
+                        self.system_state['primary_pump'] = False
+                        logger.info("Primary pump manual control disabled - pump turned OFF")
                 
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state

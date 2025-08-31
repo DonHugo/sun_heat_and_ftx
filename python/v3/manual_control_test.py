@@ -100,7 +100,8 @@ class ManualControlTester:
         print("="*50)
         print("Available switches:")
         print("  1. Primary Pump")
-        print("  2. Cartridge Heater")
+        print("  2. Primary Pump Manual Control")
+        print("  3. Cartridge Heater")
         print("\nAvailable numbers:")
         print("  4. Set Tank Temperature")
         print("  5. Delta Temperature Start")
@@ -120,7 +121,8 @@ class ManualControlTester:
         
         switch_mapping = {
             '1': 'primary_pump',
-            '2': 'cartridge_heater'
+            '2': 'primary_pump_manual',
+            '3': 'cartridge_heater'
         }
         
         number_mapping = {

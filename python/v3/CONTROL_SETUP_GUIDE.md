@@ -6,9 +6,17 @@ Your Solar Heating System v3 includes comprehensive Home Assistant integration w
 
 ## Available Controls
 
+### Manual Control Mode
+The **Primary Pump Manual Control** switch allows you to override the automatic control system:
+- **ON**: Forces the primary pump to turn ON, overriding automatic control
+- **OFF**: Returns control to the automatic system
+
+When manual control is enabled, the system will ignore temperature-based automatic control and keep the pump running until you turn off manual control.
+
 ### Switches (On/Off Controls)
 1. **Primary Pump** - Controls the main circulation pump (Relay 1)
-2. **Cartridge Heater** - Controls the electric heating element (Relay 2)
+2. **Primary Pump Manual Control** - Manual override for the primary pump (Relay 1)
+3. **Cartridge Heater** - Controls the electric heating element (Relay 2)
 
 ### Numbers (Adjustable Values)
 1. **Set Tank Temperature** - Target temperature for storage tank (15-90°C)
@@ -127,6 +135,7 @@ If you see this, the system is running in simulation mode.
 #### 2. Verify Relay Mapping
 Current relay mapping:
 - Primary Pump: Relay 1
+- Primary Pump Manual Control: Relay 1 (override)
 - Cartridge Heater: Relay 2
 
 #### 3. Test Hardware Interface
