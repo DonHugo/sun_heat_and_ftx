@@ -239,6 +239,74 @@ class SolarHeatingSystem:
                     'entity_id': 'system_mode',
                     'device_class': None,
                     'unit_of_measurement': None
+                },
+                # Solar Collector sensors
+                {
+                    'name': 'Solar Collector dT Running',
+                    'entity_id': 'solar_collector_dt_running',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Solar Collector dT',
+                    'entity_id': 'solar_collector_dt',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Solar Collector Pump Status',
+                    'entity_id': 'solar_collector_pump',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
+                {
+                    'name': 'Solar Collector Mode',
+                    'entity_id': 'solar_collector_mode',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
+                {
+                    'name': 'Solar Collector State',
+                    'entity_id': 'solar_collector_state',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
+                {
+                    'name': 'Solar Collector Sub State',
+                    'entity_id': 'solar_collector_sub_state',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
+                {
+                    'name': 'Solar Collector Overheated',
+                    'entity_id': 'solar_collector_overheated',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
+                # Stored Energy sensors
+                {
+                    'name': 'Stored Energy Total',
+                    'entity_id': 'stored_energy_kwh',
+                    'device_class': 'energy',
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Stored Energy Top',
+                    'entity_id': 'stored_energy_top_kwh',
+                    'device_class': 'energy',
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Stored Energy Bottom',
+                    'entity_id': 'stored_energy_bottom_kwh',
+                    'device_class': 'energy',
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Average Temperature',
+                    'entity_id': 'average_temperature',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
                 }
             ]
             
@@ -465,6 +533,51 @@ class SolarHeatingSystem:
             # Add system mode to temperatures for Home Assistant
             self.temperatures['system_mode'] = self.system_state.get('mode', 'unknown')
             logger.debug(f"system_mode: {self.temperatures['system_mode']}")
+            
+            # Calculate solar collector dT values
+            solar_collector = self.temperatures.get('solar_collector', 0)
+            storage_tank = self.temperatures.get('storage_tank', 0)
+            dT = solar_collector - storage_tank if solar_collector and storage_tank else 0
+            
+            self.temperatures['solar_collector_dt_running'] = dT
+            self.temperatures['solar_collector_dt'] = dT
+            self.temperatures['solar_collector_pump'] = "ON" if self.system_state.get('primary_pump', False) else "OFF"
+            self.temperatures['solar_collector_mode'] = self.system_state.get('mode', 'unknown')
+            self.temperatures['solar_collector_state'] = self.system_state.get('mode', 'unknown')
+            self.temperatures['solar_collector_sub_state'] = "0"
+            self.temperatures['solar_collector_overheated'] = "true" if self.system_state.get('overheated', False) else "false"
+            
+            # Calculate stored energy values (matching v1 logic)
+            zero_value = 4  # Temperature of water coming from well
+            stored_energy = [0] * 10
+            
+            # Use RTD sensors (stack 0) for energy calculations
+            for i in range(8):
+                temp = self.temperatures.get(f'rtd_sensor_{i}', 0)
+                if temp is not None:
+                    stored_energy[i] = ((temp - zero_value) * 35)
+                else:
+                    stored_energy[i] = 0
+            
+            # Add MegaBAS input 5 (sensor 5) - handle None value
+            megabas_5 = self.temperatures.get('megabas_sensor_5', 0)
+            if megabas_5 is not None:
+                stored_energy[8] = ((megabas_5 - zero_value) * 35)
+            else:
+                stored_energy[8] = 0
+            
+            # Calculate energy values
+            stored_energy_kwh = [
+                round(sum(stored_energy) * 4200 / 1000 / 3600, 2),  # Total
+                round(sum(stored_energy[:5]) * 4200 / 1000 / 3600, 2),  # Bottom
+                round(sum(stored_energy[5:]) * 4200 / 1000 / 3600, 2),  # Top
+                round(sum([self.temperatures.get(f'rtd_sensor_{i}', 0) or 0 for i in range(8)]) / 8, 1)  # Average temp
+            ]
+            
+            self.temperatures['stored_energy_kwh'] = stored_energy_kwh[0]
+            self.temperatures['stored_energy_top_kwh'] = stored_energy_kwh[2]
+            self.temperatures['stored_energy_bottom_kwh'] = stored_energy_kwh[1]
+            self.temperatures['average_temperature'] = stored_energy_kwh[3]
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
@@ -648,31 +761,42 @@ class SolarHeatingSystem:
             }
             self.mqtt.publish("sequentmicrosystems/stored_energy", json.dumps(stored_energy_msg))
             
-            # 3. FTX (Heat Exchanger) message
+            # 3. FTX (Heat Exchanger) message - match v1 format exactly
             ftx_msg = {
-                "name": "ftx",
-                "efficiency": round(self.temperatures.get('heat_exchanger_efficiency', 0), 1)
+                "uteluft": round(self.temperatures.get('uteluft', 0), 1),
+                "avluft": round(self.temperatures.get('avluft', 0), 1),
+                "tilluft": round(self.temperatures.get('tilluft', 0), 1),
+                "franluft": round(self.temperatures.get('franluft', 0), 1),
+                "effekt_varmevaxlare": round(self.temperatures.get('heat_exchanger_efficiency', 0), 1)
             }
             self.mqtt.publish("sequentmicrosystems/ftx", json.dumps(ftx_msg))
             
-            # 4. Sun collector message
+            # 4. Sun collector message - match v1 format exactly
+            solar_collector = self.temperatures.get('solar_collector', 0)
+            storage_tank = self.temperatures.get('storage_tank', 0)
+            dT = solar_collector - storage_tank if solar_collector and storage_tank else 0
+            
             suncollector_msg = {
-                "name": "suncollector",
-                "temperature": round(self.temperatures.get('solar_collector', 0), 1)
+                "dT_running": dT,
+                "dT": dT,
+                "pump": "ON" if self.system_state.get('primary_pump', False) else "OFF",
+                "mode": self.system_state.get('mode', 'unknown'),
+                "state": self.system_state.get('mode', 'unknown'),
+                "sub_state": "0",
+                "overheated": "true" if self.system_state.get('overheated', False) else "false"
             }
             self.mqtt.publish("sequentmicrosystems/suncollector", json.dumps(suncollector_msg))
             
-            # 5. Cartridge heater status (relay 1)
-            cartridge_heater_msg = {
-                "name": "cartridge_heater",
-                "status": "ON" if self.hardware.get_relay_state(1) else "OFF"
+            # 5. Test mode message - match v1 format exactly
+            test_mode_msg = {
+                "test_mode": "true" if self.system_state.get('test_mode', False) else "false",
+                "log_level": config.log_level
             }
-            self.mqtt.publish("sequentmicrosystems/cartridge_heater", json.dumps(cartridge_heater_msg))
+            self.mqtt.publish("sequentmicrosystems/test_mode", json.dumps(test_mode_msg))
             
-            # 6. Test switch status
+            # 6. Test switch status - match v1 format exactly
             test_switch_msg = {
-                "name": "test_switch",
-                "status": "ON" if config.test_mode else "OFF"
+                "switch_status": "on" if self.system_state.get('test_mode', False) else "off"
             }
             self.mqtt.publish("sequentmicrosystems/test_switch", json.dumps(test_switch_msg))
             
