@@ -722,6 +722,7 @@ class SolarHeatingSystem:
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
             self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
             self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2', 0)
+            logger.info("Heat exchanger sensors mapped successfully")
             
             # Calculate heat exchanger efficiency
             avluft = self.temperatures.get('avluft', 0)
@@ -730,6 +731,7 @@ class SolarHeatingSystem:
                 effekt_varmevaxlare = round(100 - (avluft/franluft*100), 1)
                 self.temperatures['heat_exchanger_efficiency'] = effekt_varmevaxlare
                 logger.debug(f"heat_exchanger_efficiency: {effekt_varmevaxlare}%")
+            logger.info("Heat exchanger efficiency calculated successfully")
             
             # Calculate water heater stratification metrics
             water_heater_140cm = self.temperatures.get('water_heater_140cm', 0)  # Top sensor
@@ -740,6 +742,7 @@ class SolarHeatingSystem:
                 self.temperatures['water_heater_stratification'] = stratification_quality
                 self.temperatures['water_heater_gradient_cm'] = gradient_per_cm
                 logger.debug(f"Stratification quality: {stratification_quality}, Gradient: {gradient_per_cm}°C/cm")
+            logger.info("Water heater stratification calculated successfully")
             
             # Calculate sensor health score
             valid_sensors = 0
@@ -754,6 +757,7 @@ class SolarHeatingSystem:
                 sensor_health_score = round((valid_sensors / total_sensors) * 100, 1)
                 self.temperatures['sensor_health_score'] = sensor_health_score
                 logger.debug(f"Sensor health score: {sensor_health_score}%")
+            logger.info("Sensor health score calculated successfully")
             
             # Calculate overheating risk
             solar_collector_temp = self.temperatures.get('solar_collector_temp', 0)
@@ -764,10 +768,12 @@ class SolarHeatingSystem:
                 logger.warning(f"Overheating risk: {overheating_risk}% (collector: {solar_collector_temp}°C)")
             else:
                 self.temperatures['overheating_risk'] = 0
+            logger.info("Overheating risk calculated successfully")
             
             # Add system mode to temperatures for Home Assistant
             self.temperatures['system_mode'] = self.system_state.get('mode', 'unknown')
             logger.debug(f"system_mode: {self.temperatures['system_mode']}")
+            logger.info("System mode added successfully")
             
             # Add operational metrics to temperatures
             self.temperatures['pump_runtime_hours'] = self.system_state.get('pump_runtime_hours', 0.0)
@@ -782,6 +788,7 @@ class SolarHeatingSystem:
             
             # Debug logging for operational metrics
             logger.debug(f"Operational metrics: pump_runtime={self.temperatures['pump_runtime_hours']}h, cycles={self.temperatures['heating_cycles_count']}, avg_duration={self.temperatures['average_heating_duration']}h")
+            logger.info("Operational metrics added successfully")
             
             # Calculate solar collector dT values
             solar_collector = self.temperatures.get('solar_collector', 0)
