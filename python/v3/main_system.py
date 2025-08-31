@@ -670,6 +670,7 @@ class SolarHeatingSystem:
             
             logger.info(f"MegaBAS sensors read: {[self.temperatures.get(f'megabas_sensor_{i}', 'None') for i in range(1, 9)]}")
             logger.debug("Starting sensor mapping and calculations...")
+            logger.info("About to start MegaBAS sensor mapping...")
             
             # MegaBAS sensors with improved naming (based on v1 mapping)
             # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
@@ -677,6 +678,7 @@ class SolarHeatingSystem:
             self.temperatures['exhaust_air_temp'] = self.temperatures.get('megabas_sensor_2', 0)     # Air leaving heat exchanger
             self.temperatures['supply_air_temp'] = self.temperatures.get('megabas_sensor_3', 0)      # Air entering heat exchanger
             self.temperatures['return_air_temp'] = self.temperatures.get('megabas_sensor_4', 0)     # Air returning from heat exchanger
+            logger.info("FTX sensors mapped successfully")
             
             # Solar collector and storage tank sensors (MegaBAS inputs 6-8) - CORRECTED to match v1
             self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
