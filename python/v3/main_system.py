@@ -328,7 +328,7 @@ class SolarHeatingSystem:
             for sensor in sensors:
                 config = {
                     "name": sensor['name'],
-                    "unique_id": f"solar_heating_{sensor['entity_id']}",
+                    "unique_id": f"solar_heating_v3_{sensor['entity_id']}",
                     "unit_of_measurement": sensor['unit_of_measurement'],
                     "state_topic": f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/state",
                     "device": {
@@ -383,7 +383,7 @@ class SolarHeatingSystem:
             for switch in switches:
                 config = {
                     "name": switch['name'],
-                    "unique_id": f"solar_heating_{switch['entity_id']}",
+                    "unique_id": f"solar_heating_v3_{switch['entity_id']}",
                     "state_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/state",
                     "command_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/set",
                     "icon": switch['icon'],
