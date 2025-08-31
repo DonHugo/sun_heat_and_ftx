@@ -185,16 +185,58 @@ class SolarHeatingSystem:
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
-                # Water heater stratification sensors
+                # Water heater stratification sensors (all heights)
                 {
-                    'name': 'Water Heater Top Temperature',
-                    'entity_id': 'water_heater_top',
+                    'name': 'Water Heater Bottom Temperature',
+                    'entity_id': 'water_heater_bottom',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
-                    'name': 'Water Heater Bottom Temperature',
-                    'entity_id': 'water_heater_bottom',
+                    'name': 'Water Heater 20cm Temperature',
+                    'entity_id': 'water_heater_20cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 40cm Temperature',
+                    'entity_id': 'water_heater_40cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 60cm Temperature',
+                    'entity_id': 'water_heater_60cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 80cm Temperature',
+                    'entity_id': 'water_heater_80cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 100cm Temperature',
+                    'entity_id': 'water_heater_100cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 120cm Temperature',
+                    'entity_id': 'water_heater_120cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater 140cm Temperature',
+                    'entity_id': 'water_heater_140cm',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Water Heater Top Temperature (Legacy)',
+                    'entity_id': 'water_heater_top',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
@@ -635,9 +677,18 @@ class SolarHeatingSystem:
             self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
             self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
             
-            # Storage tank top/bottom (using RTD sensors for better accuracy)
-            self.temperatures['water_heater_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5 - 100cm from bottom
-            self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 4 - 80cm from bottom
+            # All water heater RTD sensors with height-based naming
+            self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_0', 0)    # RTD sensor 0 - 0cm from bottom (coldest)
+            self.temperatures['water_heater_20cm'] = self.temperatures.get('rtd_sensor_1', 0)     # RTD sensor 1 - 20cm from bottom
+            self.temperatures['water_heater_40cm'] = self.temperatures.get('rtd_sensor_2', 0)     # RTD sensor 2 - 40cm from bottom
+            self.temperatures['water_heater_60cm'] = self.temperatures.get('rtd_sensor_3', 0)     # RTD sensor 3 - 60cm from bottom
+            self.temperatures['water_heater_80cm'] = self.temperatures.get('rtd_sensor_4', 0)     # RTD sensor 4 - 80cm from bottom
+            self.temperatures['water_heater_100cm'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5 - 100cm from bottom
+            self.temperatures['water_heater_120cm'] = self.temperatures.get('rtd_sensor_6', 0)    # RTD sensor 6 - 120cm from bottom
+            self.temperatures['water_heater_140cm'] = self.temperatures.get('rtd_sensor_7', 0)    # RTD sensor 7 - 140cm from bottom (hottest)
+            
+            # Legacy aliases for backward compatibility
+            self.temperatures['water_heater_top'] = self.temperatures['water_heater_100cm']  # Keep top alias
             
             # Keep backward compatibility aliases
             self.temperatures['uteluft'] = self.temperatures['outdoor_air_temp']
@@ -663,11 +714,11 @@ class SolarHeatingSystem:
                 logger.debug(f"heat_exchanger_efficiency: {effekt_varmevaxlare}%")
             
             # Calculate water heater stratification metrics
-            water_heater_top = self.temperatures.get('water_heater_top', 0)
-            water_heater_bottom = self.temperatures.get('water_heater_bottom', 0)
-            if water_heater_top and water_heater_bottom:
-                stratification_quality = round((water_heater_top - water_heater_bottom) / 140, 2)  # 140cm height
-                gradient_per_cm = round((water_heater_top - water_heater_bottom) / 140, 3)
+            water_heater_140cm = self.temperatures.get('water_heater_140cm', 0)  # Top sensor
+            water_heater_bottom = self.temperatures.get('water_heater_bottom', 0)  # Bottom sensor (0cm)
+            if water_heater_140cm and water_heater_bottom:
+                stratification_quality = round((water_heater_140cm - water_heater_bottom) / 140, 2)  # 140cm height
+                gradient_per_cm = round((water_heater_140cm - water_heater_bottom) / 140, 3)
                 self.temperatures['water_heater_stratification'] = stratification_quality
                 self.temperatures['water_heater_gradient_cm'] = gradient_per_cm
                 logger.debug(f"Stratification quality: {stratification_quality}, Gradient: {gradient_per_cm}°C/cm")
