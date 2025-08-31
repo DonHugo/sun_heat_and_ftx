@@ -153,3 +153,37 @@ Based on actual system readings, here's an example of the temperature stratifica
 | rtd_sensor_0 | 26.2°C | Bottom of water heater | Coldest water |
 
 This shows a clear temperature gradient from 26.2°C at the bottom to 70.6°C at the top, demonstrating proper thermal stratification in the water heater.
+
+## Sensor Mapping Clarification
+
+**Important Note**: There is some confusion in the mapping of T1, T2, and T3 sensors. Based on the temperature readings and physical layout:
+
+### Correct v3 Mapping (MegaBAS-based):
+- **T1 (solar_collector)**: megabas_sensor_6
+- **T2 (storage_tank)**: megabas_sensor_7
+- **T3 (return_line)**: megabas_sensor_8
+
+### Previous Incorrect Mapping (RTD-based):
+- **T1 (solar_collector)**: rtd_sensor_5 (~100cm from bottom)
+- **T2 (storage_tank)**: rtd_sensor_6 (~120cm from bottom) 
+- **T3 (return_line)**: rtd_sensor_7 (~140cm from bottom, top of water heater)
+
+### Corrected Sensor Table
+
+| Sensor | Location | RTD Mapping | MegaBAS Mapping | Notes |
+|--------|----------|-------------|-----------------|-------|
+| T3 | Top of water heater | - | megabas_sensor_8 | Return line, hottest water |
+| rtd_sensor_7 | ~140cm from bottom | RTD_8 | - | Top of water heater |
+| rtd_sensor_6 | ~120cm from bottom | RTD_7 | - | |
+| rtd_sensor_5 | ~100cm from bottom | RTD_6 | - | Storage tank top |
+| rtd_sensor_4 | ~80cm from bottom | RTD_5 | - | Storage tank bottom |
+| rtd_sensor_3 | ~60cm from bottom | RTD_4 | - | |
+| rtd_sensor_2 | ~40cm from bottom | RTD_3 | - | |
+| rtd_sensor_1 | ~20cm from bottom | RTD_2 | - | |
+| T2 | ~120cm from bottom | - | megabas_sensor_7 | Storage tank |
+| rtd_sensor_0 | Bottom of water heater | RTD_1 | - | Coldest water |
+| T1 | Solar collector | - | megabas_sensor_6 | Solar collector |
+| uteluft | Outdoor air | - | megabas_sensor_1 | Outdoor Air Temperature |
+| avluft | Exhaust air | - | megabas_sensor_2 | Exhaust Air Temperature |
+| tilluft | Supply air | - | megabas_sensor_3 | Supply Air Temperature |
+| franluft | Return air | - | megabas_sensor_4 | Return Air Temperature |
