@@ -130,6 +130,9 @@ class MQTTHandler:
             "homeassistant/binary_sensor/pellet_stove_+/state",
             "homeassistant/sensor/pellet_stove_monitoring_+/state",
             "homeassistant/binary_sensor/pellet_stove_monitoring_+/state",
+            # Hall sensor and pulse counter
+            "homeassistant/binary_sensor/hall_sensor/state",
+            "homeassistant/sensor/pulse_counter_60s/state",
             
             # System control topics
             f"{mqtt_topics.control_base}/+",
@@ -180,7 +183,9 @@ class MQTTHandler:
                 topic.startswith("homeassistant/sensor/pellet_stove_") or
                 topic.startswith("homeassistant/binary_sensor/pellet_stove_") or
                 topic.startswith("homeassistant/sensor/pellet_stove_monitoring_") or
-                topic.startswith("homeassistant/binary_sensor/pellet_stove_monitoring_")):
+                topic.startswith("homeassistant/binary_sensor/pellet_stove_monitoring_") or
+                topic == "homeassistant/binary_sensor/hall_sensor/state" or
+                topic == "homeassistant/sensor/pulse_counter_60s/state"):
                 self._handle_pellet_stove_data(topic, payload)
                 return
             
@@ -336,10 +341,17 @@ class MQTTHandler:
             
             # Extract sensor name from topic
             # topic format: homeassistant/sensor/pelletskamin_power/state
-            sensor_name = topic.split('/')[3]
+            # or: homeassistant/binary_sensor/hall_sensor/state
+            if topic == "homeassistant/binary_sensor/hall_sensor/state":
+                sensor_name = "hall_sensor"
+            elif topic == "homeassistant/sensor/pulse_counter_60s/state":
+                sensor_name = "pulse_counter_60s"
+            else:
+                sensor_name = topic.split('/')[3]
             
             # Map sensor names to our system state
             sensor_mapping = {
+                # Direct pellet stove sensors
                 'pelletskamin_power': 'pellet_stove_power',
                 'pelletskamin_brinntid': 'pellet_stove_burn_time',
                 'pelletskamin_dagens_förbrukning': 'pellet_stove_daily_consumption',
@@ -348,11 +360,16 @@ class MQTTHandler:
                 'pelletskamin_storage_energy': 'pellet_stove_storage_energy',
                 'pelletskamin_storage_weight': 'pellet_stove_storage_weight',
                 'pelletskamin_electric_consumption': 'pellet_stove_electric_consumption',
-                'pellet_stove_monitoring_pulse_counter_1': 'pellet_stove_pulse_counter_1',
-                'pellet_stove_monitoring_pulse_counter_2': 'pellet_stove_pulse_counter_2',
-                'pellet_stove_monitoring_pulse_counter_3': 'pellet_stove_pulse_counter_3',
                 'pelletskamin_bags_until_cleaning': 'pellet_stove_bags_until_cleaning',
                 'pelletskamin_status': 'pellet_stove_status',
+                
+                # Hall sensor and pulse counter
+                'hall_sensor': 'pellet_stove_hall_sensor',
+                'pulse_counter_60s': 'pellet_stove_pulse_counter_60s',
+                
+                # Energy sensors (from your system)
+                'pellet_energy_today_kwh': 'pellet_stove_energy_today',
+                'pellet_energy_hour_kwh': 'pellet_stove_energy_hour',
             }
             
             if sensor_name in sensor_mapping:
@@ -360,7 +377,7 @@ class MQTTHandler:
                 
                 # Convert payload to appropriate type
                 try:
-                    if sensor_name == 'pelletskamin_status':
+                    if sensor_name in ['pelletskamin_status', 'hall_sensor']:
                         # Binary sensor - convert to boolean
                         value = payload.lower() == 'on'
                     else:

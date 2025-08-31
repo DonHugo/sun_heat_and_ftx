@@ -81,9 +81,10 @@ class SolarHeatingSystem:
             'pellet_stove_storage_energy': 0.0,  # Storage energy (kWh)
             'pellet_stove_storage_weight': 0.0,  # Storage weight (kg)
             'pellet_stove_electric_consumption': 0.0,  # Electrical consumption (W)
-            'pellet_stove_pulse_counter_1': 0.0,  # Pulse counter 1 (pulses/min)
-            'pellet_stove_pulse_counter_2': 0.0,  # Pulse counter 2 (pulses/min)
-            'pellet_stove_pulse_counter_3': 0.0,  # Pulse counter 3 (pulses/min)
+            'pellet_stove_hall_sensor': False,  # Hall sensor detecting pellet screw rotation
+            'pellet_stove_pulse_counter_60s': 0.0,  # Pulse counter for hall sensor (60s window)
+            'pellet_stove_energy_today': 0.0,  # Energy today (kWh)
+            'pellet_stove_energy_hour': 0.0,  # Energy this hour (kWh)
             'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
             'pellet_stove_status': False,  # ON/OFF status
         }
@@ -153,21 +154,22 @@ class SolarHeatingSystem:
                 'pellet_energy_today': 0.0,     # kWh from pellet furnace today
                 'solar_energy_hour': 0.0,       # kWh from solar this hour
                 'cartridge_energy_hour': 0.0,   # kWh from cartridge heater this hour
-                            'pellet_energy_hour': 0.0,      # kWh from pellet furnace this hour
-            # Pellet stove data
-            'pellet_stove_power': 0.0,      # Current power output (kW)
-            'pellet_stove_burn_time': 0.0,  # Hours of operation
-            'pellet_stove_daily_consumption': 0.0,  # Daily consumption percentage
-            'pellet_stove_storage_level': 0,  # Storage level
-            'pellet_stove_storage_percentage': 0.0,  # Storage percentage
-            'pellet_stove_storage_energy': 0.0,  # Storage energy (kWh)
-            'pellet_stove_storage_weight': 0.0,  # Storage weight (kg)
-            'pellet_stove_electric_consumption': 0.0,  # Electrical consumption (W)
-            'pellet_stove_pulse_counter_1': 0.0,  # Pulse counter 1 (pulses/min)
-            'pellet_stove_pulse_counter_2': 0.0,  # Pulse counter 2 (pulses/min)
-            'pellet_stove_pulse_counter_3': 0.0,  # Pulse counter 3 (pulses/min)
-            'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
-            'pellet_stove_status': False,  # ON/OFF status
+                'pellet_energy_hour': 0.0,      # kWh from pellet furnace this hour
+                # Pellet stove data
+                'pellet_stove_power': 0.0,      # Current power output (kW)
+                'pellet_stove_burn_time': 0.0,  # Hours of operation
+                'pellet_stove_daily_consumption': 0.0,  # Daily consumption percentage
+                'pellet_stove_storage_level': 0,  # Storage level
+                'pellet_stove_storage_percentage': 0.0,  # Storage percentage
+                'pellet_stove_storage_energy': 0.0,  # Storage energy (kWh)
+                'pellet_stove_storage_weight': 0.0,  # Storage weight (kg)
+                'pellet_stove_electric_consumption': 0.0,  # Electrical consumption (W)
+                'pellet_stove_hall_sensor': False,  # Hall sensor detecting pellet screw rotation
+                'pellet_stove_pulse_counter_60s': 0.0,  # Pulse counter for hall sensor (60s window)
+                'pellet_stove_energy_today': 0.0,  # Energy today (kWh)
+                'pellet_stove_energy_hour': 0.0,  # Energy this hour (kWh)
+                'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
+                'pellet_stove_status': False,  # ON/OFF status
         }
             
             # Initialize control parameters
