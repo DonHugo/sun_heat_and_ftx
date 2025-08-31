@@ -451,7 +451,7 @@ class SolarHeatingSystem:
             for number in numbers:
                 config = {
                     "name": number['name'],
-                    "unique_id": f"solar_heating_{number['entity_id']}",
+                    "unique_id": f"solar_heating_v3_{number['entity_id']}",
                     "state_topic": f"homeassistant/number/solar_heating_{number['entity_id']}/state",
                     "command_topic": f"homeassistant/number/solar_heating_{number['entity_id']}/set",
                     "unit_of_measurement": number['unit_of_measurement'],
