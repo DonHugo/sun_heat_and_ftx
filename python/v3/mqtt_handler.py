@@ -147,7 +147,12 @@ class MQTTHandler:
             # Store last message for each topic
             self.last_messages[topic] = payload
             
-            # Parse JSON payload
+            # Handle Home Assistant switch commands (raw string payload)
+            if topic.startswith("homeassistant/switch/solar_heating_") and topic.endswith("/set"):
+                self._handle_switch_command(topic, payload)
+                return
+            
+            # Parse JSON payload for other messages
             try:
                 data = json.loads(payload)
             except json.JSONDecodeError:
@@ -199,6 +204,39 @@ class MQTTHandler:
         elif 'command' in data:
             # Handle commands
             self._handle_hass_command(entity, data['command'])
+    
+    def _handle_switch_command(self, topic: str, payload: str):
+        """Handle Home Assistant switch commands"""
+        try:
+            logger.info(f"Handling switch command: {topic} = {payload}")
+            
+            # Extract switch name from topic
+            # topic format: homeassistant/switch/solar_heating_{switch_name}/set
+            switch_name = topic.split('/')[3]
+            
+            # Map switch names to relay numbers
+            switch_mapping = {
+                'primary_pump': 1,
+                'secondary_pump': 2,
+                'cartridge_heater': 1  # Same as primary pump for now
+            }
+            
+            if switch_name in switch_mapping:
+                relay_num = switch_mapping[switch_name]
+                state = payload.lower() == 'on'
+                
+                # Call the system callback if available
+                if hasattr(self, 'system_callback'):
+                    self.system_callback('switch_command', {
+                        'switch': switch_name,
+                        'relay': relay_num,
+                        'state': state
+                    })
+                else:
+                    logger.warning("No system callback registered for switch commands")
+                    
+        except Exception as e:
+            logger.error(f"Error handling switch command: {e}")
     
     def _handle_hass_state_change(self, entity: str, state: Any):
         """Handle Home Assistant state changes"""

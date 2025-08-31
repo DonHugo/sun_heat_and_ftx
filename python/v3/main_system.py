@@ -88,6 +88,9 @@ class SolarHeatingSystem:
             if not self.mqtt.connect():
                 logger.warning("Failed to connect to MQTT broker - continuing without MQTT")
                 self.mqtt = None
+            else:
+                # Register system callback for switch commands
+                self.mqtt.system_callback = self._handle_mqtt_command
             
             # Publish Home Assistant discovery configuration
             if self.mqtt and self.mqtt.is_connected():
@@ -258,6 +261,44 @@ class SolarHeatingSystem:
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
                 self.mqtt.publish(topic, config, retain=True)
                 logger.info(f"Published HA discovery for {sensor['name']}")
+            
+            # Publish switch discovery configurations
+            switches = [
+                {
+                    'name': 'Primary Pump',
+                    'entity_id': 'primary_pump',
+                    'icon': 'mdi:pump'
+                },
+                {
+                    'name': 'Secondary Pump', 
+                    'entity_id': 'secondary_pump',
+                    'icon': 'mdi:pump'
+                },
+                {
+                    'name': 'Cartridge Heater',
+                    'entity_id': 'cartridge_heater',
+                    'icon': 'mdi:heating-coil'
+                }
+            ]
+            
+            for switch in switches:
+                config = {
+                    "name": switch['name'],
+                    "unique_id": f"solar_heating_{switch['entity_id']}",
+                    "state_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/state",
+                    "command_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/set",
+                    "icon": switch['icon'],
+                    "device": {
+                        "name": "Solar Heating System v3",
+                        "identifiers": ["solar_heating_v3"],
+                        "manufacturer": "Custom",
+                        "model": "Solar Heating System v3"
+                    }
+                }
+                
+                topic = f"homeassistant/switch/solar_heating_{switch['entity_id']}/config"
+                self.mqtt.publish(topic, config, retain=True)
+                logger.info(f"Published HA discovery for {switch['name']}")
                 
         except Exception as e:
             logger.error(f"Error publishing Home Assistant discovery: {e}")
@@ -397,6 +438,12 @@ class SolarHeatingSystem:
             await self._publish_v1_parallel_messages()
             # ===== V1 COMPATIBILITY SECTION - END =====
             
+            # Publish switch states
+            if self.mqtt and self.mqtt.is_connected():
+                self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
+                self._publish_switch_state('secondary_pump', self.system_state['secondary_pump'])
+                self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
+            
             # Publish system status
             status_data = {
                 'system_state': self.system_state,
@@ -519,6 +566,47 @@ class SolarHeatingSystem:
             logger.error(f"Error publishing v1 parallel messages: {e}")
     
     # ===== V1 COMPATIBILITY METHOD - END =====
+    
+    def _handle_mqtt_command(self, command_type: str, data: Dict[str, Any]):
+        """Handle MQTT commands from Home Assistant"""
+        try:
+            if command_type == 'switch_command':
+                switch_name = data['switch']
+                relay_num = data['relay']
+                state = data['state']
+                
+                # Set relay state
+                self.hardware.set_relay_state(relay_num, state)
+                
+                # Update system state
+                if switch_name == 'primary_pump':
+                    self.system_state['primary_pump'] = state
+                elif switch_name == 'secondary_pump':
+                    self.system_state['secondary_pump'] = state
+                elif switch_name == 'cartridge_heater':
+                    self.system_state['cartridge_heater'] = state
+                
+                # Publish switch state back to Home Assistant
+                self._publish_switch_state(switch_name, state)
+                
+                logger.info(f"Switch {switch_name} set to {'ON' if state else 'OFF'}")
+                
+        except Exception as e:
+            logger.error(f"Error handling MQTT command: {e}")
+    
+    def _publish_switch_state(self, switch_name: str, state: bool):
+        """Publish switch state to Home Assistant"""
+        try:
+            if not self.mqtt or not self.mqtt.is_connected():
+                return
+            
+            topic = f"homeassistant/switch/solar_heating_{switch_name}/state"
+            state_str = "ON" if state else "OFF"
+            self.mqtt.publish_raw(topic, state_str)
+            logger.debug(f"Published switch state: {switch_name} = {state_str}")
+            
+        except Exception as e:
+            logger.error(f"Error publishing switch state: {e}")
     
     async def stop(self):
         """Stop the solar heating system"""
