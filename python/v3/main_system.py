@@ -58,7 +58,13 @@ class SolarHeatingSystem:
             'pump_runtime_hours': 0.0,
             'heating_cycles_count': 0,
             'last_pump_start': None,
-            'total_heating_time': 0.0
+            'total_heating_time': 0.0,
+            # Energy collection tracking
+            'energy_collected_today': 0.0,  # kWh collected today
+            'energy_collected_hour': 0.0,   # kWh collected this hour
+            'last_energy_calculation': time.time(),
+            'last_hour_reset': time.time(),
+            'last_day_reset': time.time()
         }
         
         # Temperature data
@@ -113,7 +119,13 @@ class SolarHeatingSystem:
                 'pump_runtime_hours': 0.0,
                 'heating_cycles_count': 0,
                 'last_pump_start': None,
-                'total_heating_time': 0.0
+                'total_heating_time': 0.0,
+                # Energy collection tracking
+                'energy_collected_today': 0.0,  # kWh collected today
+                'energy_collected_hour': 0.0,   # kWh collected this hour
+                'last_energy_calculation': time.time(),
+                'last_hour_reset': time.time(),
+                'last_day_reset': time.time()
             }
             
             # Initialize control parameters
@@ -461,6 +473,24 @@ class SolarHeatingSystem:
                     'entity_id': 'average_heating_duration',
                     'device_class': None,
                     'unit_of_measurement': 'hours'
+                },
+                {
+                    'name': 'Energy Collection Rate',
+                    'entity_id': 'energy_collection_rate_kwh_per_hour',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh/hour'
+                },
+                {
+                    'name': 'Energy Collected Today',
+                    'entity_id': 'energy_collected_today_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Energy Collected This Hour',
+                    'entity_id': 'energy_collected_hour_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
                 },
                 # Stored Energy sensors
                 {
@@ -943,6 +973,47 @@ class SolarHeatingSystem:
             logger.debug(f"RTD sensor values: {[self.temperatures.get(f'rtd_sensor_{i}', 0) for i in range(8)]}")
             logger.debug(f"MegaBAS sensor 5: {self.temperatures.get('megabas_sensor_5', 0)}")
             logger.info("Stored energy debug logging completed")
+            
+            # Calculate energy collection rate and daily/hourly totals
+            current_time = time.time()
+            current_stored_energy = stored_energy_kwh[0]  # Total stored energy
+            
+            # Check if we need to reset hourly/daily counters
+            if current_time - self.system_state.get('last_hour_reset', 0) >= 3600:  # 1 hour
+                self.system_state['energy_collected_hour'] = 0.0
+                self.system_state['last_hour_reset'] = current_time
+                logger.info("Hourly energy collection counter reset")
+            
+            if current_time - self.system_state.get('last_day_reset', 0) >= 86400:  # 24 hours
+                self.system_state['energy_collected_today'] = 0.0
+                self.system_state['last_day_reset'] = current_time
+                logger.info("Daily energy collection counter reset")
+            
+            # Calculate energy collected since last calculation
+            last_energy = self.system_state.get('last_energy_calculation', current_time)
+            if self.system_state.get('last_energy_calculation'):
+                time_diff = current_time - last_energy
+                if time_diff > 0:
+                    # Calculate energy collection rate (kWh/hour)
+                    energy_diff = current_stored_energy - self.system_state.get('last_stored_energy', current_stored_energy)
+                    if energy_diff > 0:  # Only count positive energy gains
+                        energy_rate_per_hour = (energy_diff / time_diff) * 3600  # Convert to per hour
+                        
+                        # Add to hourly and daily totals
+                        hourly_contribution = energy_rate_per_hour * (time_diff / 3600)
+                        self.system_state['energy_collected_hour'] += hourly_contribution
+                        self.system_state['energy_collected_today'] += hourly_contribution
+                        
+                        logger.info(f"Energy collected: {energy_diff:.3f} kWh in {time_diff/3600:.2f} hours, Rate: {energy_rate_per_hour:.2f} kWh/hour")
+            
+            # Update last calculation values
+            self.system_state['last_energy_calculation'] = current_time
+            self.system_state['last_stored_energy'] = current_stored_energy
+            
+            # Add energy collection metrics to temperatures
+            self.temperatures['energy_collection_rate_kwh_per_hour'] = round(energy_rate_per_hour if 'energy_rate_per_hour' in locals() else 0.0, 2)
+            self.temperatures['energy_collected_today_kwh'] = round(self.system_state.get('energy_collected_today', 0.0), 2)
+            self.temperatures['energy_collected_hour_kwh'] = round(self.system_state.get('energy_collected_hour', 0.0), 2)
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
@@ -1344,3 +1415,4 @@ async def main():
 if __name__ == "__main__":
     # Run the system
     asyncio.run(main())
+
