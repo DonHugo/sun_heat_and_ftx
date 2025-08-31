@@ -650,6 +650,7 @@ class SolarHeatingSystem:
     
     async def _read_temperatures(self):
         """Read all temperature sensors"""
+        logger.debug("Starting _read_temperatures method")
         try:
             # Read ALL RTD sensors (0-7, 8 total sensors)
             for sensor_id in range(8):
@@ -657,6 +658,8 @@ class SolarHeatingSystem:
                 temp = self.hardware.read_rtd_temperature(sensor_id)
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
+            
+            logger.info(f"RTD sensors read: {[self.temperatures.get(f'rtd_sensor_{i}', 'None') for i in range(8)]}")
             
             # Read ALL MegaBAS sensors (1-8, 8 total sensors)
             for sensor_id in range(1, 9):
@@ -820,6 +823,8 @@ class SolarHeatingSystem:
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
+        finally:
+            logger.debug("Completed _read_temperatures method")
     
     async def _process_control_logic(self):
         """Process control logic based on temperatures"""
