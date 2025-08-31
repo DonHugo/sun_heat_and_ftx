@@ -49,7 +49,6 @@ class SolarHeatingSystem:
         self.system_state = {
             'mode': 'startup',
             'primary_pump': False,
-            'secondary_pump': False,
             'cartridge_heater': False,
             'test_mode': config.test_mode,
             'manual_control': False,
@@ -116,9 +115,8 @@ class SolarHeatingSystem:
             # Initialize system state
             self.system_state = {
                 'mode': 'startup',
-                'primary_pump': False,
-                'secondary_pump': False,
-                'cartridge_heater': False,
+                            'primary_pump': False,
+            'cartridge_heater': False,
                 'test_mode': config.test_mode,
                 'manual_control': False,
                 'overheated': False,
@@ -663,11 +661,6 @@ class SolarHeatingSystem:
                 {
                     'name': 'Primary Pump',
                     'entity_id': 'primary_pump',
-                    'icon': 'mdi:pump'
-                },
-                {
-                    'name': 'Secondary Pump', 
-                    'entity_id': 'secondary_pump',
                     'icon': 'mdi:pump'
                 },
                 {
@@ -1298,7 +1291,6 @@ class SolarHeatingSystem:
             if self.mqtt and self.mqtt.is_connected():
                 logger.info("Publishing switch states...")
                 self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
-                self._publish_switch_state('secondary_pump', self.system_state['secondary_pump'])
                 self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
                 logger.info("Switch states published successfully")
             
@@ -1462,8 +1454,7 @@ class SolarHeatingSystem:
                 # Update system state
                 if switch_name == 'primary_pump':
                     self.system_state['primary_pump'] = state
-                elif switch_name == 'secondary_pump':
-                    self.system_state['secondary_pump'] = state
+                
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state
                 

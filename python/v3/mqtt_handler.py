@@ -232,7 +232,6 @@ class MQTTHandler:
             # Map switch names to relay numbers
             switch_mapping = {
                 'primary_pump': 1,
-                'secondary_pump': 2,
                 'cartridge_heater': 2  # Cartridge heater uses relay 2
             }
             

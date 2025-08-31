@@ -96,11 +96,7 @@ class ControlTester:
         await self._test_switch('primary_pump', 'OFF')
         await asyncio.sleep(1)
         
-        # Test secondary pump
-        await self._test_switch('secondary_pump', 'ON')
-        await asyncio.sleep(1)
-        await self._test_switch('secondary_pump', 'OFF')
-        await asyncio.sleep(1)
+
         
         # Test cartridge heater
         await self._test_switch('cartridge_heater', 'ON')

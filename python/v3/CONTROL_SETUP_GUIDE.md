@@ -8,8 +8,7 @@ Your Solar Heating System v3 includes comprehensive Home Assistant integration w
 
 ### Switches (On/Off Controls)
 1. **Primary Pump** - Controls the main circulation pump (Relay 1)
-2. **Secondary Pump** - Controls the secondary pump (Relay 2)
-3. **Cartridge Heater** - Controls the electric heating element (Relay 2)
+2. **Cartridge Heater** - Controls the electric heating element (Relay 2)
 
 ### Numbers (Adjustable Values)
 1. **Set Tank Temperature** - Target temperature for storage tank (15-90°C)
@@ -128,7 +127,6 @@ If you see this, the system is running in simulation mode.
 #### 2. Verify Relay Mapping
 Current relay mapping:
 - Primary Pump: Relay 1
-- Secondary Pump: Relay 2
 - Cartridge Heater: Relay 2
 
 #### 3. Test Hardware Interface

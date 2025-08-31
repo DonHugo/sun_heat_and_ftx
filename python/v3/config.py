@@ -103,7 +103,6 @@ class PumpConfiguration:
     """Pump control configuration"""
     
     primary_pump_relay: int = 1
-    secondary_pump_relay: int = 2
     cartridge_heater_relay: int = 2
     test_switch_relay: int = 3
     
