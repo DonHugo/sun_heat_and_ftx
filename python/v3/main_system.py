@@ -330,6 +330,13 @@ class SolarHeatingSystem:
                 # Add device_class for temperature sensors
                 if sensor['device_class']:
                     config["device_class"] = sensor['device_class']
+                
+                # Add state_class for energy sensors
+                if sensor['device_class'] == 'energy':
+                    config["state_class"] = "total"
+                elif sensor['device_class'] == 'temperature':
+                    config["state_class"] = "measurement"
+                
                 # No value_template needed since we're sending raw values
                 
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
@@ -582,6 +589,11 @@ class SolarHeatingSystem:
             self.temperatures['stored_energy_top_kwh'] = stored_energy_kwh[2]
             self.temperatures['stored_energy_bottom_kwh'] = stored_energy_kwh[1]
             self.temperatures['average_temperature'] = stored_energy_kwh[3]
+            
+            # Debug logging for stored energy values
+            logger.info(f"Stored Energy - Total: {stored_energy_kwh[0]} kWh, Top: {stored_energy_kwh[2]} kWh, Bottom: {stored_energy_kwh[1]} kWh, Avg Temp: {stored_energy_kwh[3]}°C")
+            logger.debug(f"RTD sensor values: {[self.temperatures.get(f'rtd_sensor_{i}', 0) for i in range(8)]}")
+            logger.debug(f"MegaBAS sensor 5: {self.temperatures.get('megabas_sensor_5', 0)}")
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
