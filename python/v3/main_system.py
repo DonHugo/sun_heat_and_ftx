@@ -658,6 +658,14 @@ class SolarHeatingSystem:
                         # For system mode, send the string value
                         message = str(value) if value is not None else "unknown"
                         logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                    elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
+                        # For energy sensors, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value} kWh to {topic}")
+                    elif sensor_name == 'average_temperature':
+                        # For average temperature, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value}°C to {topic}")
                     else:
                         # For temperature sensors, send the raw number
                         message = str(value) if value is not None else "0"
