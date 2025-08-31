@@ -445,6 +445,12 @@ class SolarHeatingSystem:
                     'unit_of_measurement': 'hours'
                 },
                 {
+                    'name': 'Pump Runtime Hours (Real-time)',
+                    'entity_id': 'pump_runtime_hours_realtime',
+                    'device_class': None,
+                    'unit_of_measurement': 'hours'
+                },
+                {
                     'name': 'Heating Cycles Count',
                     'entity_id': 'heating_cycles_count',
                     'device_class': None,
@@ -862,6 +868,14 @@ class SolarHeatingSystem:
             # Add operational metrics to temperatures
             self.temperatures['pump_runtime_hours'] = self.system_state.get('pump_runtime_hours', 0.0)
             self.temperatures['heating_cycles_count'] = self.system_state.get('heating_cycles_count', 0)
+            
+            # Calculate real-time pump runtime (including current cycle if pump is running)
+            real_time_runtime = self.system_state.get('pump_runtime_hours', 0.0)
+            if self.system_state.get('primary_pump', False) and self.system_state.get('last_pump_start'):
+                current_cycle_runtime = (time.time() - self.system_state['last_pump_start']) / 3600  # Convert to hours
+                real_time_runtime += current_cycle_runtime
+            
+            self.temperatures['pump_runtime_hours_realtime'] = round(real_time_runtime, 2)
             
             # Calculate average heating duration
             if self.system_state.get('heating_cycles_count', 0) > 0:
