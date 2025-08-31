@@ -360,7 +360,7 @@ class SolarHeatingSystem:
                 {
                     'name': 'System Heating Status',
                     'entity_id': 'is_heating',
-                    'device_class': None,
+                    'device_class': 'heat',
                     'unit_of_measurement': None
                 },
                 # Solar Collector sensors
@@ -478,13 +478,23 @@ class SolarHeatingSystem:
             
             sensors.extend(named_sensors)
             
-            logger.info(f"Total sensors configured: {len(sensors)}")
-            logger.info(f"Publishing discovery for {len(sensors)} sensors...")
+            # Separate binary sensors from regular sensors
+            binary_sensors = []
+            regular_sensors = []
             
-            # Publish discovery configuration for each sensor
-            discovery_count = 0
-            logger.info("Starting sensor discovery loop...")
             for sensor in sensors:
+                if sensor['entity_id'] == 'is_heating':
+                    binary_sensors.append(sensor)
+                else:
+                    regular_sensors.append(sensor)
+            
+            logger.info(f"Total sensors configured: {len(sensors)} (regular: {len(regular_sensors)}, binary: {len(binary_sensors)})")
+            logger.info(f"Publishing discovery for {len(regular_sensors)} regular sensors...")
+            
+            # Publish discovery configuration for each regular sensor
+            discovery_count = 0
+            logger.info("Starting regular sensor discovery loop...")
+            for sensor in regular_sensors:
                 config = {
                     "name": sensor['name'],
                     "unique_id": f"solar_heating_v3_{sensor['entity_id']}",
@@ -523,7 +533,36 @@ class SolarHeatingSystem:
                 else:
                     logger.error(f"Failed to publish HA discovery for {sensor['name']} to {topic}")
             
-            logger.info(f"Published discovery for {discovery_count} sensors successfully")
+            logger.info(f"Published discovery for {discovery_count} regular sensors successfully")
+            
+            # Publish binary sensor discovery configurations
+            logger.info(f"Publishing discovery for {len(binary_sensors)} binary sensors...")
+            binary_discovery_count = 0
+            for sensor in binary_sensors:
+                config = {
+                    "name": sensor['name'],
+                    "unique_id": f"solar_heating_v3_{sensor['entity_id']}",
+                    "device_class": sensor['device_class'],
+                    "state_topic": f"homeassistant/binary_sensor/solar_heating_{sensor['entity_id']}/state",
+                    "device": {
+                        "name": "Solar Heating System v3",
+                        "identifiers": ["solar_heating_v3"],
+                        "manufacturer": "Custom",
+                        "model": "Solar Heating System v3"
+                    }
+                }
+                
+                topic = f"homeassistant/binary_sensor/solar_heating_{sensor['entity_id']}/config"
+                logger.info(f"Attempting to publish binary sensor discovery for {sensor['name']} to {topic}")
+                success = self.mqtt.publish(topic, config, retain=True)
+                logger.info(f"MQTT publish result for binary sensor {sensor['name']}: {success}")
+                if success:
+                    logger.info(f"Published HA discovery for binary sensor {sensor['name']} to {topic}")
+                    binary_discovery_count += 1
+                else:
+                    logger.error(f"Failed to publish HA discovery for binary sensor {sensor['name']} to {topic}")
+            
+            logger.info(f"Published discovery for {binary_discovery_count} binary sensors successfully")
             
             # Publish switch discovery configurations
             switches = [
@@ -969,6 +1008,11 @@ class SolarHeatingSystem:
                         logger.debug(f"Published {sensor_name}: {value} to {topic}")
                         sensor_count += 1
                         logger.info(f"Published heating status sensor: {sensor_name} = {value}")
+                        
+                        # Also publish to binary_sensor topic
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        self.mqtt.publish_raw(binary_topic, message)
+                        logger.info(f"Published binary sensor {sensor_name} = {value} to {binary_topic}")
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
