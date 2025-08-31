@@ -143,6 +143,7 @@ class SolarHeatingSystem:
     async def _publish_hass_discovery(self):
         """Publish Home Assistant discovery configuration for all sensors"""
         try:
+            logger.info("=== HOME ASSISTANT DISCOVERY STARTED ===")
             logger.info("Starting Home Assistant discovery configuration...")
             # Define sensor configurations
             sensors = []
@@ -616,6 +617,10 @@ class SolarHeatingSystem:
                 
         except Exception as e:
             logger.error(f"Error publishing Home Assistant discovery: {e}")
+            import traceback
+            logger.error(f"Discovery error traceback: {traceback.format_exc()}")
+        finally:
+            logger.info("=== HOME ASSISTANT DISCOVERY COMPLETED ===")
     
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals"""
