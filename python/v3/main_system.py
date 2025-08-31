@@ -235,6 +235,7 @@ class SolarHeatingSystem:
             for sensor in sensors:
                 config = {
                     "name": sensor['name'],
+                    "unique_id": f"solar_heating_{sensor['entity_id']}",
                     "unit_of_measurement": sensor['unit_of_measurement'],
                     "state_topic": f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/state",
                     "device": {
@@ -248,10 +249,7 @@ class SolarHeatingSystem:
                 # Add device_class for temperature sensors
                 if sensor['device_class']:
                     config["device_class"] = sensor['device_class']
-                    config["value_template"] = "{{ value_json.temperature }}"
-                else:
-                    # For non-temperature sensors (like efficiency)
-                    config["value_template"] = "{{ value_json.value }}"
+                # No value_template needed since we're sending raw values
                 
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
                 self.mqtt.publish(topic, config, retain=True)
