@@ -145,6 +145,16 @@ class SolarHeatingSystem:
         try:
             logger.info("=== HOME ASSISTANT DISCOVERY STARTED ===")
             logger.info("Starting Home Assistant discovery configuration...")
+            
+            # Check MQTT connection
+            if not self.mqtt:
+                logger.error("MQTT handler is None - cannot publish discovery")
+                return
+            if not self.mqtt.is_connected():
+                logger.error("MQTT not connected - cannot publish discovery")
+                return
+            logger.info("MQTT connection verified - proceeding with discovery")
+            
             # Define sensor configurations
             sensors = []
             
@@ -462,10 +472,12 @@ class SolarHeatingSystem:
             
             sensors.extend(named_sensors)
             
+            logger.info(f"Total sensors configured: {len(sensors)}")
             logger.info(f"Publishing discovery for {len(sensors)} sensors...")
             
             # Publish discovery configuration for each sensor
             discovery_count = 0
+            logger.info("Starting sensor discovery loop...")
             for sensor in sensors:
                 config = {
                     "name": sensor['name'],
@@ -496,6 +508,7 @@ class SolarHeatingSystem:
                 logger.debug(f"Discovery config for {sensor['name']}: {config}")
                 
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
+                logger.info(f"Attempting to publish discovery for {sensor['name']} to {topic}")
                 success = self.mqtt.publish(topic, config, retain=True)
                 if success:
                     logger.info(f"Published HA discovery for {sensor['name']} to {topic}")
