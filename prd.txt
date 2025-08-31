@@ -78,6 +78,41 @@ FR-003: The system shall provide temperature data logging
 - Maintain data retention policies
 - Send data to home assistant
 
+FR-003.1: The system shall calculate and monitor water heater stratification metrics
+- Calculate water heater stratification quality (top_temp - bottom_temp) / height
+- Monitor temperature gradient per cm in water heater
+- Detect water mixing vs stratification using standard deviation analysis
+- Alert when stratification quality drops below acceptable levels
+- Track stratification trends over time
+
+FR-003.2: The system shall provide operational metrics tracking
+- Track cumulative pump runtime hours for maintenance scheduling
+- Count heating cycles per day for usage pattern analysis
+- Calculate average heating duration per cycle
+- Monitor pump efficiency and performance
+- Generate maintenance alerts based on runtime thresholds
+
+FR-003.3: The system shall implement safety and protection monitoring
+- Calculate overheating risk based on collector temperature vs safe limits
+- Monitor freeze protection status during winter months
+- Track sensor health score (percentage of sensors reporting valid data)
+- Alert on system safety issues
+- Log safety events for analysis
+
+FR-003.4: The system shall provide energy efficiency calculations
+- Calculate solar collector efficiency (collector_temp - ambient_temp) / solar_radiation
+- Monitor heat exchanger coefficient of performance (COP)
+- Track overall system efficiency metrics
+- Calculate solar gain potential and available energy
+- Monitor heat loss rate over time
+
+FR-003.5: The system shall provide predictive and economic metrics
+- Estimate time to reach target temperature
+- Calculate energy remaining in hours based on consumption rate
+- Track energy cost savings vs traditional heating
+- Monitor solar fraction (solar energy / total energy used)
+- Generate economic benefit reports
+
 3.2 Pump Control
 ----------------
 FR-004: The system shall control water circulation pumps
@@ -113,6 +148,41 @@ FR-010: The system shall provide intelligent task management
 - Valve control tasks (on-demand)
 - Data logging tasks (periodic)
 - System optimization tasks (daily)
+
+FR-010.1: The system shall create AI tasks for stratification monitoring
+- Create tasks to monitor water heater stratification quality
+- Generate alerts when stratification drops below optimal levels
+- Schedule stratification analysis tasks (hourly)
+- Create optimization tasks to improve stratification
+- Track stratification improvement recommendations
+
+FR-010.2: The system shall create AI tasks for operational efficiency
+- Create tasks to monitor pump runtime and efficiency
+- Generate maintenance scheduling tasks based on pump usage
+- Create tasks to optimize heating cycles and duration
+- Schedule performance analysis tasks (daily)
+- Generate efficiency improvement recommendations
+
+FR-010.3: The system shall create AI tasks for safety monitoring
+- Create tasks to monitor overheating risk levels
+- Generate freeze protection tasks during winter months
+- Create sensor health monitoring tasks (continuous)
+- Schedule safety analysis tasks (hourly)
+- Generate safety improvement recommendations
+
+FR-010.4: The system shall create AI tasks for energy optimization
+- Create tasks to monitor solar collector efficiency
+- Generate heat exchanger optimization tasks
+- Create tasks to track energy savings and costs
+- Schedule energy analysis tasks (daily)
+- Generate energy optimization recommendations
+
+FR-010.5: The system shall create AI tasks for predictive maintenance
+- Create tasks to predict maintenance needs based on runtime
+- Generate predictive temperature and energy forecasts
+- Create tasks to estimate time to target temperatures
+- Schedule predictive analysis tasks (daily)
+- Generate maintenance and optimization schedules
 
 3.5 Data Management
 -------------------
@@ -245,6 +315,12 @@ IR-002: Task Types
 - valve_control: Valve position control
 - data_logging: System data logging
 - system_optimization: AI-powered optimization
+- stratification_monitoring: Water heater stratification quality monitoring
+- operational_efficiency: Pump runtime and efficiency tracking
+- safety_monitoring: Overheating and freeze protection monitoring
+- energy_optimization: Solar collector and heat exchanger efficiency
+- predictive_maintenance: Maintenance prediction and scheduling
+- economic_tracking: Energy cost savings and economic benefits
 
 6.2 Hardware Integration
 ------------------------
@@ -311,6 +387,11 @@ TR-001: Component Testing
 - Valve control precision
 - Task creation and execution
 - API endpoint functionality
+- Stratification calculation accuracy
+- Operational metrics tracking precision
+- Safety monitoring functionality
+- Energy efficiency calculation accuracy
+- Predictive maintenance algorithm testing
 
 8.2 Integration Testing
 -----------------------
@@ -419,6 +500,11 @@ MR-003: Data Protection
 - Mobile application development
 - Cloud-based data analytics
 - Integration with smart home systems
+- Advanced stratification analysis and optimization
+- Real-time economic benefit tracking and reporting
+- Predictive temperature and energy forecasting
+- Advanced safety monitoring and alerting systems
+- Comprehensive operational efficiency analytics
 
 12.2 Scalability Plans
 ----------------------
