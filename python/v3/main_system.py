@@ -1150,15 +1150,27 @@ class SolarHeatingSystem:
             # Update system mode based on current state
             self._update_system_mode()
             
-            # Basic control logic (simplified version)
-            if solar_collector > storage_tank + self.control_params['dTStart_tank_1']:
+            # Enhanced control logic with proper temperature difference handling
+            dT = solar_collector - storage_tank
+            
+            # Emergency stop conditions
+            if solar_collector >= self.control_params['temp_kok']:
+                if self.system_state['primary_pump']:
+                    self.hardware.set_relay_state(1, False)  # Primary pump relay
+                    self.system_state['primary_pump'] = False
+                    self.system_state['overheated'] = True
+                    logger.warning(f"Emergency pump stop: Collector temperature {solar_collector}°C >= {self.control_params['temp_kok']}°C")
+            
+            # Normal control logic
+            elif dT >= self.control_params['dTStart_tank_1']:  # dT >= 8°C
                 if not self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, True)  # Primary pump relay
                     self.system_state['primary_pump'] = True
                     self.system_state['last_pump_start'] = time.time()
                     self.system_state['heating_cycles_count'] += 1
-                    logger.info(f"Primary pump started. Cycle #{self.system_state['heating_cycles_count']}, Start time: {self.system_state['last_pump_start']}")
-            elif solar_collector < storage_tank + self.control_params['dTStop_tank_1']:
+                    logger.info(f"Primary pump started. dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C. Cycle #{self.system_state['heating_cycles_count']}")
+            
+            elif dT <= self.control_params['dTStop_tank_1']:  # dT <= 4°C
                 if self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, False)  # Primary pump relay
                     self.system_state['primary_pump'] = False
@@ -1167,9 +1179,13 @@ class SolarHeatingSystem:
                         cycle_runtime = (time.time() - self.system_state['last_pump_start']) / 3600  # Convert to hours
                         self.system_state['total_heating_time'] += cycle_runtime
                         self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
-                        logger.info(f"Primary pump stopped. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
+                        logger.info(f"Primary pump stopped. dT={dT:.1f}°C <= {self.control_params['dTStop_tank_1']}°C. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
                     else:
                         logger.warning("Primary pump stopped but last_pump_start was None - runtime not calculated")
+            
+            # Keep current state when 4°C < dT < 8°C (hysteresis zone)
+            else:
+                logger.debug(f"Pump state unchanged. dT={dT:.1f}°C (hysteresis zone: {self.control_params['dTStop_tank_1']}°C < dT < {self.control_params['dTStart_tank_1']}°C)")
                     
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
