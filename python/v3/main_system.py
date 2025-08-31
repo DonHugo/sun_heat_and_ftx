@@ -54,7 +54,11 @@ class SolarHeatingSystem:
             'test_mode': config.test_mode,
             'manual_control': False,
             'overheated': False,
-            'last_update': time.time()
+            'last_update': time.time(),
+            'pump_runtime_hours': 0.0,
+            'heating_cycles_count': 0,
+            'last_pump_start': None,
+            'total_heating_time': 0.0
         }
         
         # Temperature data
@@ -160,83 +164,130 @@ class SolarHeatingSystem:
                     'unit_of_measurement': '°C'
                 })
             
-            # Add named sensors for backward compatibility
+            # Add named sensors with improved naming
             named_sensors = [
+                # Key system temperatures
                 {
-                    'name': 'Solar Collector Temperature',
-                    'entity_id': 'solar_collector',
+                    'name': 'Solar Collector Outlet Temperature',
+                    'entity_id': 'solar_collector_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
-                    'name': 'Storage Tank Temperature',
-                    'entity_id': 'storage_tank',
+                    'name': 'Storage Tank Main Temperature',
+                    'entity_id': 'storage_tank_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
-                    'name': 'Return Line Temperature',
-                    'entity_id': 'return_line',
+                    'name': 'Solar Return Line Temperature',
+                    'entity_id': 'return_line_temp',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                # Water heater stratification sensors
+                {
+                    'name': 'Water Heater Top Temperature',
+                    'entity_id': 'water_heater_top',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
-                    'name': 'Heat Exchanger In Temperature',
-                    'entity_id': 'heat_exchanger_in',
+                    'name': 'Water Heater Bottom Temperature',
+                    'entity_id': 'water_heater_bottom',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
+                # FTX air temperatures
                 {
-                    'name': 'Heat Exchanger Out Temperature',
-                    'entity_id': 'heat_exchanger_out',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Storage Tank Top Temperature',
-                    'entity_id': 'storage_tank_top',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Storage Tank Bottom Temperature',
-                    'entity_id': 'storage_tank_bottom',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Outside Air Temperature',
-                    'entity_id': 'uteluft',
+                    'name': 'Outdoor Air Temperature',
+                    'entity_id': 'outdoor_air_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
                     'name': 'Exhaust Air Temperature',
-                    'entity_id': 'avluft',
+                    'entity_id': 'exhaust_air_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
                     'name': 'Supply Air Temperature',
-                    'entity_id': 'tilluft',
+                    'entity_id': 'supply_air_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
                     'name': 'Return Air Temperature',
-                    'entity_id': 'franluft',
+                    'entity_id': 'return_air_temp',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
+                # Heat exchanger sensors
                 {
-                    'name': 'Heat Exchanger In Temperature',
+                    'name': 'Heat Exchanger Input Temperature',
                     'entity_id': 'heat_exchanger_in',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
                 {
-                    'name': 'Heat Exchanger Out Temperature',
+                    'name': 'Heat Exchanger Output Temperature',
                     'entity_id': 'heat_exchanger_out',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                # Backward compatibility aliases
+                {
+                    'name': 'Solar Collector Temperature (Legacy)',
+                    'entity_id': 'solar_collector',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Temperature (Legacy)',
+                    'entity_id': 'storage_tank',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Return Line Temperature (Legacy)',
+                    'entity_id': 'return_line',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Top Temperature (Legacy)',
+                    'entity_id': 'storage_tank_top',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Storage Tank Bottom Temperature (Legacy)',
+                    'entity_id': 'storage_tank_bottom',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Outside Air Temperature (Legacy)',
+                    'entity_id': 'uteluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Exhaust Air Temperature (Legacy)',
+                    'entity_id': 'avluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Supply Air Temperature (Legacy)',
+                    'entity_id': 'tilluft',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Return Air Temperature (Legacy)',
+                    'entity_id': 'franluft',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
@@ -294,6 +345,49 @@ class SolarHeatingSystem:
                     'entity_id': 'solar_collector_overheated',
                     'device_class': None,
                     'unit_of_measurement': None
+                },
+                # New calculated values and metrics
+                {
+                    'name': 'Water Heater Stratification Quality',
+                    'entity_id': 'water_heater_stratification',
+                    'device_class': None,
+                    'unit_of_measurement': '°C/cm'
+                },
+                {
+                    'name': 'Water Heater Temperature Gradient',
+                    'entity_id': 'water_heater_gradient_cm',
+                    'device_class': None,
+                    'unit_of_measurement': '°C/cm'
+                },
+                {
+                    'name': 'Sensor Health Score',
+                    'entity_id': 'sensor_health_score',
+                    'device_class': None,
+                    'unit_of_measurement': '%'
+                },
+                {
+                    'name': 'Overheating Risk',
+                    'entity_id': 'overheating_risk',
+                    'device_class': None,
+                    'unit_of_measurement': '%'
+                },
+                {
+                    'name': 'Pump Runtime Hours',
+                    'entity_id': 'pump_runtime_hours',
+                    'device_class': None,
+                    'unit_of_measurement': 'hours'
+                },
+                {
+                    'name': 'Heating Cycles Count',
+                    'entity_id': 'heating_cycles_count',
+                    'device_class': None,
+                    'unit_of_measurement': 'cycles'
+                },
+                {
+                    'name': 'Average Heating Duration',
+                    'entity_id': 'average_heating_duration',
+                    'device_class': None,
+                    'unit_of_measurement': 'hours'
                 },
                 # Stored Energy sensors
                 {
@@ -529,21 +623,32 @@ class SolarHeatingSystem:
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
             
-            # MegaBAS sensors (based on v1 mapping)
+            # MegaBAS sensors with improved naming (based on v1 mapping)
             # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
-            self.temperatures['uteluft'] = self.temperatures.get('megabas_sensor_1', 0)      # sensor marked 4
-            self.temperatures['avluft'] = self.temperatures.get('megabas_sensor_2', 0)       # sensor marked 5
-            self.temperatures['tilluft'] = self.temperatures.get('megabas_sensor_3', 0)      # sensor marked 6
-            self.temperatures['franluft'] = self.temperatures.get('megabas_sensor_4', 0)     # sensor marked 7
+            self.temperatures['outdoor_air_temp'] = self.temperatures.get('megabas_sensor_1', 0)      # Outdoor air intake
+            self.temperatures['exhaust_air_temp'] = self.temperatures.get('megabas_sensor_2', 0)     # Air leaving heat exchanger
+            self.temperatures['supply_air_temp'] = self.temperatures.get('megabas_sensor_3', 0)      # Air entering heat exchanger
+            self.temperatures['return_air_temp'] = self.temperatures.get('megabas_sensor_4', 0)     # Air returning from heat exchanger
             
             # Solar collector and storage tank sensors (MegaBAS inputs 6-8) - CORRECTED to match v1
-            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - sensor marked I
-            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - sensor marked II
-            self.temperatures['return_line'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - sensor marked III
+            self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
+            self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
+            self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
             
             # Storage tank top/bottom (using RTD sensors for better accuracy)
-            self.temperatures['storage_tank_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5
-            self.temperatures['storage_tank_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 4
+            self.temperatures['water_heater_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5 - 100cm from bottom
+            self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 4 - 80cm from bottom
+            
+            # Keep backward compatibility aliases
+            self.temperatures['uteluft'] = self.temperatures['outdoor_air_temp']
+            self.temperatures['avluft'] = self.temperatures['exhaust_air_temp']
+            self.temperatures['tilluft'] = self.temperatures['supply_air_temp']
+            self.temperatures['franluft'] = self.temperatures['return_air_temp']
+            self.temperatures['solar_collector'] = self.temperatures['solar_collector_temp']
+            self.temperatures['storage_tank'] = self.temperatures['storage_tank_temp']
+            self.temperatures['return_line'] = self.temperatures['return_line_temp']
+            self.temperatures['storage_tank_top'] = self.temperatures['water_heater_top']
+            self.temperatures['storage_tank_bottom'] = self.temperatures['water_heater_bottom']
             
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
             self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
@@ -557,9 +662,54 @@ class SolarHeatingSystem:
                 self.temperatures['heat_exchanger_efficiency'] = effekt_varmevaxlare
                 logger.debug(f"heat_exchanger_efficiency: {effekt_varmevaxlare}%")
             
+            # Calculate water heater stratification metrics
+            water_heater_top = self.temperatures.get('water_heater_top', 0)
+            water_heater_bottom = self.temperatures.get('water_heater_bottom', 0)
+            if water_heater_top and water_heater_bottom:
+                stratification_quality = round((water_heater_top - water_heater_bottom) / 140, 2)  # 140cm height
+                gradient_per_cm = round((water_heater_top - water_heater_bottom) / 140, 3)
+                self.temperatures['water_heater_stratification'] = stratification_quality
+                self.temperatures['water_heater_gradient_cm'] = gradient_per_cm
+                logger.debug(f"Stratification quality: {stratification_quality}, Gradient: {gradient_per_cm}°C/cm")
+            
+            # Calculate sensor health score
+            valid_sensors = 0
+            total_sensors = 0
+            for sensor_name, temp in self.temperatures.items():
+                if 'rtd_sensor_' in sensor_name or 'megabas_sensor_' in sensor_name:
+                    total_sensors += 1
+                    if temp is not None and temp > 0:
+                        valid_sensors += 1
+            
+            if total_sensors > 0:
+                sensor_health_score = round((valid_sensors / total_sensors) * 100, 1)
+                self.temperatures['sensor_health_score'] = sensor_health_score
+                logger.debug(f"Sensor health score: {sensor_health_score}%")
+            
+            # Calculate overheating risk
+            solar_collector_temp = self.temperatures.get('solar_collector_temp', 0)
+            max_safe_temp = 90  # Configurable maximum safe temperature
+            if solar_collector_temp > max_safe_temp:
+                overheating_risk = round(((solar_collector_temp - max_safe_temp) / max_safe_temp) * 100, 1)
+                self.temperatures['overheating_risk'] = overheating_risk
+                logger.warning(f"Overheating risk: {overheating_risk}% (collector: {solar_collector_temp}°C)")
+            else:
+                self.temperatures['overheating_risk'] = 0
+            
             # Add system mode to temperatures for Home Assistant
             self.temperatures['system_mode'] = self.system_state.get('mode', 'unknown')
             logger.debug(f"system_mode: {self.temperatures['system_mode']}")
+            
+            # Add operational metrics to temperatures
+            self.temperatures['pump_runtime_hours'] = self.system_state.get('pump_runtime_hours', 0.0)
+            self.temperatures['heating_cycles_count'] = self.system_state.get('heating_cycles_count', 0)
+            
+            # Calculate average heating duration
+            if self.system_state.get('heating_cycles_count', 0) > 0:
+                avg_heating_duration = round(self.system_state.get('total_heating_time', 0) / self.system_state.get('heating_cycles_count', 1), 2)
+                self.temperatures['average_heating_duration'] = avg_heating_duration
+            else:
+                self.temperatures['average_heating_duration'] = 0.0
             
             # Calculate solar collector dT values
             solar_collector = self.temperatures.get('solar_collector', 0)
@@ -629,12 +779,19 @@ class SolarHeatingSystem:
                 if not self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, True)  # Primary pump relay
                     self.system_state['primary_pump'] = True
+                    self.system_state['last_pump_start'] = time.time()
+                    self.system_state['heating_cycles_count'] += 1
                     logger.info("Primary pump started")
             elif solar_collector < storage_tank + self.control_params['dTStop_tank_1']:
                 if self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, False)  # Primary pump relay
                     self.system_state['primary_pump'] = False
-                    logger.info("Primary pump stopped")
+                    # Calculate runtime for this cycle
+                    if self.system_state['last_pump_start']:
+                        cycle_runtime = (time.time() - self.system_state['last_pump_start']) / 3600  # Convert to hours
+                        self.system_state['total_heating_time'] += cycle_runtime
+                        self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
+                        logger.info(f"Primary pump stopped. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
                     
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
