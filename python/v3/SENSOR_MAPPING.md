@@ -6,6 +6,18 @@ This document provides a comprehensive mapping between the v1 system sensor name
 
 The v3 system uses a more structured approach to sensor naming, with clear prefixes and consistent naming conventions. This mapping helps understand how sensors from the v1 system correspond to the v3 system.
 
+### Water Heater Temperature Stratification
+
+The RTD sensors are strategically placed every ~20cm vertically in the water heater to measure temperature stratification:
+- **RTD_1 (rtd_sensor_0)**: Bottom of water heater (coldest water)
+- **RTD_8 (rtd_sensor_7)**: Top of water heater (hottest water)
+- **Temperature gradient**: Increases from bottom to top due to natural convection
+
+This stratification allows for:
+- Accurate energy calculations based on temperature distribution
+- Monitoring of heating efficiency
+- Detection of mixing or stratification issues
+
 ## Hardware Configuration
 
 | Component | Stack Address | Description |
@@ -16,18 +28,18 @@ The v3 system uses a more structured approach to sensor naming, with clear prefi
 
 ## Sensor Mapping Table
 
-### RTD Sensors (Stack 0)
+### RTD Sensors (Stack 0) - Water Heater Temperature Profile
 
-| v1 Name | v3 Name | Sensor ID | Description | Notes |
-|---------|---------|-----------|-------------|-------|
-| RTD_1 | rtd_sensor_0 | 0 | RTD Sensor 1 | |
-| RTD_2 | rtd_sensor_1 | 1 | RTD Sensor 2 | |
-| RTD_3 | rtd_sensor_2 | 2 | RTD Sensor 3 | |
-| RTD_4 | rtd_sensor_3 | 3 | RTD Sensor 4 | Storage Tank Bottom |
-| RTD_5 | rtd_sensor_4 | 4 | RTD Sensor 5 | Storage Tank Top |
-| RTD_6 | rtd_sensor_5 | 5 | RTD Sensor 6 | Solar Collector (T1) |
-| RTD_7 | rtd_sensor_6 | 6 | RTD Sensor 7 | Storage Tank (T2) |
-| RTD_8 | rtd_sensor_7 | 7 | RTD Sensor 8 | Return Line (T3) |
+| v1 Name | v3 Name | Sensor ID | Description | Physical Location | Notes |
+|---------|---------|-----------|-------------|-------------------|-------|
+| RTD_1 | rtd_sensor_0 | 0 | RTD Sensor 1 | Water Heater Bottom | Lowest temperature sensor |
+| RTD_2 | rtd_sensor_1 | 1 | RTD Sensor 2 | ~20cm from bottom | |
+| RTD_3 | rtd_sensor_2 | 2 | RTD Sensor 3 | ~40cm from bottom | |
+| RTD_4 | rtd_sensor_3 | 3 | RTD Sensor 4 | ~60cm from bottom | Storage Tank Bottom |
+| RTD_5 | rtd_sensor_4 | 4 | RTD Sensor 5 | ~80cm from bottom | Storage Tank Top |
+| RTD_6 | rtd_sensor_5 | 5 | RTD Sensor 6 | ~100cm from bottom | Solar Collector (T1) |
+| RTD_7 | rtd_sensor_6 | 6 | RTD Sensor 7 | ~120cm from bottom | Storage Tank (T2) |
+| RTD_8 | rtd_sensor_7 | 7 | RTD Sensor 8 | ~140cm from bottom | Return Line (T3) - Top of water heater |
 
 ### MegaBAS Sensors (Stack 3)
 
@@ -66,9 +78,9 @@ The v3 system uses a more structured approach to sensor naming, with clear prefi
 | - | solar_collector_dt | solar_collector - storage_tank | Solar Collector Delta T |
 | - | solar_collector_dt_running | solar_collector - storage_tank | Solar Collector Delta T (running) |
 | - | average_temperature | Average of RTD sensors 0-7 | Average Temperature |
-| - | stored_energy_kwh | Energy calculation from RTD sensors | Total Stored Energy |
-| - | stored_energy_top_kwh | Energy calculation from RTD sensors 5-7 | Top Stored Energy |
-| - | stored_energy_bottom_kwh | Energy calculation from RTD sensors 0-4 | Bottom Stored Energy |
+| - | stored_energy_kwh | Energy calculation from RTD sensors 0-7 | Total Stored Energy |
+| - | stored_energy_top_kwh | Energy calculation from RTD sensors 5-7 (top 3 sensors) | Top Stored Energy |
+| - | stored_energy_bottom_kwh | Energy calculation from RTD sensors 0-4 (bottom 5 sensors) | Bottom Stored Energy |
 
 ### Relay Outputs (4RELIND Stack 2)
 
@@ -122,3 +134,22 @@ python3 debug_sensors.py
 ```
 
 This will show all sensor readings and help verify the mapping is correct.
+
+## Example Temperature Readings
+
+Based on actual system readings, here's an example of the temperature stratification in the water heater:
+
+| Sensor | Temperature | Location | Notes |
+|--------|-------------|----------|-------|
+| T3 (rtd_sensor_7) | 70.6°C | Top of water heater | Hottest water |
+| rtd_sensor_7 | 58.4°C | ~140cm from bottom | Return line |
+| rtd_sensor_6 | 56.8°C | ~120cm from bottom | Storage tank |
+| rtd_sensor_5 | 55.5°C | ~100cm from bottom | Solar collector |
+| rtd_sensor_4 | 54.0°C | ~80cm from bottom | Storage tank top |
+| rtd_sensor_3 | 51.6°C | ~60cm from bottom | Storage tank bottom |
+| rtd_sensor_2 | 39.9°C | ~40cm from bottom | |
+| rtd_sensor_1 | 35.0°C | ~20cm from bottom | |
+| T2 (rtd_sensor_6) | 29.3°C | ~120cm from bottom | Storage tank |
+| rtd_sensor_0 | 26.2°C | Bottom of water heater | Coldest water |
+
+This shows a clear temperature gradient from 26.2°C at the bottom to 70.6°C at the top, demonstrating proper thermal stratification in the water heater.
