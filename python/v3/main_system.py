@@ -1009,10 +1009,11 @@ class SolarHeatingSystem:
                         sensor_count += 1
                         logger.info(f"Published heating status sensor: {sensor_name} = {value}")
                         
-                        # Also publish to binary_sensor topic
+                        # Also publish to binary_sensor topic with proper ON/OFF format
                         binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
-                        self.mqtt.publish_raw(binary_topic, message)
-                        logger.info(f"Published binary sensor {sensor_name} = {value} to {binary_topic}")
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
