@@ -1467,11 +1467,13 @@ class SolarHeatingSystem:
                     self.system_state['primary_pump_manual'] = state
                     # When manual control is enabled, override automatic control
                     if state:
+                        # Manual control ON - force pump to stay ON
                         self.system_state['primary_pump'] = True
-                        logger.info("Primary pump manual control enabled - pump turned ON")
+                        logger.info("Primary pump manual control ON - pump forced ON")
                     else:
+                        # Manual control OFF - force pump to stay OFF
                         self.system_state['primary_pump'] = False
-                        logger.info("Primary pump manual control disabled - pump turned OFF")
+                        logger.info("Primary pump manual control OFF - pump forced OFF")
                 
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state

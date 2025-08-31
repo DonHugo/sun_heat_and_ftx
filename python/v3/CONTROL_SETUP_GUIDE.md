@@ -9,9 +9,13 @@ Your Solar Heating System v3 includes comprehensive Home Assistant integration w
 ### Manual Control Mode
 The **Primary Pump Manual Control** switch allows you to override the automatic control system:
 - **ON**: Forces the primary pump to turn ON, overriding automatic control
-- **OFF**: Returns control to the automatic system
+- **OFF**: Forces the primary pump to turn OFF, overriding automatic control
 
-When manual control is enabled, the system will ignore temperature-based automatic control and keep the pump running until you turn off manual control.
+When manual control is enabled, the system will ignore temperature-based automatic control and force the pump to the selected state (ON or OFF) until you change the manual control setting.
+
+### Control Priority
+1. **Manual Control** (highest priority) - Forces pump ON or OFF regardless of temperature
+2. **Automatic Control** (normal operation) - Controls pump based on temperature sensors
 
 ### Switches (On/Off Controls)
 1. **Primary Pump** - Controls the main circulation pump (Relay 1)
