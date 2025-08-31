@@ -130,6 +130,9 @@ class MQTTHandler:
             
             # TaskMaster AI topics
             f"{mqtt_topics.taskmaster_base}/+",
+            
+            # v1 compatibility topics
+            "hass/test_switch",
         ]
         
         for topic in topics:
@@ -155,6 +158,11 @@ class MQTTHandler:
             # Handle Home Assistant number commands (raw string payload)
             if topic.startswith("homeassistant/number/solar_heating_") and topic.endswith("/set"):
                 self._handle_number_command(topic, payload)
+                return
+            
+            # Handle v1 test switch command (raw string payload)
+            if topic == "hass/test_switch":
+                self._handle_v1_test_switch_command(topic, payload)
                 return
             
             # Parse JSON payload for other messages
@@ -270,6 +278,33 @@ class MQTTHandler:
                 
         except Exception as e:
             logger.error(f"Error handling number command: {e}")
+    
+    def _handle_v1_test_switch_command(self, topic: str, payload: str):
+        """Handle v1 test switch command from hass/test_switch topic"""
+        try:
+            logger.info(f"Handling v1 test switch command: {topic} = {payload}")
+            
+            # Parse payload (expects "1" for ON, "0" for OFF)
+            if payload == "1":
+                state = True
+                logger.info("v1 test switch command: ON")
+            elif payload == "0":
+                state = False
+                logger.info("v1 test switch command: OFF")
+            else:
+                logger.error(f"Invalid v1 test switch payload: {payload}")
+                return
+            
+            # Call the system callback if available
+            if hasattr(self, 'system_callback'):
+                self.system_callback('v1_test_switch_command', {
+                    'state': state
+                })
+            else:
+                logger.warning("No system callback registered for v1 test switch commands")
+                
+        except Exception as e:
+            logger.error(f"Error handling v1 test switch command: {e}")
     
     def _handle_hass_state_change(self, entity: str, state: Any):
         """Handle Home Assistant state changes"""

@@ -850,6 +850,17 @@ class SolarHeatingSystem:
                 
                 logger.info(f"Number {number_name} set to {value}")
                 
+            elif command_type == 'v1_test_switch_command':
+                state = data['state']
+                
+                # Update test mode state
+                self.system_state['test_mode'] = state
+                
+                # Update system mode
+                self._update_system_mode()
+                
+                logger.info(f"v1 test switch set to {'ON' if state else 'OFF'}")
+                
         except Exception as e:
             logger.error(f"Error handling MQTT command: {e}")
     
