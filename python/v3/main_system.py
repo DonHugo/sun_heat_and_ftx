@@ -377,18 +377,12 @@ class SolarHeatingSystem:
                     
                     # Determine if this is a temperature sensor or other type
                     if sensor_name == 'heat_exchanger_efficiency':
-                        message = {
-                            "value": value,
-                            "unit": "percent",
-                            "timestamp": time.time()
-                        }
+                        # For efficiency, send the value directly
+                        message = str(value)
                         logger.debug(f"Published {sensor_name}: {value}% to {topic}")
                     else:
-                        message = {
-                            "temperature": value,
-                            "unit": "celsius",
-                            "timestamp": time.time()
-                        }
+                        # For temperature sensors, send the value directly
+                        message = str(value)
                         logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
                     
                     self.mqtt.publish(topic, message)
