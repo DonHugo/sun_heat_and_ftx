@@ -64,7 +64,14 @@ class SolarHeatingSystem:
             'energy_collected_hour': 0.0,   # kWh collected this hour
             'last_energy_calculation': time.time(),
             'last_hour_reset': time.time(),
-            'last_day_reset': time.time()
+            'last_day_reset': time.time(),
+            # Heat source tracking
+            'solar_energy_today': 0.0,      # kWh from solar today
+            'cartridge_energy_today': 0.0,  # kWh from cartridge heater today
+            'pellet_energy_today': 0.0,     # kWh from pellet furnace today
+            'solar_energy_hour': 0.0,       # kWh from solar this hour
+            'cartridge_energy_hour': 0.0,   # kWh from cartridge heater this hour
+            'pellet_energy_hour': 0.0       # kWh from pellet furnace this hour
         }
         
         # Temperature data
@@ -125,7 +132,14 @@ class SolarHeatingSystem:
                 'energy_collected_hour': 0.0,   # kWh collected this hour
                 'last_energy_calculation': time.time(),
                 'last_hour_reset': time.time(),
-                'last_day_reset': time.time()
+                'last_day_reset': time.time(),
+                # Heat source tracking
+                'solar_energy_today': 0.0,      # kWh from solar today
+                'cartridge_energy_today': 0.0,  # kWh from cartridge heater today
+                'pellet_energy_today': 0.0,     # kWh from pellet furnace today
+                'solar_energy_hour': 0.0,       # kWh from solar this hour
+                'cartridge_energy_hour': 0.0,   # kWh from cartridge heater this hour
+                'pellet_energy_hour': 0.0       # kWh from pellet furnace this hour
             }
             
             # Initialize control parameters
@@ -489,6 +503,43 @@ class SolarHeatingSystem:
                 {
                     'name': 'Energy Collected This Hour',
                     'entity_id': 'energy_collected_hour_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                # Heat source specific energy sensors
+                {
+                    'name': 'Solar Energy Today',
+                    'entity_id': 'solar_energy_today_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Cartridge Heater Energy Today',
+                    'entity_id': 'cartridge_energy_today_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Pellet Furnace Energy Today',
+                    'entity_id': 'pellet_energy_today_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Solar Energy This Hour',
+                    'entity_id': 'solar_energy_hour_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Cartridge Heater Energy This Hour',
+                    'entity_id': 'cartridge_energy_hour_kwh',
+                    'device_class': None,
+                    'unit_of_measurement': 'kWh'
+                },
+                {
+                    'name': 'Pellet Furnace Energy This Hour',
+                    'entity_id': 'pellet_energy_hour_kwh',
                     'device_class': None,
                     'unit_of_measurement': 'kWh'
                 },
@@ -981,11 +1032,17 @@ class SolarHeatingSystem:
             # Check if we need to reset hourly/daily counters
             if current_time - self.system_state.get('last_hour_reset', 0) >= 3600:  # 1 hour
                 self.system_state['energy_collected_hour'] = 0.0
+                self.system_state['solar_energy_hour'] = 0.0
+                self.system_state['cartridge_energy_hour'] = 0.0
+                self.system_state['pellet_energy_hour'] = 0.0
                 self.system_state['last_hour_reset'] = current_time
                 logger.info("Hourly energy collection counter reset")
             
             if current_time - self.system_state.get('last_day_reset', 0) >= 86400:  # 24 hours
                 self.system_state['energy_collected_today'] = 0.0
+                self.system_state['solar_energy_today'] = 0.0
+                self.system_state['cartridge_energy_today'] = 0.0
+                self.system_state['pellet_energy_today'] = 0.0
                 self.system_state['last_day_reset'] = current_time
                 logger.info("Daily energy collection counter reset")
             
@@ -999,12 +1056,67 @@ class SolarHeatingSystem:
                     if energy_diff > 0:  # Only count positive energy gains
                         energy_rate_per_hour = (energy_diff / time_diff) * 3600  # Convert to per hour
                         
-                        # Add to hourly and daily totals
+                        # Determine which heat source is active and allocate energy
+                        active_heat_sources = []
+                        source_contributions = {}
+                        
+                        # Check solar heating (pump running and collector hotter than tank)
+                        solar_active = (self.system_state.get('primary_pump', False) and 
+                                      self.temperatures.get('solar_collector_temp', 0) > self.temperatures.get('storage_tank_temp', 0) + 5)
+                        if solar_active:
+                            active_heat_sources.append('solar')
+                            # Estimate solar contribution based on temperature difference and flow
+                            solar_dt = self.temperatures.get('solar_collector_temp', 0) - self.temperatures.get('storage_tank_temp', 0)
+                            # Rough estimate: higher dT = higher contribution
+                            source_contributions['solar'] = min(1.0, max(0.1, solar_dt / 20.0))  # 0.1 to 1.0 based on dT
+                        
+                        # Check cartridge heater (relay state)
+                        cartridge_active = self.system_state.get('cartridge_heater', False)
+                        if cartridge_active:
+                            active_heat_sources.append('cartridge')
+                            # Cartridge heater typically provides consistent heating
+                            source_contributions['cartridge'] = 0.8  # Assume 80% of energy when active
+                        
+                        # Check pellet furnace (we'll need to add a sensor for this)
+                        # For now, assume pellet furnace if no other source is active but energy is increasing
+                        pellet_active = (not active_heat_sources and energy_diff > 0)
+                        if pellet_active:
+                            active_heat_sources.append('pellet')
+                            source_contributions['pellet'] = 1.0  # Assume 100% when no other source
+                        
+                        # If multiple sources active, use weighted allocation
+                        if len(active_heat_sources) > 1:
+                            total_weight = sum(source_contributions.get(source, 0.5) for source in active_heat_sources)
+                            for source in active_heat_sources:
+                                weight = source_contributions.get(source, 0.5)
+                                source_contributions[source] = weight / total_weight
+                        elif len(active_heat_sources) == 1:
+                            source_contributions[active_heat_sources[0]] = 1.0
+                        
+                        # Allocate energy to active heat sources using weighted contributions
+                        if active_heat_sources:
+                            hourly_contribution_total = energy_diff / (time_diff / 3600)
+                            
+                            for source in active_heat_sources:
+                                source_weight = source_contributions.get(source, 0.5)
+                                source_contribution = hourly_contribution_total * source_weight
+                                
+                                if source == 'solar':
+                                    self.system_state['solar_energy_hour'] += source_contribution
+                                    self.system_state['solar_energy_today'] += source_contribution
+                                elif source == 'cartridge':
+                                    self.system_state['cartridge_energy_hour'] += source_contribution
+                                    self.system_state['cartridge_energy_today'] += source_contribution
+                                elif source == 'pellet':
+                                    self.system_state['pellet_energy_hour'] += source_contribution
+                                    self.system_state['pellet_energy_today'] += source_contribution
+                            
+                            logger.info(f"Energy collected: {energy_diff:.3f} kWh in {time_diff/3600:.2f} hours, Rate: {energy_rate_per_hour:.2f} kWh/hour, Sources: {active_heat_sources}")
+                        
+                        # Add to total hourly and daily totals
                         hourly_contribution = energy_rate_per_hour * (time_diff / 3600)
                         self.system_state['energy_collected_hour'] += hourly_contribution
                         self.system_state['energy_collected_today'] += hourly_contribution
-                        
-                        logger.info(f"Energy collected: {energy_diff:.3f} kWh in {time_diff/3600:.2f} hours, Rate: {energy_rate_per_hour:.2f} kWh/hour")
             
             # Update last calculation values
             self.system_state['last_energy_calculation'] = current_time
@@ -1014,6 +1126,14 @@ class SolarHeatingSystem:
             self.temperatures['energy_collection_rate_kwh_per_hour'] = round(energy_rate_per_hour if 'energy_rate_per_hour' in locals() else 0.0, 2)
             self.temperatures['energy_collected_today_kwh'] = round(self.system_state.get('energy_collected_today', 0.0), 2)
             self.temperatures['energy_collected_hour_kwh'] = round(self.system_state.get('energy_collected_hour', 0.0), 2)
+            
+            # Add heat source specific energy metrics
+            self.temperatures['solar_energy_today_kwh'] = round(self.system_state.get('solar_energy_today', 0.0), 2)
+            self.temperatures['cartridge_energy_today_kwh'] = round(self.system_state.get('cartridge_energy_today', 0.0), 2)
+            self.temperatures['pellet_energy_today_kwh'] = round(self.system_state.get('pellet_energy_today', 0.0), 2)
+            self.temperatures['solar_energy_hour_kwh'] = round(self.system_state.get('solar_energy_hour', 0.0), 2)
+            self.temperatures['cartridge_energy_hour_kwh'] = round(self.system_state.get('cartridge_energy_hour', 0.0), 2)
+            self.temperatures['pellet_energy_hour_kwh'] = round(self.system_state.get('pellet_energy_hour', 0.0), 2)
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
