@@ -71,7 +71,21 @@ class SolarHeatingSystem:
             'pellet_energy_today': 0.0,     # kWh from pellet furnace today
             'solar_energy_hour': 0.0,       # kWh from solar this hour
             'cartridge_energy_hour': 0.0,   # kWh from cartridge heater this hour
-            'pellet_energy_hour': 0.0       # kWh from pellet furnace this hour
+            'pellet_energy_hour': 0.0,      # kWh from pellet furnace this hour
+            # Pellet stove data
+            'pellet_stove_power': 0.0,      # Current power output (kW)
+            'pellet_stove_burn_time': 0.0,  # Hours of operation
+            'pellet_stove_daily_consumption': 0.0,  # Daily consumption percentage
+            'pellet_stove_storage_level': 0,  # Storage level
+            'pellet_stove_storage_percentage': 0.0,  # Storage percentage
+            'pellet_stove_storage_energy': 0.0,  # Storage energy (kWh)
+            'pellet_stove_storage_weight': 0.0,  # Storage weight (kg)
+            'pellet_stove_electric_consumption': 0.0,  # Electrical consumption (W)
+            'pellet_stove_pulse_counter_1': 0.0,  # Pulse counter 1 (pulses/min)
+            'pellet_stove_pulse_counter_2': 0.0,  # Pulse counter 2 (pulses/min)
+            'pellet_stove_pulse_counter_3': 0.0,  # Pulse counter 3 (pulses/min)
+            'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
+            'pellet_stove_status': False,  # ON/OFF status
         }
         
         # Temperature data
@@ -139,8 +153,22 @@ class SolarHeatingSystem:
                 'pellet_energy_today': 0.0,     # kWh from pellet furnace today
                 'solar_energy_hour': 0.0,       # kWh from solar this hour
                 'cartridge_energy_hour': 0.0,   # kWh from cartridge heater this hour
-                'pellet_energy_hour': 0.0       # kWh from pellet furnace this hour
-            }
+                            'pellet_energy_hour': 0.0,      # kWh from pellet furnace this hour
+            # Pellet stove data
+            'pellet_stove_power': 0.0,      # Current power output (kW)
+            'pellet_stove_burn_time': 0.0,  # Hours of operation
+            'pellet_stove_daily_consumption': 0.0,  # Daily consumption percentage
+            'pellet_stove_storage_level': 0,  # Storage level
+            'pellet_stove_storage_percentage': 0.0,  # Storage percentage
+            'pellet_stove_storage_energy': 0.0,  # Storage energy (kWh)
+            'pellet_stove_storage_weight': 0.0,  # Storage weight (kg)
+            'pellet_stove_electric_consumption': 0.0,  # Electrical consumption (W)
+            'pellet_stove_pulse_counter_1': 0.0,  # Pulse counter 1 (pulses/min)
+            'pellet_stove_pulse_counter_2': 0.0,  # Pulse counter 2 (pulses/min)
+            'pellet_stove_pulse_counter_3': 0.0,  # Pulse counter 3 (pulses/min)
+            'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
+            'pellet_stove_status': False,  # ON/OFF status
+        }
             
             # Initialize control parameters
             self.control_params = {
@@ -581,6 +609,8 @@ class SolarHeatingSystem:
                     binary_sensors.append(sensor)
                 else:
                     regular_sensors.append(sensor)
+            
+
             
             logger.info(f"Total sensors configured: {len(sensors)} (regular: {len(regular_sensors)}, binary: {len(binary_sensors)})")
             logger.info(f"Publishing discovery for {len(regular_sensors)} regular sensors...")
@@ -1312,6 +1342,8 @@ class SolarHeatingSystem:
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
                 logger.info("Number states published successfully")
             
+
+            
             # Publish system status
             status_data = {
                 'system_state': self.system_state,
@@ -1514,6 +1546,17 @@ class SolarHeatingSystem:
                 self._update_system_mode()
                 
                 logger.info(f"v1 test switch set to {'ON' if state else 'OFF'}")
+            
+            elif command_type == 'pellet_stove_data':
+                sensor = data['sensor']
+                value = data['value']
+                
+                # Update pellet stove data in system state
+                if sensor in self.system_state:
+                    self.system_state[sensor] = value
+                    logger.info(f"Updated pellet stove data: {sensor} = {value}")
+                else:
+                    logger.warning(f"Unknown pellet stove sensor: {sensor}")
                 
         except Exception as e:
             logger.error(f"Error handling MQTT command: {e}")
@@ -1544,6 +1587,8 @@ class SolarHeatingSystem:
             
         except Exception as e:
             logger.error(f"Error publishing number state: {e}")
+    
+
     
     async def stop(self):
         """Stop the solar heating system"""

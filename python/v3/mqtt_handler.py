@@ -123,6 +123,14 @@ class MQTTHandler:
             "homeassistant/switch/+/set",
             "homeassistant/number/+/set",
             
+            # Pellet stove data from Home Assistant (existing sensors)
+            "homeassistant/sensor/pelletskamin_+/state",
+            "homeassistant/binary_sensor/pelletskamin_+/state",
+            "homeassistant/sensor/pellet_stove_+/state",
+            "homeassistant/binary_sensor/pellet_stove_+/state",
+            "homeassistant/sensor/pellet_stove_monitoring_+/state",
+            "homeassistant/binary_sensor/pellet_stove_monitoring_+/state",
+            
             # System control topics
             f"{mqtt_topics.control_base}/+",
             
@@ -164,6 +172,16 @@ class MQTTHandler:
             # Handle v1 test switch command (raw string payload)
             if topic == "hass/test_switch":
                 self._handle_v1_test_switch_command(topic, payload)
+                return
+            
+            # Handle pellet stove data from Home Assistant
+            if (topic.startswith("homeassistant/sensor/pelletskamin_") or 
+                topic.startswith("homeassistant/binary_sensor/pelletskamin_") or
+                topic.startswith("homeassistant/sensor/pellet_stove_") or
+                topic.startswith("homeassistant/binary_sensor/pellet_stove_") or
+                topic.startswith("homeassistant/sensor/pellet_stove_monitoring_") or
+                topic.startswith("homeassistant/binary_sensor/pellet_stove_monitoring_")):
+                self._handle_pellet_stove_data(topic, payload)
                 return
             
             # Parse JSON payload for other messages
@@ -310,6 +328,64 @@ class MQTTHandler:
                 
         except Exception as e:
             logger.error(f"Error handling v1 test switch command: {e}")
+    
+    def _handle_pellet_stove_data(self, topic: str, payload: str):
+        """Handle pellet stove data from Home Assistant"""
+        try:
+            logger.info(f"Handling pellet stove data: {topic} = {payload}")
+            
+            # Extract sensor name from topic
+            # topic format: homeassistant/sensor/pelletskamin_power/state
+            sensor_name = topic.split('/')[3]
+            
+            # Map sensor names to our system state
+            sensor_mapping = {
+                'pelletskamin_power': 'pellet_stove_power',
+                'pelletskamin_brinntid': 'pellet_stove_burn_time',
+                'pelletskamin_dagens_förbrukning': 'pellet_stove_daily_consumption',
+                'pelletskamin_storage_level': 'pellet_stove_storage_level',
+                'pelletskamin_storage_percentage': 'pellet_stove_storage_percentage',
+                'pelletskamin_storage_energy': 'pellet_stove_storage_energy',
+                'pelletskamin_storage_weight': 'pellet_stove_storage_weight',
+                'pelletskamin_electric_consumption': 'pellet_stove_electric_consumption',
+                'pellet_stove_monitoring_pulse_counter_1': 'pellet_stove_pulse_counter_1',
+                'pellet_stove_monitoring_pulse_counter_2': 'pellet_stove_pulse_counter_2',
+                'pellet_stove_monitoring_pulse_counter_3': 'pellet_stove_pulse_counter_3',
+                'pelletskamin_bags_until_cleaning': 'pellet_stove_bags_until_cleaning',
+                'pelletskamin_status': 'pellet_stove_status',
+            }
+            
+            if sensor_name in sensor_mapping:
+                system_key = sensor_mapping[sensor_name]
+                
+                # Convert payload to appropriate type
+                try:
+                    if sensor_name == 'pelletskamin_status':
+                        # Binary sensor - convert to boolean
+                        value = payload.lower() == 'on'
+                    else:
+                        # Numeric sensor - convert to float
+                        value = float(payload)
+                    
+                    # Call the system callback if available
+                    if hasattr(self, 'system_callback'):
+                        self.system_callback('pellet_stove_data', {
+                            'sensor': system_key,
+                            'value': value,
+                            'original_topic': topic,
+                            'original_payload': payload
+                        })
+                    else:
+                        logger.warning("No system callback registered for pellet stove data")
+                        
+                except ValueError:
+                    logger.error(f"Invalid pellet stove data value: {payload} for sensor {sensor_name}")
+                    
+            else:
+                logger.debug(f"Unknown pellet stove sensor: {sensor_name}")
+                
+        except Exception as e:
+            logger.error(f"Error handling pellet stove data: {e}")
     
     def _handle_hass_state_change(self, entity: str, state: Any):
         """Handle Home Assistant state changes"""
