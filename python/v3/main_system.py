@@ -872,6 +872,7 @@ class SolarHeatingSystem:
             
             # Debug logging for operational metrics
             logger.debug(f"Operational metrics: pump_runtime={self.temperatures['pump_runtime_hours']}h, cycles={self.temperatures['heating_cycles_count']}, avg_duration={self.temperatures['average_heating_duration']}h")
+            logger.info(f"System state operational metrics: pump_runtime={self.system_state.get('pump_runtime_hours', 0)}h, cycles={self.system_state.get('heating_cycles_count', 0)}, total_time={self.system_state.get('total_heating_time', 0)}h, last_start={self.system_state.get('last_pump_start', 'None')}")
             logger.info("Operational metrics added successfully")
             
             # Calculate solar collector dT values
@@ -951,7 +952,7 @@ class SolarHeatingSystem:
                     self.system_state['primary_pump'] = True
                     self.system_state['last_pump_start'] = time.time()
                     self.system_state['heating_cycles_count'] += 1
-                    logger.info("Primary pump started")
+                    logger.info(f"Primary pump started. Cycle #{self.system_state['heating_cycles_count']}, Start time: {self.system_state['last_pump_start']}")
             elif solar_collector < storage_tank + self.control_params['dTStop_tank_1']:
                 if self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, False)  # Primary pump relay
@@ -962,6 +963,8 @@ class SolarHeatingSystem:
                         self.system_state['total_heating_time'] += cycle_runtime
                         self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
                         logger.info(f"Primary pump stopped. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
+                    else:
+                        logger.warning("Primary pump stopped but last_pump_start was None - runtime not calculated")
                     
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
