@@ -2,9 +2,13 @@
 """
 Main Application for Solar Heating System v3 - System-Wide Version
 Entry point for the intelligent solar heating system (no virtual environment required)
+
+V1 COMPATIBILITY: This version includes parallel MQTT messages that match v1 format
+for backward compatibility. See comments in _publish_v1_parallel_messages() for details.
 """
 
 import asyncio
+import json
 import logging
 import signal
 import sys
@@ -385,6 +389,13 @@ class SolarHeatingSystem:
                     
                     self.mqtt.publish(topic, message)
             
+            # ===== V1 COMPATIBILITY SECTION - START =====
+            # This section publishes v1-style messages for backward compatibility
+            # These messages can be safely removed when v1 is no longer needed
+            # To remove: Delete this line and the entire _publish_v1_parallel_messages method below
+            await self._publish_v1_parallel_messages()
+            # ===== V1 COMPATIBILITY SECTION - END =====
+            
             # Publish system status
             status_data = {
                 'system_state': self.system_state,
@@ -397,6 +408,110 @@ class SolarHeatingSystem:
                 
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
+    
+    # ===== V1 COMPATIBILITY METHOD - START =====
+    # This method publishes v1-style MQTT messages for backward compatibility
+    # 
+    # V1 MQTT Topics being replicated:
+    # - sequentmicrosystems/sequentmicrosystems_{stack}_{sensor} (individual sensors)
+    # - sequentmicrosystems/stored_energy (energy calculations)
+    # - sequentmicrosystems/ftx (heat exchanger efficiency)
+    # - sequentmicrosystems/suncollector (solar collector temperature)
+    # - sequentmicrosystems/cartridge_heater (relay 1 status)
+    # - sequentmicrosystems/test_switch (test mode status)
+    #
+    # To remove this method:
+    # 1. Delete this entire method (from this comment to the end of the method)
+    # 2. Remove the call to this method in _publish_status above
+    # 3. Remove the "V1 COMPATIBILITY SECTION" comments in _publish_status
+    async def _publish_v1_parallel_messages(self):
+        """Publish v1-style parallel messages for compatibility"""
+        try:
+            if not self.mqtt or not self.mqtt.is_connected():
+                return
+                
+            # 1. Individual sensor messages (sequentmicrosystems/sequentmicrosystems_{stack}_{sensor})
+            for stack in range(4):  # 4 stacks
+                for sensor in range(8):  # 8 sensors per stack
+                    if stack == 0:  # RTD stack
+                        temp = self.temperatures.get(f'rtd_sensor_{sensor}', 0)
+                    elif stack == 3:  # MegaBAS stack
+                        temp = self.temperatures.get(f'megabas_sensor_{sensor + 1}', 0)
+                    else:
+                        temp = 0  # Other stacks not used
+                    
+                    if temp != 0:  # Only publish if we have a valid temperature
+                        sensor_name = f"sequentmicrosystems_{stack + 1}_{sensor + 1}"
+                        topic = f"sequentmicrosystems/{sensor_name}"
+                        msg_dict = {
+                            "name": sensor_name,
+                            "temperature": round(temp, 1)
+                        }
+                        self.mqtt.publish(topic, json.dumps(msg_dict))
+            
+            # 2. Stored energy calculation (matching v1 logic)
+            zero_value = 4  # Temperature of water coming from well
+            stored_energy = [0] * 10
+            
+            # Use RTD sensors (stack 0) for energy calculations
+            for i in range(8):
+                temp = self.temperatures.get(f'rtd_sensor_{i}', 0)
+                stored_energy[i] = ((temp - zero_value) * 35)
+            
+            # Add MegaBAS input 5 (sensor 5)
+            megabas_5 = self.temperatures.get('megabas_sensor_5', 0)
+            stored_energy[8] = ((megabas_5 - zero_value) * 35)
+            
+            # Calculate energy values
+            stored_energy_kwh = [
+                round(sum(stored_energy) * 4200 / 1000 / 3600, 2),  # Total
+                round(sum(stored_energy[:5]) * 4200 / 1000 / 3600, 2),  # Bottom
+                round(sum(stored_energy[5:]) * 4200 / 1000 / 3600, 2),  # Top
+                round(sum([self.temperatures.get(f'rtd_sensor_{i}', 0) for i in range(8)]) / 8, 1)  # Average temp
+            ]
+            
+            # Publish stored energy
+            stored_energy_msg = {
+                "name": "stored_energy",
+                "stored_energy_kwh": stored_energy_kwh[0],
+                "stored_energy_top_kwh": stored_energy_kwh[2],
+                "stored_energy_bottom_kwh": stored_energy_kwh[1],
+                "average_temperature": stored_energy_kwh[3]
+            }
+            self.mqtt.publish("sequentmicrosystems/stored_energy", json.dumps(stored_energy_msg))
+            
+            # 3. FTX (Heat Exchanger) message
+            ftx_msg = {
+                "name": "ftx",
+                "efficiency": round(self.temperatures.get('heat_exchanger_efficiency', 0), 1)
+            }
+            self.mqtt.publish("sequentmicrosystems/ftx", json.dumps(ftx_msg))
+            
+            # 4. Sun collector message
+            suncollector_msg = {
+                "name": "suncollector",
+                "temperature": round(self.temperatures.get('solar_collector', 0), 1)
+            }
+            self.mqtt.publish("sequentmicrosystems/suncollector", json.dumps(suncollector_msg))
+            
+            # 5. Cartridge heater status (relay 1)
+            cartridge_heater_msg = {
+                "name": "cartridge_heater",
+                "status": "ON" if self.hardware.get_relay_state(1) else "OFF"
+            }
+            self.mqtt.publish("sequentmicrosystems/cartridge_heater", json.dumps(cartridge_heater_msg))
+            
+            # 6. Test switch status
+            test_switch_msg = {
+                "name": "test_switch",
+                "status": "ON" if config.test_mode else "OFF"
+            }
+            self.mqtt.publish("sequentmicrosystems/test_switch", json.dumps(test_switch_msg))
+            
+        except Exception as e:
+            logger.error(f"Error publishing v1 parallel messages: {e}")
+    
+    # ===== V1 COMPATIBILITY METHOD - END =====
     
     async def stop(self):
         """Stop the solar heating system"""
