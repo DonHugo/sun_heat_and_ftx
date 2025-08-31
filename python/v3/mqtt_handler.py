@@ -314,6 +314,36 @@ class MQTTHandler:
             logger.error(f"Error publishing to {topic}: {e}")
             return False
     
+    def publish_raw(self, topic: str, message: str, retain: bool = False) -> bool:
+        """
+        Publish raw string message to MQTT topic (no JSON conversion)
+        
+        Args:
+            topic: MQTT topic
+            message: Raw string message
+            retain: Whether to retain the message
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.connected:
+            logger.warning("Cannot publish: MQTT not connected")
+            return False
+        
+        try:
+            result = self.client.publish(topic, message, retain=retain)
+            
+            if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
+                logger.debug(f"Published raw to {topic}: {message}")
+                return True
+            else:
+                logger.error(f"Failed to publish to {topic}: {result.rc}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error publishing to {topic}: {e}")
+            return False
+    
     def publish_temperature(self, sensor_name: str, temperature: float):
         """Publish temperature reading"""
         topic = f"{mqtt_topics.temperature_base}/{sensor_name}"

@@ -379,15 +379,16 @@ class SolarHeatingSystem:
                     
                     # Determine if this is a temperature sensor or other type
                     if sensor_name == 'heat_exchanger_efficiency':
-                        # For efficiency, send the value directly
-                        message = str(value)
+                        # For efficiency, send the raw number
+                        message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}% to {topic}")
                     else:
-                        # For temperature sensors, send the value directly
-                        message = str(value)
+                        # For temperature sensors, send the raw number
+                        message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
                     
-                    self.mqtt.publish(topic, message)
+                    # Send raw number, not quoted string
+                    self.mqtt.publish_raw(topic, message)
             
             # ===== V1 COMPATIBILITY SECTION - START =====
             # This section publishes v1-style messages for backward compatibility
