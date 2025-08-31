@@ -440,7 +440,7 @@ class SolarHeatingSystem:
                     else:
                         temp = 0  # Other stacks not used
                     
-                    if temp != 0:  # Only publish if we have a valid temperature
+                    if temp != 0 and temp is not None:  # Only publish if we have a valid temperature
                         sensor_name = f"sequentmicrosystems_{stack + 1}_{sensor + 1}"
                         topic = f"sequentmicrosystems/{sensor_name}"
                         msg_dict = {
@@ -456,18 +456,24 @@ class SolarHeatingSystem:
             # Use RTD sensors (stack 0) for energy calculations
             for i in range(8):
                 temp = self.temperatures.get(f'rtd_sensor_{i}', 0)
-                stored_energy[i] = ((temp - zero_value) * 35)
+                if temp is not None:
+                    stored_energy[i] = ((temp - zero_value) * 35)
+                else:
+                    stored_energy[i] = 0
             
-            # Add MegaBAS input 5 (sensor 5)
+            # Add MegaBAS input 5 (sensor 5) - handle None value
             megabas_5 = self.temperatures.get('megabas_sensor_5', 0)
-            stored_energy[8] = ((megabas_5 - zero_value) * 35)
+            if megabas_5 is not None:
+                stored_energy[8] = ((megabas_5 - zero_value) * 35)
+            else:
+                stored_energy[8] = 0
             
             # Calculate energy values
             stored_energy_kwh = [
                 round(sum(stored_energy) * 4200 / 1000 / 3600, 2),  # Total
                 round(sum(stored_energy[:5]) * 4200 / 1000 / 3600, 2),  # Bottom
                 round(sum(stored_energy[5:]) * 4200 / 1000 / 3600, 2),  # Top
-                round(sum([self.temperatures.get(f'rtd_sensor_{i}', 0) for i in range(8)]) / 8, 1)  # Average temp
+                round(sum([self.temperatures.get(f'rtd_sensor_{i}', 0) or 0 for i in range(8)]) / 8, 1)  # Average temp
             ]
             
             # Publish stored energy
