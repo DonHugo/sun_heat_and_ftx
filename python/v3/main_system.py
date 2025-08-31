@@ -536,14 +536,14 @@ class SolarHeatingSystem:
             self.temperatures['tilluft'] = self.temperatures.get('megabas_sensor_3', 0)      # sensor marked 6
             self.temperatures['franluft'] = self.temperatures.get('megabas_sensor_4', 0)     # sensor marked 7
             
-            # Solar collector and storage tank sensors (MegaBAS inputs 6-7) - CORRECTED to match v1
-            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - sensor marked I
-            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - sensor marked II
-            self.temperatures['return_line'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - sensor marked III
+            # Solar collector and storage tank sensors (RTD sensors 5-7) - CORRECTED to match v1
+            self.temperatures['solar_collector'] = self.temperatures.get('rtd_sensor_5', 0)  # T1 - sensor marked I
+            self.temperatures['storage_tank'] = self.temperatures.get('rtd_sensor_6', 0)     # T2 - sensor marked II
+            self.temperatures['return_line'] = self.temperatures.get('rtd_sensor_7', 0)      # T3 - sensor marked III
             
             # Storage tank top/bottom (using RTD sensors for better accuracy)
-            self.temperatures['storage_tank_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 6
-            self.temperatures['storage_tank_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 5
+            self.temperatures['storage_tank_top'] = self.temperatures.get('rtd_sensor_4', 0)    # RTD sensor 4
+            self.temperatures['storage_tank_bottom'] = self.temperatures.get('rtd_sensor_3', 0)  # RTD sensor 3
             
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
             self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
