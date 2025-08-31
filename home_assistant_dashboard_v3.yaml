@@ -1,0 +1,230 @@
+title: Solar Heating v3
+badges: []
+cards:
+  - type: entities
+    title: System Status
+    entities:
+      - entity: sensor.solar_heating_system_v3_system_mode
+        name: "System Mode"
+      - entity: switch.solar_heating_system_v3_primary_pump
+        name: "Primary Pump"
+      - entity: sensor.solar_heating_system_v3_sensor_health_score
+        name: "Sensor Health"
+        unit_of_measurement: "%"
+
+  - type: entities
+    title: Key Temperatures
+    entities:
+      - entity: sensor.solar_heating_system_v3_solar_collector_outlet_temperature
+        name: "Solar Collector"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_storage_tank_temperature
+        name: "Storage Tank"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_return_line_temperature
+        name: "Return Line"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_average_temperature
+        name: "Average Temperature"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Energy Information
+    entities:
+      - entity: sensor.solar_heating_system_v3_stored_energy_total_2
+        name: "Total Stored Energy"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_stored_energy_top_2
+        name: "Top Section Energy"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_stored_energy_bottom_2
+        name: "Bottom Section Energy"
+        unit_of_measurement: "kWh"
+
+  - type: entities
+    title: System Performance
+    entities:
+      - entity: sensor.solar_heating_system_v3_solar_collector_dt
+        name: "Solar Collector ΔT"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_efficiency
+        name: "Heat Exchanger Efficiency"
+        unit_of_measurement: "%"
+      - entity: sensor.solar_heating_system_v3_pump_runtime_hours
+        name: "Pump Runtime"
+        unit_of_measurement: "hours"
+      - entity: sensor.solar_heating_system_v3_heating_cycles_count
+        name: "Heating Cycles"
+      - entity: sensor.solar_heating_system_v3_average_heating_duration
+        name: "Average Heating Duration"
+        unit_of_measurement: "hours"
+
+  - type: entities
+    title: Water Heater Temperature Profile
+    entities:
+      - entity: sensor.solar_heating_system_v3_water_heater_140cm_temperature
+        name: "140cm from bottom (Top)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_120cm_temperature
+        name: "120cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_100cm_temperature
+        name: "100cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_80cm_temperature
+        name: "80cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_60cm_temperature
+        name: "60cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_40cm_temperature
+        name: "40cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_20cm_temperature
+        name: "20cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_bottom_temperature
+        name: "Bottom (0cm)"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Water Heater Analysis
+    entities:
+      - entity: sensor.solar_heating_system_v3_water_heater_stratification
+        name: "Stratification Quality"
+        unit_of_measurement: "°C/cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_gradient_cm
+        name: "Temperature Gradient"
+        unit_of_measurement: "°C/cm"
+
+  - type: entities
+    title: FTX System
+    entities:
+      - entity: sensor.solar_heating_system_v3_outdoor_air_temperature
+        name: "Outdoor Air"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_exhaust_air_temperature
+        name: "Exhaust Air"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_supply_air_temperature
+        name: "Supply Air"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_return_air_temperature
+        name: "Return Air"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Heat Exchanger Performance
+    entities:
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_efficiency
+        name: "Heat Exchanger Efficiency"
+        unit_of_measurement: "%"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_in
+        name: "Heat Exchanger Input"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_out
+        name: "Heat Exchanger Output"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: System Health & Safety
+    entities:
+      - entity: sensor.solar_heating_system_v3_sensor_health_score
+        name: "Sensor Health"
+        unit_of_measurement: "%"
+      - entity: sensor.solar_heating_system_v3_overheating_risk
+        name: "Overheating Risk"
+        unit_of_measurement: "%"
+
+  - type: entities
+    title: System Control
+    entities:
+      - entity: switch.solar_heating_system_v3_primary_pump
+        name: "Primary Pump"
+      - entity: switch.solar_heating_system_v3_secondary_pump
+        name: "Secondary Pump"
+      - entity: switch.solar_heating_system_v3_cartridge_heater
+        name: "Cartridge Heater"
+      - entity: switch.solar_heating_system_v3_test_switch
+        name: "Test Switch"
+
+  - type: entities
+    title: RTD Sensors (Raw)
+    entities:
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_0
+        name: "RTD Sensor 0"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_1
+        name: "RTD Sensor 1"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_2
+        name: "RTD Sensor 2"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_3
+        name: "RTD Sensor 3"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_4
+        name: "RTD Sensor 4"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_5
+        name: "RTD Sensor 5"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_6
+        name: "RTD Sensor 6"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_7
+        name: "RTD Sensor 7"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: MegaBAS Sensors (Raw)
+    entities:
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_1
+        name: "MegaBAS Sensor 1 (Outdoor)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_2
+        name: "MegaBAS Sensor 2 (Exhaust)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_3
+        name: "MegaBAS Sensor 3 (Supply)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_4
+        name: "MegaBAS Sensor 4 (Return)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_5
+        name: "MegaBAS Sensor 5 (Ambient)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_6
+        name: "MegaBAS Sensor 6 (Solar Collector)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_7
+        name: "MegaBAS Sensor 7 (Storage Tank)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_8
+        name: "MegaBAS Sensor 8 (Return Line)"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Legacy Sensor Names
+    entities:
+      - entity: sensor.solar_heating_system_v3_uteluft
+        name: "Uteluft (Outdoor Air)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_avluft
+        name: "Avluft (Exhaust Air)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_tilluft
+        name: "Tilluft (Supply Air)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_franluft
+        name: "Franluft (Return Air)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_solar_collector
+        name: "Solar Collector (T1)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_storage_tank
+        name: "Storage Tank (T2)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_return_line
+        name: "Return Line (T3)"
+        unit_of_measurement: "°C"

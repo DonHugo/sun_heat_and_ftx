@@ -80,7 +80,77 @@ This stratification allows for:
 | - | average_temperature | Average of RTD sensors 0-7 | Average Temperature |
 | - | stored_energy_kwh | Energy calculation from RTD sensors 0-7 | Total Stored Energy |
 | - | stored_energy_top_kwh | Energy calculation from RTD sensors 5-7 (top 3 sensors) | Top Stored Energy |
-| - | stored_energy_bottom_kwh | Energy calculation from RTD sensors 0-4 (bottom 5 sensors) | Bottom Stored Energy |
+| - | stored_energy_bottom_kwh | Energy in bottom 5 RTD sensors | Bottom Stored Energy |
+
+## Additional Calculated Values (Suggested)
+
+Here are additional calculated values that would provide valuable insights for monitoring and optimizing your solar heating system:
+
+| Suggested Name | Description | Calculation | Purpose |
+|----------------|-------------|-------------|---------|
+| **Temperature Gradients** |
+| water_heater_stratification | Water Heater Stratification Quality | (top_temp - bottom_temp) / height | Monitor thermal stratification |
+| water_heater_gradient_cm | Temperature Gradient per cm | (top_temp - bottom_temp) / 140cm | Temperature change per cm |
+| **Energy Efficiency** |
+| solar_collector_efficiency | Solar Collector Efficiency | (collector_temp - ambient_temp) / solar_radiation | Collector performance |
+| heat_exchanger_cop | Heat Exchanger Coefficient of Performance | (supply_temp - return_temp) / (exhaust_temp - outdoor_temp) | Heat exchanger efficiency |
+| system_overall_efficiency | Overall System Efficiency | stored_energy / (solar_radiation * collector_area) | Total system performance |
+| **Operational Metrics** |
+| pump_runtime_hours | Pump Runtime Hours | Cumulative pump ON time | Maintenance scheduling |
+| heating_cycles_per_day | Heating Cycles per Day | Count of pump start/stop cycles | System usage patterns |
+| average_heating_duration | Average Heating Duration | Total runtime / number of cycles | System behavior analysis |
+| **Temperature Analysis** |
+| water_heater_mixing_index | Water Heater Mixing Index | Standard deviation of RTD temps | Detect mixing vs stratification |
+| temperature_stability | Temperature Stability | Variance of temps over time | System stability |
+| **Predictive Values** |
+| time_to_target_temp | Time to Target Temperature | Estimated time to reach set_temp | User convenience |
+| energy_remaining_hours | Energy Remaining (Hours) | stored_energy / average_consumption_rate | Usage planning |
+| **Environmental Factors** |
+| solar_gain_potential | Solar Gain Potential | (collector_temp - storage_temp) * flow_rate | Available solar energy |
+| heat_loss_rate | Heat Loss Rate | Temperature drop over time | System insulation quality |
+| **System Health** |
+| sensor_health_score | Sensor Health Score | Percentage of sensors reporting valid data | System reliability |
+| pump_efficiency | Pump Efficiency | Flow rate vs power consumption | Pump performance |
+| **Economic Metrics** |
+| energy_cost_saved | Energy Cost Saved | stored_energy * electricity_rate | Economic benefit |
+| solar_fraction | Solar Fraction | solar_energy / total_energy_used | Solar contribution |
+| **Safety & Protection** |
+| overheating_risk | Overheating Risk | (collector_temp - max_safe_temp) / max_safe_temp | Safety monitoring |
+| freeze_protection_status | Freeze Protection Status | min_temp < freeze_threshold | Winter protection |
+| **Performance Trends** |
+| daily_energy_production | Daily Energy Production | Sum of daily stored energy | Performance tracking |
+| weekly_efficiency_trend | Weekly Efficiency Trend | 7-day moving average of efficiency | Long-term performance |
+| monthly_savings | Monthly Energy Savings | Monthly sum of energy_cost_saved | Economic tracking |
+
+### Implementation Priority
+
+**High Priority (Easy to implement):**
+1. `water_heater_stratification` - Simple temperature difference calculation
+2. `pump_runtime_hours` - Track cumulative pump usage
+3. `heating_cycles_per_day` - Count pump start/stop events
+4. `sensor_health_score` - Monitor sensor reliability
+5. `overheating_risk` - Safety monitoring
+
+**Medium Priority (Requires additional data):**
+1. `solar_collector_efficiency` - Needs solar radiation data
+2. `heat_exchanger_cop` - More complex efficiency calculation
+3. `energy_remaining_hours` - Needs consumption rate data
+4. `freeze_protection_status` - Needs freeze threshold setting
+
+**Low Priority (Advanced analytics):**
+1. `system_overall_efficiency` - Complex calculation with multiple inputs
+2. `time_to_target_temp` - Predictive modeling
+3. `energy_cost_saved` - Needs electricity rate data
+4. `performance_trends` - Historical data analysis
+
+### Benefits of Additional Calculations
+
+1. **System Optimization**: Efficiency metrics help optimize performance
+2. **Predictive Maintenance**: Runtime and health metrics predict maintenance needs
+3. **Safety Monitoring**: Overheating and freeze protection alerts
+4. **Economic Tracking**: Cost savings and energy production metrics
+5. **Performance Analysis**: Trends and patterns for system improvement
+6. **User Convenience**: Time estimates and remaining energy information
 
 ### Relay Outputs (4RELIND Stack 2)
 
