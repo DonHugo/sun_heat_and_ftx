@@ -351,9 +351,15 @@ class SolarHeatingSystem:
                 
                 # No value_template needed since we're sending raw values
                 
+                # Debug: Log the discovery config
+                logger.debug(f"Discovery config for {sensor['name']}: {config}")
+                
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
-                self.mqtt.publish(topic, config, retain=True)
-                logger.info(f"Published HA discovery for {sensor['name']}")
+                success = self.mqtt.publish(topic, config, retain=True)
+                if success:
+                    logger.info(f"Published HA discovery for {sensor['name']} to {topic}")
+                else:
+                    logger.error(f"Failed to publish HA discovery for {sensor['name']} to {topic}")
             
             # Publish switch discovery configurations
             switches = [
