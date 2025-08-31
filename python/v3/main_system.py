@@ -510,6 +510,7 @@ class SolarHeatingSystem:
                 topic = f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/config"
                 logger.info(f"Attempting to publish discovery for {sensor['name']} to {topic}")
                 success = self.mqtt.publish(topic, config, retain=True)
+                logger.info(f"MQTT publish result for {sensor['name']}: {success}")
                 if success:
                     logger.info(f"Published HA discovery for {sensor['name']} to {topic}")
                     discovery_count += 1
