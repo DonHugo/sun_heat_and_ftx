@@ -152,6 +152,11 @@ class MQTTHandler:
                 self._handle_switch_command(topic, payload)
                 return
             
+            # Handle Home Assistant number commands (raw string payload)
+            if topic.startswith("homeassistant/number/solar_heating_") and topic.endswith("/set"):
+                self._handle_number_command(topic, payload)
+                return
+            
             # Parse JSON payload for other messages
             try:
                 data = json.loads(payload)
@@ -237,6 +242,34 @@ class MQTTHandler:
                     
         except Exception as e:
             logger.error(f"Error handling switch command: {e}")
+    
+    def _handle_number_command(self, topic: str, payload: str):
+        """Handle Home Assistant number commands"""
+        try:
+            logger.info(f"Handling number command: {topic} = {payload}")
+            
+            # Extract number name from topic
+            # topic format: homeassistant/number/solar_heating_{number_name}/set
+            number_name = topic.split('/')[3]
+            
+            # Convert payload to float
+            try:
+                value = float(payload)
+            except ValueError:
+                logger.error(f"Invalid number value: {payload}")
+                return
+            
+            # Call the system callback if available
+            if hasattr(self, 'system_callback'):
+                self.system_callback('number_command', {
+                    'number': number_name,
+                    'value': value
+                })
+            else:
+                logger.warning("No system callback registered for number commands")
+                
+        except Exception as e:
+            logger.error(f"Error handling number command: {e}")
     
     def _handle_hass_state_change(self, entity: str, state: Any):
         """Handle Home Assistant state changes"""

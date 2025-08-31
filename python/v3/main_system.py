@@ -299,6 +299,78 @@ class SolarHeatingSystem:
                 topic = f"homeassistant/switch/solar_heating_{switch['entity_id']}/config"
                 self.mqtt.publish(topic, config, retain=True)
                 logger.info(f"Published HA discovery for {switch['name']}")
+            
+            # Publish number discovery configurations for config variables
+            numbers = [
+                {
+                    'name': 'Set Tank Temperature',
+                    'entity_id': 'set_temp_tank_1',
+                    'unit_of_measurement': '°C',
+                    'min_value': 15,
+                    'max_value': 90,
+                    'step': 1,
+                    'icon': 'mdi:thermometer'
+                },
+                {
+                    'name': 'Delta Temperature Start',
+                    'entity_id': 'dTStart_tank_1',
+                    'unit_of_measurement': '°C',
+                    'min_value': 3,
+                    'max_value': 40,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-plus'
+                },
+                {
+                    'name': 'Delta Temperature Stop',
+                    'entity_id': 'dTStop_tank_1',
+                    'unit_of_measurement': '°C',
+                    'min_value': 2,
+                    'max_value': 20,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-minus'
+                },
+                {
+                    'name': 'Cooling Collector Temperature',
+                    'entity_id': 'kylning_kollektor',
+                    'unit_of_measurement': '°C',
+                    'min_value': 70,
+                    'max_value': 120,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Boiling Temperature',
+                    'entity_id': 'temp_kok',
+                    'unit_of_measurement': '°C',
+                    'min_value': 100,
+                    'max_value': 200,
+                    'step': 5,
+                    'icon': 'mdi:thermometer-high'
+                }
+            ]
+            
+            for number in numbers:
+                config = {
+                    "name": number['name'],
+                    "unique_id": f"solar_heating_{number['entity_id']}",
+                    "state_topic": f"homeassistant/number/solar_heating_{number['entity_id']}/state",
+                    "command_topic": f"homeassistant/number/solar_heating_{number['entity_id']}/set",
+                    "unit_of_measurement": number['unit_of_measurement'],
+                    "min": number['min_value'],
+                    "max": number['max_value'],
+                    "step": number['step'],
+                    "icon": number['icon'],
+                    "device": {
+                        "name": "Solar Heating System v3",
+                        "identifiers": ["solar_heating_v3"],
+                        "manufacturer": "Custom",
+                        "model": "Solar Heating System v3"
+                    }
+                }
+                
+                topic = f"homeassistant/number/solar_heating_{number['entity_id']}/config"
+                self.mqtt.publish(topic, config, retain=True)
+                logger.info(f"Published HA discovery for {number['name']}")
                 
         except Exception as e:
             logger.error(f"Error publishing Home Assistant discovery: {e}")
@@ -443,6 +515,14 @@ class SolarHeatingSystem:
                 self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
                 self._publish_switch_state('secondary_pump', self.system_state['secondary_pump'])
                 self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
+            
+            # Publish number states
+            if self.mqtt and self.mqtt.is_connected():
+                self._publish_number_state('set_temp_tank_1', self.control_params['set_temp_tank_1'])
+                self._publish_number_state('dTStart_tank_1', self.control_params['dTStart_tank_1'])
+                self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
+                self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
+                self._publish_number_state('temp_kok', self.control_params['temp_kok'])
             
             # Publish system status
             status_data = {
@@ -591,6 +671,27 @@ class SolarHeatingSystem:
                 
                 logger.info(f"Switch {switch_name} set to {'ON' if state else 'OFF'}")
                 
+            elif command_type == 'number_command':
+                number_name = data['number']
+                value = data['value']
+                
+                # Update control parameters
+                if number_name == 'set_temp_tank_1':
+                    self.control_params['set_temp_tank_1'] = value
+                elif number_name == 'dTStart_tank_1':
+                    self.control_params['dTStart_tank_1'] = value
+                elif number_name == 'dTStop_tank_1':
+                    self.control_params['dTStop_tank_1'] = value
+                elif number_name == 'kylning_kollektor':
+                    self.control_params['kylning_kollektor'] = value
+                elif number_name == 'temp_kok':
+                    self.control_params['temp_kok'] = value
+                
+                # Publish number state back to Home Assistant
+                self._publish_number_state(number_name, value)
+                
+                logger.info(f"Number {number_name} set to {value}")
+                
         except Exception as e:
             logger.error(f"Error handling MQTT command: {e}")
     
@@ -607,6 +708,19 @@ class SolarHeatingSystem:
             
         except Exception as e:
             logger.error(f"Error publishing switch state: {e}")
+    
+    def _publish_number_state(self, number_name: str, value: float):
+        """Publish number state to Home Assistant"""
+        try:
+            if not self.mqtt or not self.mqtt.is_connected():
+                return
+            
+            topic = f"homeassistant/number/solar_heating_{number_name}/state"
+            self.mqtt.publish_raw(topic, str(value))
+            logger.debug(f"Published number state: {number_name} = {value}")
+            
+        except Exception as e:
+            logger.error(f"Error publishing number state: {e}")
     
     async def stop(self):
         """Stop the solar heating system"""
