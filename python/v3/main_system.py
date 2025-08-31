@@ -905,6 +905,8 @@ class SolarHeatingSystem:
             logger.info("Starting MQTT status publishing...")
             # Publish individual sensors for Home Assistant
             sensor_count = 0
+            total_sensors = len(self.temperatures)
+            logger.info(f"Starting to publish {total_sensors} sensors to Home Assistant")
             for sensor_name, value in self.temperatures.items():
                 if self.mqtt and self.mqtt.is_connected():
                     # Publish to Home Assistant compatible topic
@@ -916,22 +918,31 @@ class SolarHeatingSystem:
                         message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}% to {topic}")
                         sensor_count += 1
+                        logger.info(f"Published efficiency sensor: {sensor_name} = {value}")
                     elif sensor_name == 'system_mode':
                         # For system mode, send the string value
                         message = str(value) if value is not None else "unknown"
                         logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published system mode sensor: {sensor_name} = {value}")
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
                         logger.info(f"Published {sensor_name}: {value} kWh to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published energy sensor: {sensor_name} = {value}")
                     elif sensor_name == 'average_temperature':
                         # For average temperature, send the raw number
                         message = str(value) if value is not None else "0"
                         logger.info(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published average temperature sensor: {sensor_name} = {value}")
                     else:
                         # For temperature sensors, send the raw number
                         message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published temperature sensor: {sensor_name} = {value}")
                     
                     # Send raw number, not quoted string
                     self.mqtt.publish_raw(topic, message)
