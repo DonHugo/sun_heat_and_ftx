@@ -229,6 +229,18 @@ class SolarHeatingSystem:
                     'unit_of_measurement': '°C'
                 },
                 {
+                    'name': 'Heat Exchanger In Temperature',
+                    'entity_id': 'heat_exchanger_in',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
+                    'name': 'Heat Exchanger Out Temperature',
+                    'entity_id': 'heat_exchanger_out',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C'
+                },
+                {
                     'name': 'Heat Exchanger Efficiency',
                     'entity_id': 'heat_exchanger_efficiency',
                     'device_class': None,
@@ -532,6 +544,10 @@ class SolarHeatingSystem:
             # Storage tank top/bottom (using RTD sensors for better accuracy)
             self.temperatures['storage_tank_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 6
             self.temperatures['storage_tank_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 5
+            
+            # Heat exchanger sensors (using MegaBAS sensors 1-2)
+            self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
+            self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2', 0)
             
             # Calculate heat exchanger efficiency
             avluft = self.temperatures.get('avluft', 0)
