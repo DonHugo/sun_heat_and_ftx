@@ -529,12 +529,6 @@ class SolarHeatingSystem:
                 self.temperatures[sensor_name] = temp
                 logger.debug(f"{sensor_name}: {temp}°C")
             
-            # Map specific sensors to meaningful names for backward compatibility
-            # RTD sensors (based on existing mapping)
-            self.temperatures['solar_collector'] = self.temperatures.get('rtd_sensor_5', 0)  # T1 - sensor marked I
-            self.temperatures['storage_tank'] = self.temperatures.get('rtd_sensor_6', 0)     # T2 - sensor marked II
-            self.temperatures['return_line'] = self.temperatures.get('rtd_sensor_7', 0)      # T3 - sensor marked III
-            
             # MegaBAS sensors (based on v1 mapping)
             # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
             self.temperatures['uteluft'] = self.temperatures.get('megabas_sensor_1', 0)      # sensor marked 4
