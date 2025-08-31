@@ -233,6 +233,12 @@ class SolarHeatingSystem:
                     'entity_id': 'heat_exchanger_efficiency',
                     'device_class': None,
                     'unit_of_measurement': '%'
+                },
+                {
+                    'name': 'System Mode',
+                    'entity_id': 'system_mode',
+                    'device_class': None,
+                    'unit_of_measurement': None
                 }
             ]
             
@@ -455,6 +461,10 @@ class SolarHeatingSystem:
                 effekt_varmevaxlare = round(100 - (avluft/franluft*100), 1)
                 self.temperatures['heat_exchanger_efficiency'] = effekt_varmevaxlare
                 logger.debug(f"heat_exchanger_efficiency: {effekt_varmevaxlare}%")
+            
+            # Add system mode to temperatures for Home Assistant
+            self.temperatures['system_mode'] = self.system_state.get('mode', 'unknown')
+            logger.debug(f"system_mode: {self.temperatures['system_mode']}")
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
@@ -465,6 +475,9 @@ class SolarHeatingSystem:
             # Get key temperatures
             solar_collector = self.temperatures.get('solar_collector', 0)
             storage_tank = self.temperatures.get('storage_tank', 0)
+            
+            # Update system mode based on current state
+            self._update_system_mode()
             
             # Basic control logic (simplified version)
             if solar_collector > storage_tank + self.control_params['dTStart_tank_1']:
@@ -481,6 +494,23 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
     
+    def _update_system_mode(self):
+        """Update system mode based on current state"""
+        try:
+            if self.system_state.get('test_mode', False):
+                self.system_state['mode'] = 'test'
+            elif self.system_state.get('manual_control', False):
+                self.system_state['mode'] = 'manual'
+            elif self.system_state.get('overheated', False):
+                self.system_state['mode'] = 'overheated'
+            elif self.system_state.get('primary_pump', False):
+                self.system_state['mode'] = 'heating'
+            else:
+                self.system_state['mode'] = 'standby'
+                
+        except Exception as e:
+            logger.error(f"Error updating system mode: {e}")
+    
     async def _publish_status(self):
         """Publish system status to MQTT"""
         try:
@@ -495,6 +525,10 @@ class SolarHeatingSystem:
                         # For efficiency, send the raw number
                         message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}% to {topic}")
+                    elif sensor_name == 'system_mode':
+                        # For system mode, send the string value
+                        message = str(value) if value is not None else "unknown"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
                     else:
                         # For temperature sensors, send the raw number
                         message = str(value) if value is not None else "0"
