@@ -794,6 +794,7 @@ class SolarHeatingSystem:
             solar_collector = self.temperatures.get('solar_collector', 0)
             storage_tank = self.temperatures.get('storage_tank', 0)
             dT = solar_collector - storage_tank if solar_collector and storage_tank else 0
+            logger.info("Solar collector dT calculation started")
             
             self.temperatures['solar_collector_dt_running'] = dT
             self.temperatures['solar_collector_dt'] = dT
@@ -802,10 +803,12 @@ class SolarHeatingSystem:
             self.temperatures['solar_collector_state'] = self.system_state.get('mode', 'unknown')
             self.temperatures['solar_collector_sub_state'] = "0"
             self.temperatures['solar_collector_overheated'] = "true" if self.system_state.get('overheated', False) else "false"
+            logger.info("Solar collector dT values calculated successfully")
             
             # Calculate stored energy values (matching v1 logic)
             zero_value = 4  # Temperature of water coming from well
             stored_energy = [0] * 10
+            logger.info("Stored energy calculation started")
             
             # Use RTD sensors (stack 0) for energy calculations
             for i in range(8):
@@ -834,11 +837,13 @@ class SolarHeatingSystem:
             self.temperatures['stored_energy_top_kwh'] = stored_energy_kwh[2]
             self.temperatures['stored_energy_bottom_kwh'] = stored_energy_kwh[1]
             self.temperatures['average_temperature'] = stored_energy_kwh[3]
+            logger.info("Stored energy values assigned successfully")
             
             # Debug logging for stored energy values
             logger.info(f"Stored Energy - Total: {stored_energy_kwh[0]} kWh, Top: {stored_energy_kwh[2]} kWh, Bottom: {stored_energy_kwh[1]} kWh, Avg Temp: {stored_energy_kwh[3]}°C")
             logger.debug(f"RTD sensor values: {[self.temperatures.get(f'rtd_sensor_{i}', 0) for i in range(8)]}")
             logger.debug(f"MegaBAS sensor 5: {self.temperatures.get('megabas_sensor_5', 0)}")
+            logger.info("Stored energy debug logging completed")
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
