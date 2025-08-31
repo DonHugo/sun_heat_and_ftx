@@ -357,6 +357,12 @@ class SolarHeatingSystem:
                     'device_class': None,
                     'unit_of_measurement': None
                 },
+                {
+                    'name': 'System Heating Status',
+                    'entity_id': 'is_heating',
+                    'device_class': None,
+                    'unit_of_measurement': None
+                },
                 # Solar Collector sensors
                 {
                     'name': 'Solar Collector dT Running',
@@ -801,6 +807,12 @@ class SolarHeatingSystem:
             logger.debug(f"system_mode: {self.temperatures['system_mode']}")
             logger.info("System mode added successfully")
             
+            # Calculate heating status boolean
+            is_heating = self.system_state.get('primary_pump', False) and self.system_state.get('mode') == 'heating'
+            self.temperatures['is_heating'] = is_heating
+            logger.debug(f"is_heating: {is_heating}")
+            logger.info("Heating status calculated successfully")
+            
             # Add operational metrics to temperatures
             self.temperatures['pump_runtime_hours'] = self.system_state.get('pump_runtime_hours', 0.0)
             self.temperatures['heating_cycles_count'] = self.system_state.get('heating_cycles_count', 0)
@@ -951,6 +963,12 @@ class SolarHeatingSystem:
                         logger.debug(f"Published {sensor_name}: {value} to {topic}")
                         sensor_count += 1
                         logger.info(f"Published system mode sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'is_heating':
+                        # For heating status, send the boolean value as string
+                        message = str(value).lower() if value is not None else "false"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published heating status sensor: {sensor_name} = {value}")
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
