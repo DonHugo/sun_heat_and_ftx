@@ -510,17 +510,21 @@ class SolarHeatingSystem:
             self.temperatures['storage_tank'] = self.temperatures.get('rtd_sensor_6', 0)     # T2 - sensor marked II
             self.temperatures['return_line'] = self.temperatures.get('rtd_sensor_7', 0)      # T3 - sensor marked III
             
-            # MegaBAS sensors (based on existing mapping)
-            self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
-            self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2', 0)
-            self.temperatures['storage_tank_top'] = self.temperatures.get('megabas_sensor_3', 0)
-            self.temperatures['storage_tank_bottom'] = self.temperatures.get('megabas_sensor_4', 0)
-            
-            # FTX sensors (MegaBAS inputs 1-4)
+            # MegaBAS sensors (based on v1 mapping)
+            # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
             self.temperatures['uteluft'] = self.temperatures.get('megabas_sensor_1', 0)      # sensor marked 4
             self.temperatures['avluft'] = self.temperatures.get('megabas_sensor_2', 0)       # sensor marked 5
             self.temperatures['tilluft'] = self.temperatures.get('megabas_sensor_3', 0)      # sensor marked 6
             self.temperatures['franluft'] = self.temperatures.get('megabas_sensor_4', 0)     # sensor marked 7
+            
+            # Solar collector and storage tank sensors (MegaBAS inputs 6-7) - CORRECTED to match v1
+            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - sensor marked I
+            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - sensor marked II
+            self.temperatures['return_line'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - sensor marked III
+            
+            # Storage tank top/bottom (using RTD sensors for better accuracy)
+            self.temperatures['storage_tank_top'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 6
+            self.temperatures['storage_tank_bottom'] = self.temperatures.get('rtd_sensor_4', 0)  # RTD sensor 5
             
             # Calculate heat exchanger efficiency
             avluft = self.temperatures.get('avluft', 0)
@@ -761,7 +765,7 @@ class SolarHeatingSystem:
             }
             self.mqtt.publish("sequentmicrosystems/stored_energy", json.dumps(stored_energy_msg))
             
-            # 3. FTX (Heat Exchanger) message - match v1 format exactly
+            # 3. FTX (Heat Exchanger) message - match v1 format exactl
             ftx_msg = {
                 "uteluft": round(self.temperatures.get('uteluft', 0), 1),
                 "avluft": round(self.temperatures.get('avluft', 0), 1),
