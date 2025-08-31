@@ -687,6 +687,9 @@ class SolarHeatingSystem:
             self.temperatures['water_heater_120cm'] = self.temperatures.get('rtd_sensor_6', 0)    # RTD sensor 6 - 120cm from bottom
             self.temperatures['water_heater_140cm'] = self.temperatures.get('rtd_sensor_7', 0)    # RTD sensor 7 - 140cm from bottom (hottest)
             
+            # Debug logging for water heater sensors
+            logger.debug(f"Water heater sensors: bottom={self.temperatures['water_heater_bottom']}, 20cm={self.temperatures['water_heater_20cm']}, 40cm={self.temperatures['water_heater_40cm']}, 60cm={self.temperatures['water_heater_60cm']}, 80cm={self.temperatures['water_heater_80cm']}, 100cm={self.temperatures['water_heater_100cm']}, 120cm={self.temperatures['water_heater_120cm']}, 140cm={self.temperatures['water_heater_140cm']}")
+            
             # Legacy aliases for backward compatibility
             self.temperatures['water_heater_top'] = self.temperatures['water_heater_100cm']  # Keep top alias
             
@@ -761,6 +764,9 @@ class SolarHeatingSystem:
                 self.temperatures['average_heating_duration'] = avg_heating_duration
             else:
                 self.temperatures['average_heating_duration'] = 0.0
+            
+            # Debug logging for operational metrics
+            logger.debug(f"Operational metrics: pump_runtime={self.temperatures['pump_runtime_hours']}h, cycles={self.temperatures['heating_cycles_count']}, avg_duration={self.temperatures['average_heating_duration']}h")
             
             # Calculate solar collector dT values
             solar_collector = self.temperatures.get('solar_collector', 0)
