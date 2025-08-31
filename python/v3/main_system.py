@@ -1069,6 +1069,7 @@ class SolarHeatingSystem:
                             solar_dt = self.temperatures.get('solar_collector_temp', 0) - self.temperatures.get('storage_tank_temp', 0)
                             # Rough estimate: higher dT = higher contribution
                             source_contributions['solar'] = min(1.0, max(0.1, solar_dt / 20.0))  # 0.1 to 1.0 based on dT
+                            logger.info(f"Solar heating detected: dT={solar_dt:.1f}°C, contribution={source_contributions['solar']:.2f}")
                         
                         # Check cartridge heater (relay state)
                         cartridge_active = self.system_state.get('cartridge_heater', False)
@@ -1076,6 +1077,7 @@ class SolarHeatingSystem:
                             active_heat_sources.append('cartridge')
                             # Cartridge heater typically provides consistent heating
                             source_contributions['cartridge'] = 0.8  # Assume 80% of energy when active
+                            logger.info(f"Cartridge heater detected: ON, contribution={source_contributions['cartridge']:.2f}")
                         
                         # Check pellet furnace (we'll need to add a sensor for this)
                         # For now, assume pellet furnace if no other source is active but energy is increasing
@@ -1083,6 +1085,13 @@ class SolarHeatingSystem:
                         if pellet_active:
                             active_heat_sources.append('pellet')
                             source_contributions['pellet'] = 1.0  # Assume 100% when no other source
+                            logger.info(f"Pellet furnace detected: assumed active, contribution={source_contributions['pellet']:.2f}")
+                        
+                        # Log heat source detection
+                        if active_heat_sources:
+                            logger.info(f"Active heat sources: {active_heat_sources}")
+                        else:
+                            logger.info("No active heat sources detected")
                         
                         # If multiple sources active, use weighted allocation
                         if len(active_heat_sources) > 1:
@@ -1160,6 +1169,13 @@ class SolarHeatingSystem:
                     self.system_state['primary_pump'] = False
                     self.system_state['overheated'] = True
                     logger.warning(f"Emergency pump stop: Collector temperature {solar_collector}°C >= {self.control_params['temp_kok']}°C")
+            
+            # Detect unexpected heating at night (cartridge heater running when it shouldn't be)
+            if (not self.system_state.get('primary_pump', False) and  # Pump not running
+                dT > 10 and  # Significant temperature difference
+                self.system_state.get('cartridge_heater', False)):  # Cartridge heater is on
+                logger.warning(f"Cartridge heater running at night: dT={dT:.1f}°C, collector={solar_collector}°C, tank={storage_tank}°C")
+                logger.info("This explains the unexpected heat source - cartridge heater is active")
             
             # Normal control logic
             elif dT >= self.control_params['dTStart_tank_1']:  # dT >= 8°C

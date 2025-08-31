@@ -41,10 +41,7 @@ class MQTTHandler:
     def connect(self) -> bool:
         """Connect to MQTT broker"""
         try:
-            self.client = mqtt_client.Client(
-                client_id=self.client_id,
-                callback_api_version=mqtt_client.CallbackAPIVersion.VERSION1
-            )
+            self.client = mqtt_client.Client(client_id=self.client_id)
             self.client.username_pw_set(self.username, self.password)
             self.client.on_connect = self._on_connect
             self.client.on_disconnect = self._on_disconnect
@@ -118,9 +115,13 @@ class MQTTHandler:
     def _subscribe_to_topics(self):
         """Subscribe to MQTT topics"""
         topics = [
-            # Home Assistant control topics
+            # Home Assistant control topics (both old and new format)
             f"{mqtt_topics.hass_base}/+/control",
             f"{mqtt_topics.hass_base}/+/set",
+            
+            # Home Assistant discovery format topics
+            "homeassistant/switch/+/set",
+            "homeassistant/number/+/set",
             
             # System control topics
             f"{mqtt_topics.control_base}/+",
@@ -225,13 +226,14 @@ class MQTTHandler:
             
             # Extract switch name from topic
             # topic format: homeassistant/switch/solar_heating_{switch_name}/set
-            switch_name = topic.split('/')[3]
+            full_name = topic.split('/')[2]
+            switch_name = full_name.replace('solar_heating_', '')
             
             # Map switch names to relay numbers
             switch_mapping = {
                 'primary_pump': 1,
                 'secondary_pump': 2,
-                'cartridge_heater': 1  # Same as primary pump for now
+                'cartridge_heater': 2  # Cartridge heater uses relay 2
             }
             
             if switch_name in switch_mapping:
@@ -247,6 +249,8 @@ class MQTTHandler:
                     })
                 else:
                     logger.warning("No system callback registered for switch commands")
+            else:
+                logger.warning(f"Switch '{switch_name}' not found in mapping: {list(switch_mapping.keys())}")
                     
         except Exception as e:
             logger.error(f"Error handling switch command: {e}")
@@ -258,7 +262,8 @@ class MQTTHandler:
             
             # Extract number name from topic
             # topic format: homeassistant/number/solar_heating_{number_name}/set
-            number_name = topic.split('/')[3]
+            full_name = topic.split('/')[2]
+            number_name = full_name.replace('solar_heating_', '')
             
             # Convert payload to float
             try:
