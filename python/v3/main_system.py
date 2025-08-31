@@ -143,6 +143,7 @@ class SolarHeatingSystem:
     async def _publish_hass_discovery(self):
         """Publish Home Assistant discovery configuration for all sensors"""
         try:
+            logger.info("Starting Home Assistant discovery configuration...")
             # Define sensor configurations
             sensors = []
             
@@ -460,7 +461,10 @@ class SolarHeatingSystem:
             
             sensors.extend(named_sensors)
             
+            logger.info(f"Publishing discovery for {len(sensors)} sensors...")
+            
             # Publish discovery configuration for each sensor
+            discovery_count = 0
             for sensor in sensors:
                 config = {
                     "name": sensor['name'],
@@ -494,8 +498,11 @@ class SolarHeatingSystem:
                 success = self.mqtt.publish(topic, config, retain=True)
                 if success:
                     logger.info(f"Published HA discovery for {sensor['name']} to {topic}")
+                    discovery_count += 1
                 else:
                     logger.error(f"Failed to publish HA discovery for {sensor['name']} to {topic}")
+            
+            logger.info(f"Published discovery for {discovery_count} sensors successfully")
             
             # Publish switch discovery configurations
             switches = [
