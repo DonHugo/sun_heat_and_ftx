@@ -684,8 +684,10 @@ class SolarHeatingSystem:
             self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
             self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
             self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
+            logger.info("Solar collector sensors mapped successfully")
             
             logger.debug("Starting water heater sensor mapping...")
+            logger.info("About to map water heater sensors...")
             # All water heater RTD sensors with height-based naming
             self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_0', 0)    # RTD sensor 0 - 0cm from bottom (coldest)
             self.temperatures['water_heater_20cm'] = self.temperatures.get('rtd_sensor_1', 0)     # RTD sensor 1 - 20cm from bottom
@@ -695,12 +697,15 @@ class SolarHeatingSystem:
             self.temperatures['water_heater_100cm'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5 - 100cm from bottom
             self.temperatures['water_heater_120cm'] = self.temperatures.get('rtd_sensor_6', 0)    # RTD sensor 6 - 120cm from bottom
             self.temperatures['water_heater_140cm'] = self.temperatures.get('rtd_sensor_7', 0)    # RTD sensor 7 - 140cm from bottom (hottest)
+            logger.info("Water heater RTD sensors mapped successfully")
             
             # Debug logging for water heater sensors
             logger.debug(f"Water heater sensors: bottom={self.temperatures['water_heater_bottom']}, 20cm={self.temperatures['water_heater_20cm']}, 40cm={self.temperatures['water_heater_40cm']}, 60cm={self.temperatures['water_heater_60cm']}, 80cm={self.temperatures['water_heater_80cm']}, 100cm={self.temperatures['water_heater_100cm']}, 120cm={self.temperatures['water_heater_120cm']}, 140cm={self.temperatures['water_heater_140cm']}")
+            logger.info("Water heater debug logging completed")
             
             # Legacy aliases for backward compatibility
             self.temperatures['water_heater_top'] = self.temperatures['water_heater_100cm']  # Keep top alias
+            logger.info("Legacy aliases mapped successfully")
             
             # Keep backward compatibility aliases
             self.temperatures['uteluft'] = self.temperatures['outdoor_air_temp']
@@ -712,6 +717,7 @@ class SolarHeatingSystem:
             self.temperatures['return_line'] = self.temperatures['return_line_temp']
             self.temperatures['storage_tank_top'] = self.temperatures['water_heater_top']
             self.temperatures['storage_tank_bottom'] = self.temperatures['water_heater_bottom']
+            logger.info("Backward compatibility aliases mapped successfully")
             
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
             self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
