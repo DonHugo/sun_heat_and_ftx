@@ -902,7 +902,9 @@ class SolarHeatingSystem:
     async def _publish_status(self):
         """Publish system status to MQTT"""
         try:
+            logger.info("Starting MQTT status publishing...")
             # Publish individual sensors for Home Assistant
+            sensor_count = 0
             for sensor_name, value in self.temperatures.items():
                 if self.mqtt and self.mqtt.is_connected():
                     # Publish to Home Assistant compatible topic
@@ -913,6 +915,7 @@ class SolarHeatingSystem:
                         # For efficiency, send the raw number
                         message = str(value) if value is not None else "0"
                         logger.debug(f"Published {sensor_name}: {value}% to {topic}")
+                        sensor_count += 1
                     elif sensor_name == 'system_mode':
                         # For system mode, send the string value
                         message = str(value) if value is not None else "unknown"
@@ -933,26 +936,34 @@ class SolarHeatingSystem:
                     # Send raw number, not quoted string
                     self.mqtt.publish_raw(topic, message)
             
+            logger.info(f"Published {sensor_count} sensors to Home Assistant")
+            
             # ===== V1 COMPATIBILITY SECTION - START =====
             # This section publishes v1-style messages for backward compatibility
             # These messages can be safely removed when v1 is no longer needed
             # To remove: Delete this line and the entire _publish_v1_parallel_messages method below
+            logger.info("Starting v1 compatibility message publishing...")
             await self._publish_v1_parallel_messages()
+            logger.info("Completed v1 compatibility message publishing")
             # ===== V1 COMPATIBILITY SECTION - END =====
             
             # Publish switch states
             if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing switch states...")
                 self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
                 self._publish_switch_state('secondary_pump', self.system_state['secondary_pump'])
                 self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
+                logger.info("Switch states published successfully")
             
             # Publish number states
             if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing number states...")
                 self._publish_number_state('set_temp_tank_1', self.control_params['set_temp_tank_1'])
                 self._publish_number_state('dTStart_tank_1', self.control_params['dTStart_tank_1'])
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                logger.info("Number states published successfully")
             
             # Publish system status
             status_data = {
@@ -962,7 +973,9 @@ class SolarHeatingSystem:
             }
             
             if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing system status...")
                 self.mqtt.publish_status(status_data)
+                logger.info("System status published successfully")
                 
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
