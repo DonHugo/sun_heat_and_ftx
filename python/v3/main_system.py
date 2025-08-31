@@ -102,11 +102,18 @@ class SolarHeatingSystem:
             
             # Initialize system state
             self.system_state = {
+                'mode': 'startup',
                 'primary_pump': False,
                 'secondary_pump': False,
                 'cartridge_heater': False,
                 'test_mode': config.test_mode,
-                'manual_control': False
+                'manual_control': False,
+                'overheated': False,
+                'last_update': time.time(),
+                'pump_runtime_hours': 0.0,
+                'heating_cycles_count': 0,
+                'last_pump_start': None,
+                'total_heating_time': 0.0
             }
             
             # Initialize control parameters
