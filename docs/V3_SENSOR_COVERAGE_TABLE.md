@@ -94,6 +94,8 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 |-----------|----------|-------------|---------|
 | `realtime_energy_rate_kw` | `solar_heating_v3/status/realtime_energy_sensor` | Real-time energy rate in kW | 🆕 **NEW** |
 | `realtime_temp_rate_per_hour` | `solar_heating_v3/status/realtime_energy_sensor` | Temperature change rate °C/h | 🆕 **NEW** |
+| `energy_change_rate_kw` | `homeassistant/sensor/solar_heating_energy_change_rate_kw/state` | Energy change rate (kW) | 🆕 **NEW** |
+| `temperature_change_rate_c_h` | `homeassistant/sensor/solar_heating_temperature_change_rate_c_h/state` | Temperature change rate (°C/h) | 🆕 **NEW** |
 | `energy_efficiency_index` | `solar_heating_v3/status/realtime_energy_sensor` | Energy efficiency index % | 🆕 **NEW** |
 | `system_performance_score` | `solar_heating_v3/status/realtime_energy_sensor` | System performance score /100 | 🆕 **NEW** |
 | `water_usage_rate_kw` | `solar_heating_v3/status/realtime_energy_sensor` | Water usage rate in kW | 🆕 **NEW** |
