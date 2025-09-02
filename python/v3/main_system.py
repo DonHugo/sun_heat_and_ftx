@@ -755,6 +755,9 @@ class SolarHeatingSystem:
             
             logger.info(f"Published discovery for {discovery_count} regular sensors successfully")
             
+            # Remove legacy secondary pump entity from Home Assistant
+            self._remove_legacy_entities()
+            
             # Publish binary sensor discovery configurations
             logger.info(f"Publishing discovery for {len(binary_sensors)} binary sensors...")
             binary_discovery_count = 0
@@ -898,6 +901,38 @@ class SolarHeatingSystem:
             logger.error(f"Error publishing Home Assistant discovery: {e}")
             import traceback
             logger.error(f"Discovery error traceback: {traceback.format_exc()}")
+    
+    def _remove_legacy_entities(self):
+        """Remove legacy entities that are no longer used in v3"""
+        try:
+            if self.mqtt and self.mqtt.is_connected():
+                # Remove secondary pump entity
+                secondary_pump_config = {
+                    "name": "Secondary Pump (Removed)",
+                    "unique_id": "solar_heating_v3_secondary_pump",
+                    "state_topic": f"homeassistant/switch/solar_heating_secondary_pump/state",
+                    "command_topic": f"homeassistant/switch/solar_heating_secondary_pump/set",
+                    "icon": "mdi:pump-off",
+                    "device": {
+                        "name": "Solar Heating System v3",
+                        "identifiers": ["solar_heating_v3"],
+                        "manufacturer": "Custom",
+                        "model": "Solar Heating System v3"
+                    }
+                }
+                
+                # Publish removal message (empty config removes the entity)
+                topic = "homeassistant/switch/solar_heating_secondary_pump/config"
+                self.mqtt.publish(topic, "", retain=True)
+                logger.info("Published secondary pump removal message to Home Assistant")
+                
+                # Also remove any state topics
+                state_topic = "homeassistant/switch/solar_heating_secondary_pump/state"
+                self.mqtt.publish_raw(state_topic, "")
+                logger.info("Cleared secondary pump state topic")
+                
+        except Exception as e:
+            logger.error(f"Error removing legacy entities: {e}")
         finally:
             logger.info("=== HOME ASSISTANT DISCOVERY COMPLETED ===")
     
@@ -1813,7 +1848,6 @@ class SolarHeatingSystem:
         # Stop pumps
         if self.hardware:
             self.hardware.set_relay_state(1, False)  # Primary pump
-            self.hardware.set_relay_state(2, False)  # Secondary pump
         
         # Disconnect MQTT
         if self.mqtt and self.mqtt.is_connected():
