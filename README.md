@@ -1,101 +1,113 @@
-# sun_heat_and_ftx
+# Solar Heating System & TaskMaster AI
 
-## TaskMaster AI Integration
+A comprehensive solar heating system with intelligent task management and real-time energy monitoring.
 
-This project now includes TaskMaster AI integration for intelligent task management and system optimization. See [README_TASKMASTER.md](README_TASKMASTER.md) for detailed documentation.
+## 🏗️ **Project Structure**
 
-### Quick Start with TaskMaster AI
+```
+/
+├── 📚 docs/           - System documentation and Home Assistant configs
+├── 🚀 python/         - Python implementation (v1, v2, v3, deployment)
+├── ⚡ taskmaster/     - TaskMaster AI integration system
+├── ⚙️ config/         - Configuration files and examples
+├── 🏠 .vscode/        - VS Code development settings
+├── 🖱️ .cursor/        - Cursor IDE settings
+└── 🐍 .venv/          - Python virtual environment
+```
+
+## 🎯 **Quick Start**
+
+### **Solar Heating System (v3 - Recommended):**
+```bash
+cd python/v3
+source venv/bin/activate  # If virtual environment exists
+python3 main_system.py
+```
+
+### **TaskMaster AI Integration:**
+```bash
+cd taskmaster
+pip install -r ../config/requirements.txt
+python taskmaster_demo.py
+```
+
+### **Deployment to Raspberry Pi:**
+```bash
+cd python/deployment
+chmod +x deploy_to_pi.sh
+./deploy_to_pi.sh
+```
+
+## 📚 **Documentation**
+
+- **System Setup**: See `docs/HOME_ASSISTANT_SETUP.md`
+- **Real-time Energy**: See `docs/REALTIME_ENERGY_SENSOR_SETUP.md`
+- **TaskMaster AI**: See `taskmaster/README_TASKMASTER.md`
+- **Python Implementation**: See `python/README.md`
+- **Deployment**: See `python/deployment/README.md`
+
+## 🔧 **Hardware Requirements**
+
+### **Sequent Microsystems Boards:**
+- **RTD Data Acquisition**: Temperature sensors
+- **Building Automation V4**: MegaBAS control
+- **Four Relays + HV Inputs**: Relay control
+
+### **Installation Commands:**
+```bash
+# RTD Data Acquisition
+sudo apt-get install build-essential python-pip python-dev python-smbus git
+git clone https://github.com/SequentMicrosystems/rtd-rpi.git
+cd rtd-rpi/python/rtd/
+sudo python3 setup.py install
+
+# Building Automation V4
+sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
+git clone https://github.com/SequentMicrosystems/megabas-rpi.git
+cd megabas-rpi/python/
+sudo python3 setup.py install
+
+# Four Relays + HV Inputs
+sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
+git clone https://github.com/SequentMicrosystems/4relind-rpi.git
+cd 4relind-rpi/python/4relind/
+sudo python3 setup.py install
+```
+
+## 📦 **Python Dependencies**
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp env.example .env
-# Edit .env with your TaskMaster AI API key
-
-# Run the demo
-python taskmaster_demo.py
-
-# Run integration with existing system
-python integrate_with_existing.py
+pip3 install statistics numpy paho-mqtt
 ```
 
-## install software for sequentmicrosystems boards
+## 🚀 **System Status**
 
-### RTD Data Acquisition:
-```
-https://sequentmicrosystems.com/pages/rtd-data-acquisition-downloads
-```
-```
-~$ sudo apt-get update
-~$ sudo apt-get install build-essential python-pip python-dev python-smbus git
-~$ git clone https://github.com/SequentMicrosystems/rtd-rpi.git
-~$ cd rtd-rpi/python/rtd/
-~/rtd-rpi/python/rtd$ sudo python3 setup.py install
-```
-### Building Automation V4 
-```
-https://sequentmicrosystems.com/pages/building-automation-downloads
-```
-```
-~$ sudo apt-get update
-~$ sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
-~$ git clone https://github.com/SequentMicrosystems/megabas-rpi.git
-~$ cd megabas-rpi/python/
-~/megabas-rpi/python$ sudo python3 setup.py install
-```
-### Four Relays four HV Inputs 
-```
-https://sequentmicrosystems.com/pages/four-relays-four-inputs-downloads
-```
-```
-~$ sudo apt-get update
-~$ sudo apt-get install build-essential python3-pip python3-dev python3-smbus git
-~$ git clone https://github.com/SequentMicrosystems/4relind-rpi.git
-~$ cd 4relind-rpi/python/4relind/
-~/4relind-rpi/python/4relind$ sudo python3 setup.py install
-```
-## pypi:
-```
-pip3 install statistics
-pip3 install numpy
-pip3 install paho-mqtt
+- **v1 System**: ❌ DEPRECATED (moved to `python/v1/`)
+- **v2 System**: ❌ DEPRECATED (moved to `python/v2/`)
+- **v3 System**: ✅ ACTIVE (production ready)
+- **TaskMaster AI**: ✅ ACTIVE (integrated)
+- **Home Assistant**: ✅ FULLY INTEGRATED
+- **Real-time Energy**: ✅ IMPLEMENTED
 
-```
-## Application
+## 🔄 **Recent Updates**
 
-### installation
-copy this file to /etc/systemd/system/
-```
-sudo cp temperature_monitoring.service /etc/systemd/system/
-```
-### usage
-start the service
-```
-sudo systemctl start temperature_monitoring.service
-```
-stop the service
-```
-sudo systemctl stop temperature_monitoring.service        
-```
-restart the servic
-```
-sudo systemctl restart temperature_monitoring.service       
-```
-Get the current status of the service
-```
-sudo systemctl status temperature_monitoring.service      
-```
-enable the service to start automatically at boot
-```
-sudo systemctl enable temperature_monitoring.service
-```
-disable automatic start at boot
-```
-sudo systemctl disable temperature_monitoring.service     
-```
-Make sure to reload systemd after making any changes to the service file
-```
-sudo systemctl daemon-reload                              
-```
+- ✅ **Legacy sensors removed** (32 sensors eliminated)
+- ✅ **Repository reorganized** (clear folder structure)
+- ✅ **v3 system optimized** (clean, focused codebase)
+- ✅ **Documentation updated** (comprehensive guides)
+- ✅ **Deployment scripts** (organized and updated)
+
+## 📖 **Getting Started**
+
+1. **Read the documentation** in `docs/` folder
+2. **Set up configuration** from `config/` examples
+3. **Deploy v3 system** using `python/deployment/` scripts
+4. **Configure Home Assistant** using `docs/` configurations
+5. **Integrate TaskMaster AI** from `taskmaster/` folder
+
+## 🆘 **Support**
+
+- **Solar Heating**: See `python/v3/README.md`
+- **TaskMaster AI**: See `taskmaster/README_TASKMASTER.md`
+- **Deployment**: See `python/deployment/README.md`
+- **Documentation**: See `docs/README.md`
