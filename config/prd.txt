@@ -228,6 +228,32 @@ FR-016: The system shall implement comprehensive health monitoring
 - System service status monitoring
 - Automatic health check execution every 10 seconds
 
+3.8 Heartbeat and Uptime Monitoring
+-----------------------------------
+FR-021: The system shall implement continuous heartbeat monitoring
+- Publish heartbeat messages every 30 seconds to solar_heating_v3/heartbeat topic
+- Include system status, pump states, temperature count, and uptime information
+- Ensure heartbeat messages are not retained (real-time only)
+- Provide heartbeat message format with JSON payload including status, timestamp, version, and system metrics
+
+FR-022: The system shall provide uptime monitoring capabilities
+- Enable external monitoring systems (e.g., Uptime Kuma) to track system health
+- Support MQTT-based uptime monitoring for real-time status tracking
+- Provide system state information through heartbeat messages
+- Enable immediate detection of system failures or communication issues
+
+FR-023: The system shall implement heartbeat-based health reporting
+- Include primary pump status in heartbeat messages
+- Include cartridge heater status in heartbeat messages
+- Include temperature sensor count and system mode
+- Provide timestamp and uptime information for monitoring accuracy
+
+FR-024: The system shall support heartbeat integration with monitoring platforms
+- Enable Uptime Kuma MQTT monitoring integration
+- Support external monitoring system connectivity
+- Provide real-time system health status
+- Enable immediate alerting for system failures
+
 FR-017: The system shall provide automated failure detection
 - Network connectivity failure detection
 - MQTT communication failure detection
@@ -435,6 +461,10 @@ TR-001: Component Testing
 - MQTT communication health detection
 - System service status monitoring
 - Alert system functionality and timing
+- Heartbeat message generation and publishing accuracy
+- Heartbeat message format and content validation
+- Uptime monitoring integration testing
+- External monitoring platform connectivity testing
 
 8.2 Integration Testing
 -----------------------
@@ -503,6 +533,9 @@ MR-003: Data Protection
 - Watchdog monitoring accuracy: > 99.5%
 - Health check response time: < 10 seconds
 - Alert generation time: < 30 seconds after failure detection
+- Heartbeat message frequency: Every 30 seconds ±2 seconds
+- Heartbeat message delivery reliability: > 99.9%
+- Uptime monitoring response time: < 60 seconds
 
 10.2 Efficiency Improvements
 ----------------------------
