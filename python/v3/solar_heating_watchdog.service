@@ -1,0 +1,27 @@
+[Unit]
+Description=Solar Heating System v3 Watchdog
+After=network.target mqtt.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/solar_heating/python/v3
+ExecStart=/usr/bin/python3 /home/pi/solar_heating/python/v3/watchdog.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/home/pi/solar_heating/python/v3
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log
+
+[Install]
+WantedBy=multi-user.target
