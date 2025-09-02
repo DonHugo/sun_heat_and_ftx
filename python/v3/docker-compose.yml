@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  solar-heating-v3:
+    build: .
+    container_name: solar_heating_v3
+    restart: unless-stopped
+    environment:
+      # TaskMaster AI Configuration
+      - SOLAR_TASKMASTER_ENABLED=true
+      - SOLAR_TASKMASTER_API_KEY=${TASKMASTER_API_KEY:-}
+      - SOLAR_TASKMASTER_BASE_URL=${TASKMASTER_BASE_URL:-https://api.taskmaster.ai}
+      
+      # System Configuration
+      - SOLAR_TEST_MODE=false
+      - SOLAR_DEBUG_MODE=false
+      - SOLAR_LOG_LEVEL=info
+      
+      # MQTT Configuration
+      - SOLAR_MQTT_BROKER=${MQTT_BROKER:-192.168.0.110}
+      - SOLAR_MQTT_PORT=${MQTT_PORT:-1883}
+      - SOLAR_MQTT_USERNAME=${MQTT_USERNAME:-mqtt_beaches}
+      - SOLAR_MQTT_PASSWORD=${MQTT_PASSWORD:-uQX6NiZ.7R}
+      
+      # Hardware Configuration
+      - SOLAR_HARDWARE_PLATFORM=raspberry_pi_zero_2_w
+      - SOLAR_RTD_BOARD_ADDRESS=0
+      - SOLAR_MEGABAS_BOARD_ADDRESS=3
+      - SOLAR_RELAY_BOARD_ADDRESS=2
+      
+      # Temperature Thresholds
+      - SOLAR_TEMPERATURE_THRESHOLD_HIGH=80.0
+      - SOLAR_TEMPERATURE_THRESHOLD_LOW=20.0
+      - SOLAR_TEMPERATURE_UPDATE_INTERVAL=30
+      
+      # Solar Collector Configuration
+      - SOLAR_SET_TEMP_TANK_1=70.0
+      - SOLAR_DTSTART_TANK_1=8.0
+      - SOLAR_DTSTOP_TANK_1=4.0
+      - SOLAR_KYLNING_KOLLEKTOR=90.0
+      - SOLAR_TEMP_KOK=150.0
+      
+      # Performance Configuration
+      - SOLAR_MAX_CONCURRENT_TASKS=5
+      - SOLAR_AI_ANALYSIS_INTERVAL=3600
+      
+    volumes:
+      # Mount logs directory
+      - ./logs:/app/logs
+      
+      # Mount configuration (optional)
+      - ./config:/app/config
+      
+    networks:
+      - solar_network
+      
+    # For hardware access on Raspberry Pi
+    privileged: true
+    devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/spidev0.0:/dev/spidev0.0
+      
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  solar_network:
+    driver: bridge
