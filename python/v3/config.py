@@ -68,6 +68,12 @@ class SystemConfig(BaseModel):
     max_concurrent_tasks: int = Field(default=5, description="Maximum concurrent tasks")
     ai_analysis_interval: int = Field(default=3600, description="AI analysis interval in seconds")
     
+    # Rate of Change Sensor Configuration
+    rate_time_window: str = Field(default="medium", description="Rate calculation time window (fast/medium/slow)")
+    rate_smoothing: str = Field(default="exponential", description="Rate smoothing method (raw/simple/exponential)")
+    rate_update_interval: int = Field(default=30, description="Rate calculation interval in seconds")
+    rate_smoothing_alpha: float = Field(default=0.3, description="Exponential smoothing factor (0.1-0.9)")
+    
     class Config:
         env_file = ".env"
         env_prefix = "SOLAR_"
