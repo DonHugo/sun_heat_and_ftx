@@ -50,7 +50,6 @@ class HardwareInterface:
         # Simulation relay states
         self.simulation_relays = {
             1: False,  # Primary pump
-            2: False,  # Secondary pump
             3: False,  # Cartridge heater
             4: False,  # Test switch
         }

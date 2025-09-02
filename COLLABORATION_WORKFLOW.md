@@ -14,24 +14,32 @@ We follow a structured approach to ensure we build exactly what you need:
    - What problems you're trying to solve
    - What outcomes you expect
 
-2. **Open Discussion**
+2. **Documentation Review & PRD Update** 📋
+   - **Check all existing documentation** to understand current system state
+   - **Review PRD** to see what's already implemented vs. what's planned
+   - **Identify gaps** between documentation and actual implementation
+   - **Update PRD** to reflect current system capabilities and new requirements
+   - **Document new requirements** that emerge during discussions
+   - **Ensure PRD mirrors** what is done, what is left, and what is newly discovered
+
+3. **Open Discussion**
    - We explore different approaches
    - Discuss trade-offs and alternatives
    - Consider existing system constraints
    - Identify potential challenges
 
-3. **Clarification & Questions**
+4. **Clarification & Questions**
    - I ask clarifying questions to understand your needs
    - We discuss technical details and options
    - Make sure we're on the same page
 
-4. **Solution Planning**
+5. **Solution Planning**
    - Outline the proposed approach
    - Define what will be built
    - Identify integration points
    - Plan implementation steps
 
-5. **Agreement & Approval**
+6. **Agreement & Approval**
    - Confirm the approach meets your needs
    - Get your approval before any coding begins
    - Set expectations for timeline and deliverables
@@ -93,11 +101,14 @@ When you have a new requirement, please include:
 
 ### **Good Example:**
 1. **You:** "I want to monitor water usage patterns to detect leaks"
-2. **Discussion:** We talk about different approaches (flow sensors, pressure monitoring, usage patterns)
-3. **Clarification:** I ask about your existing sensors, what constitutes a "leak", etc.
-4. **Planning:** We agree on monitoring usage patterns and alerting on unusual spikes
-5. **Approval:** You confirm this approach works for you
-6. **Implementation:** I build the leak detection system
+2. **Documentation Review:** I check existing docs and PRD to understand current system capabilities
+3. **PRD Update:** Update PRD to reflect current state and add new leak detection requirements
+4. **Discussion:** We talk about different approaches (flow sensors, pressure monitoring, usage patterns)
+5. **Clarification:** I ask about your existing sensors, what constitutes a "leak", etc.
+6. **Planning:** We agree on monitoring usage patterns and alerting on unusual spikes
+7. **Approval:** You confirm this approach works for you
+8. **Implementation:** I build the leak detection system
+9. **Documentation Update:** Update all relevant docs and PRD to reflect the new feature
 
 ### **What We Avoid:**
 - Jumping straight into coding without understanding requirements
@@ -114,6 +125,19 @@ When you have a new requirement, please include:
 - **Testing Strategy**: How we'll verify it works
 - **User Guide**: How to use the new feature
 
+### **Documentation Maintenance:**
+- **Update Existing Docs**: All existing documentation and manuals must be updated if necessary
+- **Cross-Reference**: Ensure new features are properly referenced in relevant existing docs
+- **Version Control**: Keep track of which documentation versions apply to which system versions
+- **Consistency Check**: Verify that all documentation remains consistent and accurate
+
+### **PRD Maintenance Requirements:**
+- **Current State Reflection**: PRD must accurately reflect what is currently implemented
+- **Gap Identification**: Document what is planned vs. what is actually built
+- **New Requirements Capture**: Document any new requirements discovered during discussions
+- **Status Updates**: Keep track of implementation progress and completion status
+- **Version Alignment**: Ensure PRD version matches current system implementation
+
 ### **File Naming:**
 - `REQUIREMENTS_[feature_name].md` - Requirements and discussion
 - `DESIGN_[feature_name].md` - Technical design
@@ -127,7 +151,30 @@ A successful collaboration means:
 - ✅ No wasted time on wrong solutions
 - ✅ Clear understanding of what was built
 - ✅ Easy to maintain and extend
+- ✅ All existing documentation and manuals are updated as necessary
+- ✅ PRD accurately reflects current system state and requirements
+- ✅ Documentation gaps are identified and addressed
+- ✅ New requirements discovered during discussions are captured
 - ✅ Both of us are satisfied with the process
+
+## 📋 **Ongoing Documentation Maintenance**
+
+### **Before Each New Feature Discussion:**
+- **Review Current Documentation**: Check all existing docs to understand current system state
+- **PRD Status Check**: Verify PRD reflects what's implemented vs. what's planned
+- **Gap Analysis**: Identify any discrepancies between docs and actual implementation
+- **Update PRD**: Ensure PRD mirrors current reality before adding new requirements
+
+### **During Feature Discussions:**
+- **Capture New Requirements**: Document any new requirements that emerge
+- **Update PRD**: Add new requirements to PRD as they are discovered
+- **Track Changes**: Note what needs to be updated in existing documentation
+
+### **After Feature Implementation:**
+- **Update All Docs**: Ensure all relevant documentation reflects the new feature
+- **PRD Completion**: Mark requirements as implemented in PRD
+- **Cross-Reference**: Update related documentation to reference new features
+- **Version Alignment**: Ensure documentation versions match system implementation
 
 ## 📞 **When to Break the Process**
 
@@ -135,6 +182,8 @@ The only times we might skip the full discussion:
 - **Bug fixes**: Quick fixes for obvious issues
 - **Minor tweaks**: Small adjustments to existing features
 - **Emergency fixes**: Critical system issues
+
+**Important**: Even for quick fixes, we still perform the **Documentation Review & PRD Update** phase to ensure all documentation remains accurate and up-to-date.
 
 But even then, we'll discuss the approach briefly before implementing.
 

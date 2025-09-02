@@ -157,7 +157,6 @@ Here are additional calculated values that would provide valuable insights for m
 | v1 Name | v3 Name | Relay ID | Description |
 |---------|---------|----------|-------------|
 | - | primary_pump | 1 | Primary Pump Control |
-| - | secondary_pump | 2 | Secondary Pump Control |
 | - | cartridge_heater | 3 | Cartridge Heater Control |
 | - | test_switch | 4 | Test Switch Control |
 
@@ -229,11 +228,13 @@ This shows a clear temperature gradient from 26.2°C at the bottom to 70.6°C at
 **Important Note**: There is some confusion in the mapping of T1, T2, and T3 sensors. Based on the temperature readings and physical layout:
 
 ### Correct v3 Mapping (MegaBAS-based):
+
 - **T1 (solar_collector)**: megabas_sensor_6
 - **T2 (storage_tank)**: megabas_sensor_7
 - **T3 (return_line)**: megabas_sensor_8
 
 ### Previous Incorrect Mapping (RTD-based):
+
 - **T1 (solar_collector)**: rtd_sensor_5 (~100cm from bottom)
 - **T2 (storage_tank)**: rtd_sensor_6 (~120cm from bottom) 
 - **T3 (return_line)**: rtd_sensor_7 (~140cm from bottom, top of water heater)

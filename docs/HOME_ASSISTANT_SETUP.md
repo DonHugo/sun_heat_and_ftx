@@ -104,7 +104,7 @@ mqtt:
 ### System State
 - `sensor.solar_heating_v3_system_mode` - System mode (normal, manual, overheated, error, maintenance)
 - `switch.solar_heating_v3_primary_pump` - Primary pump control
-- `switch.solar_heating_v3_secondary_pump` - Secondary pump control
+
 - `switch.solar_heating_v3_cartridge_heater` - Cartridge heater control
 - `switch.solar_heating_v3_test_switch` - Test switch control
 
