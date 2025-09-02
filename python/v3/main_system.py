@@ -20,6 +20,7 @@ try:
     from config import config, pump_config
     from hardware_interface import HardwareInterface
     from mqtt_handler import MQTTHandler
+    from taskmaster_service import taskmaster_service
 except ImportError as e:
     print(f"Error importing modules: {e}")
     print("Make sure you're running from the v3 directory")
@@ -187,6 +188,16 @@ class SolarHeatingSystem:
             # Test hardware
             hardware_test = self.hardware.test_hardware_connection()
             logger.info(f"Hardware test results: {hardware_test}")
+            
+            # Initialize TaskMaster AI service (FR-008)
+            if config.taskmaster_enabled:
+                try:
+                    await taskmaster_service.initialize()
+                    logger.info("TaskMaster AI service initialized successfully")
+                except Exception as e:
+                    logger.error(f"Failed to initialize TaskMaster AI service: {str(e)}")
+            else:
+                logger.info("TaskMaster AI service disabled in configuration")
             
             logger.info("Solar Heating System v3 (System-Wide) started successfully")
             logger.info("Starting background tasks...")
@@ -945,6 +956,26 @@ class SolarHeatingSystem:
             # Calculate sensor health score
             valid_sensors = 0
             total_sensors = 0
+            
+            # Process temperature data with TaskMaster AI (FR-008)
+            if config.taskmaster_enabled:
+                try:
+                    # Create a clean temperature data dictionary for TaskMaster
+                    taskmaster_temp_data = {
+                        'solar_collector': self.temperatures.get('solar_collector_temp', 0),
+                        'storage_tank': self.temperatures.get('storage_tank_temp', 0),
+                        'return_line': self.temperatures.get('return_line_temp', 0),
+                        'water_heater_bottom': self.temperatures.get('water_heater_bottom', 0),
+                        'water_heater_top': self.temperatures.get('water_heater_top', 0),
+                        'outdoor_air': self.temperatures.get('outdoor_air_temp', 0),
+                        'heat_exchanger_in': self.temperatures.get('heat_exchanger_in', 0),
+                        'heat_exchanger_out': self.temperatures.get('heat_exchanger_out', 0)
+                    }
+                    
+                    await taskmaster_service.process_temperature_data(taskmaster_temp_data)
+                    logger.debug("Temperature data processed by TaskMaster AI service")
+                except Exception as e:
+                    logger.error(f"Error processing temperature data with TaskMaster AI: {str(e)}")
             for sensor_name, temp in self.temperatures.items():
                 if 'rtd_sensor_' in sensor_name or 'megabas_sensor_' in sensor_name:
                     total_sensors += 1
@@ -1357,6 +1388,18 @@ class SolarHeatingSystem:
                     self.system_state['last_pump_start'] = time.time()
                     self.system_state['heating_cycles_count'] += 1
                     logger.info(f"Primary pump started. dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C. Cycle #{self.system_state['heating_cycles_count']}")
+                    
+                    # Create TaskMaster AI task for pump control (FR-008)
+                    if config.taskmaster_enabled:
+                        try:
+                            await taskmaster_service.process_pump_control("start", {
+                                "reason": "temperature_difference",
+                                "dT": dT,
+                                "threshold": self.control_params['dTStart_tank_1'],
+                                "cycle_number": self.system_state['heating_cycles_count']
+                            })
+                        except Exception as e:
+                            logger.error(f"Error creating TaskMaster AI pump control task: {str(e)}")
             
             elif dT <= self.control_params['dTStop_tank_1']:  # dT <= 4°C
                 if self.system_state['primary_pump']:
@@ -1368,6 +1411,19 @@ class SolarHeatingSystem:
                         self.system_state['total_heating_time'] += cycle_runtime
                         self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
                         logger.info(f"Primary pump stopped. dT={dT:.1f}°C <= {self.control_params['dTStop_tank_1']}°C. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
+                        
+                        # Create TaskMaster AI task for pump control (FR-008)
+                        if config.taskmaster_enabled:
+                            try:
+                                await taskmaster_service.process_pump_control("stop", {
+                                    "reason": "temperature_difference",
+                                    "dT": dT,
+                                    "threshold": self.control_params['dTStop_tank_1'],
+                                    "cycle_runtime": cycle_runtime,
+                                    "total_runtime": self.system_state['pump_runtime_hours']
+                                })
+                            except Exception as e:
+                                logger.error(f"Error creating TaskMaster AI pump control task: {str(e)}")
                     else:
                         logger.warning("Primary pump stopped but last_pump_start was None - runtime not calculated")
             
@@ -1497,6 +1553,21 @@ class SolarHeatingSystem:
                 self.mqtt.publish_realtime_energy_sensor(self.temperatures)
                 logger.info("Real-time energy sensor published successfully")
                 
+                # Process system status with TaskMaster AI (FR-008)
+                if config.taskmaster_enabled:
+                    try:
+                        system_status = {
+                            'mode': self.system_state.get('mode', 'unknown'),
+                            'primary_pump': self.system_state.get('primary_pump', False),
+                            'pump_runtime_hours': self.system_state.get('pump_runtime_hours', 0),
+                            'heating_cycles_count': self.system_state.get('heating_cycles_count', 0),
+                            'uptime': time.time() - self.system_state.get('last_update', time.time()),
+                            'temperatures': self.temperatures
+                        }
+                        await taskmaster_service.process_system_status(system_status)
+                    except Exception as e:
+                        logger.error(f"Error processing system status with TaskMaster AI: {str(e)}")
+                
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
     
@@ -1619,6 +1690,14 @@ class SolarHeatingSystem:
         # Disconnect MQTT
         if self.mqtt and self.mqtt.is_connected():
             self.mqtt.disconnect()
+        
+        # Cleanup TaskMaster AI service (FR-008)
+        if config.taskmaster_enabled:
+            try:
+                await taskmaster_service.cleanup()
+                logger.info("TaskMaster AI service cleaned up")
+            except Exception as e:
+                logger.error(f"Error cleaning up TaskMaster AI service: {str(e)}")
         
         logger.info("Solar Heating System v3 stopped")
 
