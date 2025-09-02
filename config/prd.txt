@@ -220,6 +220,64 @@ FR-015: The system shall provide monitoring thru Home assistant(MQTT)
 - Historical data visualization
 - Task management interface
 
+3.7 System Monitoring and Watchdog
+----------------------------------
+FR-016: The system shall implement comprehensive health monitoring
+- Network connectivity monitoring (ping 8.8.8.8, 1.1.1.1, 192.168.0.1)
+- MQTT communication health monitoring
+- System service status monitoring
+- Automatic health check execution every 10 seconds
+
+3.8 Heartbeat and Uptime Monitoring
+-----------------------------------
+FR-021: The system shall implement continuous heartbeat monitoring
+- Publish heartbeat messages every 30 seconds to solar_heating_v3/heartbeat topic
+- Include system status, pump states, temperature count, and uptime information
+- Ensure heartbeat messages are not retained (real-time only)
+- Provide heartbeat message format with JSON payload including status, timestamp, version, and system metrics
+
+FR-022: The system shall provide uptime monitoring capabilities
+- Enable external monitoring systems (e.g., Uptime Kuma) to track system health
+- Support MQTT-based uptime monitoring for real-time status tracking
+- Provide system state information through heartbeat messages
+- Enable immediate detection of system failures or communication issues
+
+FR-023: The system shall implement heartbeat-based health reporting
+- Include primary pump status in heartbeat messages
+- Include cartridge heater status in heartbeat messages
+- Include temperature sensor count and system mode
+- Provide timestamp and uptime information for monitoring accuracy
+
+FR-024: The system shall support heartbeat integration with monitoring platforms
+- Enable Uptime Kuma MQTT monitoring integration
+- Support external monitoring system connectivity
+- Provide real-time system health status
+- Enable immediate alerting for system failures
+
+FR-017: The system shall provide automated failure detection
+- Network connectivity failure detection
+- MQTT communication failure detection
+- System service failure detection
+- Configurable failure thresholds (default: 3 consecutive failures)
+
+FR-018: The system shall implement intelligent alerting system
+- MQTT alert publishing to solar_heating_v3/heartbeat/alert topic
+- Configurable alert intervals (default: 5 minutes between alerts)
+- Comprehensive alert message format with system status details
+- Automatic alert suppression to prevent notification spam
+
+FR-019: The system shall provide automatic recovery monitoring
+- System recovery detection and logging
+- Failure count reset on successful recovery
+- Continuous monitoring during recovery periods
+- Performance tracking and trend analysis
+
+FR-020: The system shall ensure high availability monitoring
+- 24/7 continuous health monitoring
+- Automatic restart on system reboot
+- Systemd service integration for reliable operation
+- Comprehensive logging for troubleshooting and analysis
+
 4. NON-FUNCTIONAL REQUIREMENTS
 ==============================
 
@@ -338,6 +396,9 @@ IR-004: MQTT Integration
 - Subscribe to control commands
 - System status broadcasting
 - Error and alert messaging
+- Heartbeat monitoring and health status
+- Watchdog alert publishing
+- System health status broadcasting
 
 IR-005: Database Integration
 - InfluxDB for time-series data
@@ -375,6 +436,9 @@ DR-004: Service Configuration
 - Automatic startup configuration
 - Log rotation settings
 - Backup configuration
+- Watchdog service installation and configuration
+- Health monitoring service setup
+- Alert system configuration
 
 8. TESTING REQUIREMENTS
 ========================
@@ -392,6 +456,15 @@ TR-001: Component Testing
 - Safety monitoring functionality
 - Energy efficiency calculation accuracy
 - Predictive maintenance algorithm testing
+- Watchdog system health monitoring accuracy
+- Network connectivity monitoring precision
+- MQTT communication health detection
+- System service status monitoring
+- Alert system functionality and timing
+- Heartbeat message generation and publishing accuracy
+- Heartbeat message format and content validation
+- Uptime monitoring integration testing
+- External monitoring platform connectivity testing
 
 8.2 Integration Testing
 -----------------------
@@ -433,6 +506,12 @@ MR-002: Monitoring and Alerting
 - Performance metric tracking
 - Automated alert generation
 - Incident response procedures
+- Watchdog system health monitoring
+- Network connectivity monitoring
+- MQTT communication health monitoring
+- System service status monitoring
+- Automatic failure detection and alerting
+- System recovery monitoring and logging
 
 9.2 Backup and Recovery
 -----------------------
@@ -451,6 +530,12 @@ MR-003: Data Protection
 - Temperature reading accuracy: ±0.5°C
 - Task execution success rate: > 95%
 - API response time: < 1 second
+- Watchdog monitoring accuracy: > 99.5%
+- Health check response time: < 10 seconds
+- Alert generation time: < 30 seconds after failure detection
+- Heartbeat message frequency: Every 30 seconds ±2 seconds
+- Heartbeat message delivery reliability: > 99.9%
+- Uptime monitoring response time: < 60 seconds
 
 10.2 Efficiency Improvements
 ----------------------------
@@ -505,6 +590,11 @@ MR-003: Data Protection
 - Predictive temperature and energy forecasting
 - Advanced safety monitoring and alerting systems
 - Comprehensive operational efficiency analytics
+- Advanced watchdog analytics and machine learning
+- Predictive failure detection and prevention
+- Enhanced alerting and notification systems
+- Integration with external monitoring platforms
+- Advanced health scoring and trend analysis
 
 12.2 Scalability Plans
 ----------------------
