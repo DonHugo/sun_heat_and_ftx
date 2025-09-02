@@ -1,6 +1,6 @@
 #!/bin/bash
-# Solar Heating System Deployment Script for Raspberry Pi
-# This script sets up both v1 and v3 systems on the Raspberry Pi
+# Solar Heating System v3 Deployment Script for Raspberry Pi
+# This script sets up the v3 system on the Raspberry Pi
 
 set -e  # Exit on any error
 
@@ -42,23 +42,9 @@ echo "⚠️  Please update the repository URL below and uncomment the git clone
 echo "   Or if repository already exists, pull latest changes:"
 echo "   cd $PROJECT_DIR && git pull origin main"
 
-# Set up v1 system
-echo "🔧 Setting up v1 system..."
-if [ -f "$PROJECT_DIR/python/temperature_monitoring.py" ]; then
-    sudo cp "$PROJECT_DIR/python/temperature_monitoring.py" /usr/local/bin/
-    sudo chmod +x /usr/local/bin/temperature_monitoring.py
-    
-    if [ -f "$PROJECT_DIR/python/temperature_monitoring.service" ]; then
-        sudo cp "$PROJECT_DIR/python/temperature_monitoring.service" /etc/systemd/system/
-        sudo systemctl daemon-reload
-        sudo systemctl enable temperature_monitoring.service
-        echo "✅ v1 system configured"
-    else
-        echo "⚠️  v1 service file not found"
-    fi
-else
-    echo "❌ v1 system file not found"
-fi
+# Note: v1 system has been removed - only v3 is supported
+echo "ℹ️  v1 system has been removed from this repository"
+echo "   Only v3 system is supported and will be configured"
 
 # Set up v3 system
 echo "🔧 Setting up v3 system..."
@@ -87,7 +73,7 @@ Type=simple
 User=pi
 WorkingDirectory=$PROJECT_DIR/python/v3
 Environment=PATH=$PROJECT_DIR/python/v3/venv/bin
-ExecStart=$PROJECT_DIR/python/v3/venv/bin/python3 main.py
+ExecStart=$PROJECT_DIR/python/v3/venv/bin/python3 main_system.py
 Restart=always
 RestartSec=10
 
