@@ -1457,13 +1457,7 @@ class SolarHeatingSystem:
             logger.info(f"Published {sensor_count} sensors to Home Assistant")
             
             # ===== V1 COMPATIBILITY SECTION - START =====
-            # This section publishes v1-style messages for backward compatibility
-            # These messages can be safely removed when v1 is no longer needed
-            # To remove: Delete this line and the entire _publish_v1_parallel_messages method below
-            logger.info("Starting v1 compatibility message publishing...")
-            await self._publish_v1_parallel_messages()
-            logger.info("Completed v1 compatibility message publishing")
-            # ===== V1 COMPATIBILITY SECTION - END =====
+            # Legacy v1 compatibility removed - system now uses v3 sensors only
             
             # Publish switch states
             if self.mqtt and self.mqtt.is_connected():
@@ -1505,126 +1499,9 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
     
-    # ===== V1 COMPATIBILITY METHOD - START =====
-    # This method publishes v1-style MQTT messages for backward compatibility
-    # 
-    # V1 MQTT Topics being replicated:
-    # - sequentmicrosystems/sequentmicrosystems_{stack}_{sensor} (individual sensors)
-    # - sequentmicrosystems/stored_energy (energy calculations)
-    # - sequentmicrosystems/ftx (heat exchanger efficiency)
-    # - sequentmicrosystems/suncollector (solar collector temperature)
-    # - sequentmicrosystems/cartridge_heater (relay 1 status)
-    # - sequentmicrosystems/test_switch (test mode status)
-    #
-    # To remove this method:
-    # 1. Delete this entire method (from this comment to the end of the method)
-    # 2. Remove the call to this method in _publish_status above
-    # 3. Remove the "V1 COMPATIBILITY SECTION" comments in _publish_status
-    async def _publish_v1_parallel_messages(self):
-        """Publish v1-style parallel messages for compatibility"""
-        try:
-            if not self.mqtt or not self.mqtt.is_connected():
-                return
-                
-            # 1. Individual sensor messages (sequentmicrosystems/sequentmicrosystems_{stack}_{sensor})
-            for stack in range(4):  # 4 stacks
-                for sensor in range(8):  # 8 sensors per stack
-                    if stack == 0:  # RTD stack
-                        temp = self.temperatures.get(f'rtd_sensor_{sensor}', 0)
-                    elif stack == 3:  # MegaBAS stack
-                        temp = self.temperatures.get(f'megabas_sensor_{sensor + 1}', 0)
-                    else:
-                        temp = 0  # Other stacks not used
-                    
-                    if temp != 0 and temp is not None:  # Only publish if we have a valid temperature
-                        sensor_name = f"sequentmicrosystems_{stack + 1}_{sensor + 1}"
-                        topic = f"sequentmicrosystems/{sensor_name}"
-                        msg_dict = {
-                            "name": sensor_name,
-                            "temperature": round(temp, 1)
-                        }
-                        self.mqtt.publish(topic, json.dumps(msg_dict))
-            
-            # 2. Stored energy calculation (matching v1 logic)
-            zero_value = 4  # Temperature of water coming from well
-            stored_energy = [0] * 10
-            
-            # Use RTD sensors (stack 0) for energy calculations
-            for i in range(8):
-                temp = self.temperatures.get(f'rtd_sensor_{i}', 0)
-                if temp is not None:
-                    stored_energy[i] = ((temp - zero_value) * 35)
-                else:
-                    stored_energy[i] = 0
-            
-            # Add MegaBAS input 5 (sensor 5) - handle None value
-            megabas_5 = self.temperatures.get('megabas_sensor_5', 0)
-            if megabas_5 is not None:
-                stored_energy[8] = ((megabas_5 - zero_value) * 35)
-            else:
-                stored_energy[8] = 0
-            
-            # Calculate energy values
-            stored_energy_kwh = [
-                round(sum(stored_energy) * 4200 / 1000 / 3600, 2),  # Total
-                round(sum(stored_energy[:5]) * 4200 / 1000 / 3600, 2),  # Bottom
-                round(sum(stored_energy[5:]) * 4200 / 1000 / 3600, 2),  # Top
-                round(sum([self.temperatures.get(f'rtd_sensor_{i}', 0) or 0 for i in range(8)]) / 8, 1)  # Average temp
-            ]
-            
-            # Publish stored energy
-            stored_energy_msg = {
-                "name": "stored_energy",
-                "stored_energy_kwh": stored_energy_kwh[0],
-                "stored_energy_top_kwh": stored_energy_kwh[2],
-                "stored_energy_bottom_kwh": stored_energy_kwh[1],
-                "average_temperature": stored_energy_kwh[3]
-            }
-            self.mqtt.publish("sequentmicrosystems/stored_energy", json.dumps(stored_energy_msg))
-            
-            # 3. FTX (Heat Exchanger) message - match v1 format exactl
-            ftx_msg = {
-                "uteluft": round(self.temperatures.get('uteluft', 0), 1),
-                "avluft": round(self.temperatures.get('avluft', 0), 1),
-                "tilluft": round(self.temperatures.get('tilluft', 0), 1),
-                "franluft": round(self.temperatures.get('franluft', 0), 1),
-                "effekt_varmevaxlare": round(self.temperatures.get('heat_exchanger_efficiency', 0), 1)
-            }
-            self.mqtt.publish("sequentmicrosystems/ftx", json.dumps(ftx_msg))
-            
-            # 4. Sun collector message - match v1 format exactly
-            solar_collector = self.temperatures.get('solar_collector', 0)
-            storage_tank = self.temperatures.get('storage_tank', 0)
-            dT = solar_collector - storage_tank if solar_collector and storage_tank else 0
-            
-            suncollector_msg = {
-                "dT_running": dT,
-                "dT": dT,
-                "pump": "ON" if self.system_state.get('primary_pump', False) else "OFF",
-                "mode": self.system_state.get('mode', 'unknown'),
-                "state": self.system_state.get('mode', 'unknown'),
-                "sub_state": "0",
-                "overheated": "true" if self.system_state.get('overheated', False) else "false"
-            }
-            self.mqtt.publish("sequentmicrosystems/suncollector", json.dumps(suncollector_msg))
-            
-            # 5. Test mode message - match v1 format exactly
-            test_mode_msg = {
-                "test_mode": "true" if self.system_state.get('test_mode', False) else "false",
-                "log_level": config.log_level
-            }
-            self.mqtt.publish("sequentmicrosystems/test_mode", json.dumps(test_mode_msg))
-            
-            # 6. Test switch status - match v1 format exactly
-            test_switch_msg = {
-                "switch_status": "on" if self.system_state.get('test_mode', False) else "off"
-            }
-            self.mqtt.publish("sequentmicrosystems/test_switch", json.dumps(test_switch_msg))
-            
-        except Exception as e:
-            logger.error(f"Error publishing v1 parallel messages: {e}")
-    
-    # ===== V1 COMPATIBILITY METHOD - END =====
+
+
+
     
     def _handle_mqtt_command(self, command_type: str, data: Dict[str, Any]):
         """Handle MQTT commands from Home Assistant"""
@@ -1682,16 +1559,7 @@ class SolarHeatingSystem:
                 
                 logger.info(f"Number {number_name} set to {value}")
                 
-            elif command_type == 'v1_test_switch_command':
-                state = data['state']
-                
-                # Update test mode state
-                self.system_state['test_mode'] = state
-                
-                # Update system mode
-                self._update_system_mode()
-                
-                logger.info(f"v1 test switch set to {'ON' if state else 'OFF'}")
+
             
             elif command_type == 'pellet_stove_data':
                 sensor = data['sensor']
