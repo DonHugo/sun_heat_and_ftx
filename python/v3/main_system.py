@@ -189,14 +189,15 @@ class SolarHeatingSystem:
             logger.info(f"Hardware test results: {hardware_test}")
             
             logger.info("Solar Heating System v3 (System-Wide) started successfully")
-            logger.info("Starting main control loop...")
+            logger.info("Starting background tasks...")
             
-            # Start main control loop
+            # Start background tasks
             self.running = True
+            await self._start_background_tasks()
+            
+            # Main control loop (simplified since background tasks handle the rest)
             while self.running:
-                await self._read_temperatures()
                 await self._process_control_logic()
-                await self._publish_status()
                 await asyncio.sleep(config.temperature_update_interval)
                 
         except Exception as e:
@@ -1620,6 +1621,66 @@ class SolarHeatingSystem:
             self.mqtt.disconnect()
         
         logger.info("Solar Heating System v3 stopped")
+
+    async def _start_background_tasks(self):
+        """Start background tasks"""
+        logger.info("Starting background tasks...")
+        
+        # Start temperature monitoring task
+        self.temperature_task = asyncio.create_task(self._temperature_monitoring_loop())
+        
+        # Start status publishing task
+        self.status_task = asyncio.create_task(self._status_publishing_loop())
+        
+        # Start heartbeat task for uptime monitoring
+        self.heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+        
+        logger.info("Background tasks started successfully")
+    
+    async def _temperature_monitoring_loop(self):
+        """Temperature monitoring loop"""
+        while self.running:
+            try:
+                await self._read_temperatures()
+                await asyncio.sleep(config.temperature_update_interval)
+            except Exception as e:
+                logger.error(f"Error in temperature monitoring loop: {e}")
+                await asyncio.sleep(10)  # Wait before retrying
+    
+    async def _status_publishing_loop(self):
+        """Status publishing loop"""
+        while self.running:
+            try:
+                await self._publish_status()
+                await asyncio.sleep(60)  # Publish status every minute
+            except Exception as e:
+                logger.error(f"Error in status publishing loop: {e}")
+                await asyncio.sleep(10)  # Wait before retrying
+    
+    async def _heartbeat_loop(self):
+        """Heartbeat loop for uptime monitoring"""
+        while self.running:
+            try:
+                if self.mqtt and self.mqtt.is_connected():
+                    # Get basic system info for heartbeat
+                    system_info = {
+                        "system_state": self.system_state.get('mode', 'unknown'),
+                        "primary_pump": self.system_state.get('primary_pump', False),
+                        "cartridge_heater": self.system_state.get('cartridge_heater', False),
+                        "temperature_count": len(self.temperatures),
+                        "last_update": time.time()
+                    }
+                    
+                    self.mqtt.publish_heartbeat(system_info)
+                    logger.debug("Heartbeat published successfully")
+                else:
+                    logger.warning("Cannot publish heartbeat: MQTT not connected")
+                
+                await asyncio.sleep(30)  # Send heartbeat every 30 seconds
+                
+            except Exception as e:
+                logger.error(f"Error in heartbeat loop: {e}")
+                await asyncio.sleep(10)  # Wait before retrying
 
 async def main():
     """Main entry point"""
