@@ -61,6 +61,13 @@
    - Updated removal process to show COMPLETED
    - Added completion summary
 
+### **Directories Removed:**
+1. **`node_red/`** (entire directory)
+   - Removed legacy Node-RED flows
+   - Removed old solfångare logic
+   - Removed test and production flows
+   - **Space saved**: ~60KB
+
 ## ✅ **What Remains (v3 Sensors)**
 
 **All functionality is preserved through v3 sensors:**
