@@ -47,7 +47,7 @@ The system's primary purpose is to **maximize solar energy collection while main
 
 ### **5. Professional Monitoring** 📊
 - **Real-time Logging**: Comprehensive logging with configurable levels
-- **Performance Metrics**: Energy calculations, efficiency tracking, and cost analysis
+- **Performance Metrics**: Accurate energy calculations (0-36 kWh for 360L tank), efficiency tracking, and cost analysis
 - **Alert System**: Immediate notification of issues and warnings
 - **Historical Data**: Long-term performance tracking and trend analysis
 
@@ -349,6 +349,15 @@ The Solar Heating v3 system has **comprehensive documentation**:
 - **Open Architecture**: Standard protocols and extensible design
 - **Comprehensive Testing**: Built-in testing and validation tools
 - **Professional Quality**: Enterprise-level features and reliability
+
+## 🔧 **Recent Updates**
+
+### **Energy Calculation Fix (Latest)**
+- **Issue Resolved**: Fixed unrealistic energy values (800+ kWh) that were showing in the dashboard
+- **Root Cause**: Incorrect calculation multiplier (`* 35`) in the energy calculation algorithm
+- **Solution Applied**: Replaced arbitrary multiplier with proper physics calculations for 360L tank
+- **Result**: Energy values now show realistic range (0-36 kWh) based on actual tank volume and water properties
+- **Validation**: Added energy range validation to prevent future calculation errors
 
 ## 🎉 **Conclusion**
 

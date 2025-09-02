@@ -864,6 +864,56 @@ class Watchdog:
             self.logger.error(f"Failed to publish restart notification: {e}")
 ```
 
+## 🔋 **Energy Calculation Implementation**
+
+### **Stored Energy Calculation**
+
+The system calculates stored energy using proper physics for a 360L water tank:
+
+```python
+# Calculate stored energy values using proper physics for 360L tank
+zero_value = 4  # Temperature of water coming from well (4°C)
+tank_volume_liters = 360  # Tank volume
+tank_volume_kg = tank_volume_liters  # 1 liter of water = 1 kg
+specific_heat_capacity = 4.2  # kJ/kg°C for water
+
+# Calculate energy per sensor based on temperature difference and proportional volume
+# Each sensor represents roughly 40L of water (360L / 9 sensors)
+volume_per_sensor_liters = tank_volume_liters / 9
+volume_per_sensor_kg = volume_per_sensor_liters
+
+# Energy = mass × specific_heat × temperature_difference
+energy_kj = volume_per_sensor_kg * specific_heat_capacity * (temp - zero_value)
+
+# Convert to kWh: (kJ) / 3600
+stored_energy_kwh = round(sum(stored_energy) / 3600, 2)
+```
+
+### **Energy Range Validation**
+
+The system validates energy calculations against realistic limits:
+
+```python
+# Log expected energy range for 360L tank (4°C to 90°C = max ~36 kWh)
+max_expected_energy = round((tank_volume_kg * specific_heat_capacity * (90 - zero_value)) / 3600, 2)
+if stored_energy_kwh[0] > max_expected_energy * 1.1:  # Allow 10% tolerance
+    logger.warning(f"⚠️  Stored energy ({stored_energy_kwh[0]} kWh) exceeds expected maximum ({max_expected_energy} kWh) for {tank_volume_liters}L tank!")
+else:
+    logger.info(f"✅ Energy calculation within expected range: {stored_energy_kwh[0]} kWh (max expected: {max_expected_energy} kWh)")
+```
+
+### **Previous Issue and Fix**
+
+**Problem**: The original calculation used an incorrect multiplier (`* 35`) that resulted in unrealistic energy values (800+ kWh).
+
+**Solution**: Replaced the arbitrary multiplier with proper physics calculations based on:
+- Actual tank volume (360L)
+- Water specific heat capacity (4.2 kJ/kg°C)
+- Temperature difference from well water (4°C)
+- Proper unit conversion (kJ to kWh)
+
+**Result**: Energy values now show realistic range (0-36 kWh) for a 360L tank.
+
 ## 🔗 **Related Documentation**
 
 - **[Requirements Document](REQUIREMENTS_SOLAR_HEATING_V3.md)** - What we built and why

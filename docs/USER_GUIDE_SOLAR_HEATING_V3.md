@@ -361,12 +361,21 @@ SOLAR_RTD_CALIBRATION_1_SCALE=1.0
 
 #### **Energy Calculations**
 
-The system automatically calculates:
+The system automatically calculates stored energy using proper physics for your 360L tank:
 
-- **Heat Energy**: Energy transferred to water
-- **Pump Energy**: Energy consumed by pumps
-- **Efficiency**: Overall system efficiency
-- **Cost Savings**: Estimated cost savings vs. electric heating
+- **Stored Energy**: Total energy stored in water (0-36 kWh range)
+- **Top Section Energy**: Energy in upper tank section
+- **Bottom Section Energy**: Energy in lower tank section
+- **Energy Collection Rate**: Rate of energy gain (kWh/hour)
+- **Daily Energy Collected**: Total energy collected today
+- **Heat Source Breakdown**: Solar, cartridge heater, and pellet furnace contributions
+
+**Energy Range for 360L Tank:**
+- **Empty tank (4°C)**: 0 kWh
+- **Half full (47°C)**: ~18 kWh
+- **Full tank (90°C)**: ~36 kWh
+
+**Note**: Previous versions showed unrealistic values (800+ kWh) due to incorrect calculation multipliers. This has been fixed to use proper physics.
 
 #### **Energy Dashboard**
 

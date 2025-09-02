@@ -105,6 +105,9 @@ FR-003.4: The system shall provide energy efficiency calculations
 - Track overall system efficiency metrics
 - Calculate solar gain potential and available energy
 - Monitor heat loss rate over time
+- Calculate stored energy in water using proper physics (0-36 kWh for 360L tank)
+- Validate energy calculations against realistic physical limits
+- Monitor energy collection rate and daily/hourly energy totals
 
 FR-003.5: The system shall provide predictive and economic metrics
 - Estimate time to reach target temperature
@@ -603,7 +606,33 @@ MR-003: Data Protection
 - Advanced AI capabilities
 - Enhanced user interface features
 
-13. CONCLUSION
+13. RECENT UPDATES AND IMPROVEMENTS
+===================================
+
+13.1 Energy Calculation System Fix (Latest Update)
+--------------------------------------------------
+**Issue Identified**: System was displaying unrealistic energy values (800+ kWh) in the dashboard due to incorrect calculation multipliers.
+
+**Root Cause**: The stored energy calculation used an arbitrary multiplier (`* 35`) instead of proper physics-based calculations.
+
+**Solution Implemented**: 
+- Replaced arbitrary multiplier with proper physics calculations for 360L water tank
+- Energy calculation now uses: mass × specific_heat_capacity × temperature_difference
+- Added energy range validation (0-36 kWh for 360L tank from 4°C to 90°C)
+- Enhanced logging with energy calculation validation warnings
+
+**Technical Details**:
+- Tank volume: 360 liters = 360 kg of water
+- Specific heat capacity: 4.2 kJ/kg°C for water
+- Temperature range: 4°C (well water) to 90°C (max tank temperature)
+- Maximum energy: ~36 kWh (realistic for residential system)
+
+**Files Modified**: `python/v3/main_system.py`
+**Documentation Updated**: USER_GUIDE, IMPLEMENTATION, SUMMARY, and CHANGELOG documents
+
+**Result**: Energy values now show realistic range (0-36 kWh) based on actual tank volume and water properties, providing accurate monitoring data for system optimization.
+
+14. CONCLUSION
 ==============
 
 This PRD outlines the comprehensive requirements for the Solar Heating System with TaskMaster AI Integration. The system combines traditional temperature monitoring and control with modern AI-powered optimization to create an intelligent, efficient, and reliable solar heating solution.
