@@ -1175,11 +1175,150 @@ class SolarHeatingSystem:
             self.temperatures['solar_energy_hour_kwh'] = round(self.system_state.get('solar_energy_hour', 0.0), 2)
             self.temperatures['cartridge_energy_hour_kwh'] = round(self.system_state.get('cartridge_energy_hour', 0.0), 2)
             self.temperatures['pellet_energy_hour_kwh'] = round(self.system_state.get('pellet_energy_hour', 0.0), 2)
+            
+            # Calculate real-time energy rate sensor (kW) and comparison metrics
+            self._calculate_realtime_energy_sensor()
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
         finally:
             logger.debug("Completed _read_temperatures method")
+    
+    def _calculate_realtime_energy_sensor(self):
+        """Calculate real-time energy rate sensor with comparison metrics"""
+        try:
+            current_time = time.time()
+            current_stored_energy = self.temperatures.get('stored_energy_kwh', 0)
+            current_avg_temp = self.temperatures.get('average_temperature', 0)
+            
+            # Get historical data for rate calculations
+            last_time = self.system_state.get('last_energy_rate_calculation', current_time)
+            last_stored_energy = self.system_state.get('last_stored_energy_for_rate', current_stored_energy)
+            last_avg_temp = self.system_state.get('last_avg_temp_for_rate', current_avg_temp)
+            
+            # Calculate time difference (minimum 30 seconds to avoid division by zero)
+            time_diff = max(current_time - last_time, 30)
+            
+            # Calculate energy rate (kW) - energy change per second converted to kW
+            energy_diff = current_stored_energy - last_stored_energy
+            energy_rate_kw = (energy_diff / time_diff) * 3600  # Convert to kW (kWh/hour)
+            
+            # Calculate temperature change rate (°C/hour)
+            temp_diff = current_avg_temp - last_avg_temp
+            temp_rate_per_hour = (temp_diff / time_diff) * 3600  # °C/hour
+            
+            # Calculate efficiency metrics
+            # Efficiency = energy gained / (average temperature * time)
+            efficiency_factor = 0
+            if current_avg_temp > 0 and time_diff > 0:
+                # Normalize efficiency based on temperature and time
+                efficiency_factor = energy_rate_kw / max(current_avg_temp, 1)  # kW/°C
+            
+            # Calculate comparison metrics
+            # 1. Energy rate vs average temperature ratio
+            energy_temp_ratio = energy_rate_kw / max(current_avg_temp, 1) if current_avg_temp > 0 else 0
+            
+            # 2. Energy rate vs total stored energy ratio
+            energy_total_ratio = energy_rate_kw / max(current_stored_energy, 1) if current_stored_energy > 0 else 0
+            
+            # 3. Temperature change vs average temperature ratio
+            temp_change_ratio = temp_rate_per_hour / max(current_avg_temp, 1) if current_avg_temp > 0 else 0
+            
+            # 4. Energy efficiency index (0-100 scale)
+            # Based on how much energy is gained relative to current temperature
+            efficiency_index = min(100, max(0, efficiency_factor * 10))  # Scale to 0-100
+            
+            # Store calculated values
+            self.temperatures['realtime_energy_rate_kw'] = round(energy_rate_kw, 3)
+            self.temperatures['realtime_temp_rate_per_hour'] = round(temp_rate_per_hour, 2)
+            self.temperatures['energy_efficiency_factor'] = round(efficiency_factor, 4)
+            self.temperatures['energy_temp_ratio'] = round(energy_temp_ratio, 4)
+            self.temperatures['energy_total_ratio'] = round(energy_total_ratio, 4)
+            self.temperatures['temp_change_ratio'] = round(temp_change_ratio, 4)
+            self.temperatures['energy_efficiency_index'] = round(efficiency_index, 1)
+            
+            # Calculate trend indicators
+            # Positive trend = energy increasing (heating), negative = decreasing (water usage/cooling)
+            if energy_rate_kw > 0.01:
+                energy_trend = "heating"
+            elif energy_rate_kw < -0.01:
+                energy_trend = "water_usage"
+            else:
+                energy_trend = "stable"
+                
+            if temp_rate_per_hour > 0.1:
+                temp_trend = "heating"
+            elif temp_rate_per_hour < -0.1:
+                temp_trend = "cooling"
+            else:
+                temp_trend = "stable"
+            
+            self.temperatures['energy_trend'] = energy_trend
+            self.temperatures['temperature_trend'] = temp_trend
+            
+            # Calculate water usage metrics
+            water_usage_rate_kw = abs(energy_rate_kw) if energy_rate_kw < 0 else 0
+            water_usage_intensity = "none"
+            if water_usage_rate_kw > 0:
+                if water_usage_rate_kw < 0.5:
+                    water_usage_intensity = "light"
+                elif water_usage_rate_kw < 1.5:
+                    water_usage_intensity = "moderate"
+                elif water_usage_rate_kw < 3.0:
+                    water_usage_intensity = "heavy"
+                else:
+                    water_usage_intensity = "very_heavy"
+            
+            self.temperatures['water_usage_rate_kw'] = round(water_usage_rate_kw, 3)
+            self.temperatures['water_usage_intensity'] = water_usage_intensity
+            
+            # Calculate performance score (0-100)
+            # Based on energy rate, efficiency, and temperature stability
+            performance_score = 0
+            
+            if energy_rate_kw > 0:  # Positive energy gain (heating)
+                performance_score += 40  # Base score for positive energy
+                performance_score += min(30, energy_rate_kw * 10)  # Bonus for higher rate (max 30)
+                performance_score += min(20, efficiency_index / 5)  # Bonus for efficiency (max 20)
+                performance_score += min(10, 10 - abs(temp_rate_per_hour))  # Bonus for stable temperature (max 10)
+            elif energy_rate_kw < 0:  # Negative energy (water usage)
+                # Water usage is normal - score based on usage rate and system recovery
+                usage_rate = abs(energy_rate_kw)
+                if usage_rate < 1.0:  # Light usage
+                    performance_score = 70  # Good - normal light usage
+                elif usage_rate < 2.5:  # Moderate usage
+                    performance_score = 60  # Normal - moderate usage
+                else:  # Heavy usage
+                    performance_score = 50  # Acceptable - heavy usage
+                
+                # Bonus for efficient water usage (not too rapid cooling)
+                if abs(temp_rate_per_hour) < 2.0:
+                    performance_score += 10  # Bonus for controlled usage
+            else:  # Stable (no change)
+                performance_score = 50  # Neutral - system stable
+            
+            self.temperatures['system_performance_score'] = round(performance_score, 1)
+            
+            # Update historical data for next calculation
+            self.system_state['last_energy_rate_calculation'] = current_time
+            self.system_state['last_stored_energy_for_rate'] = current_stored_energy
+            self.system_state['last_avg_temp_for_rate'] = current_avg_temp
+            
+            logger.info(f"Real-time energy sensor: {energy_rate_kw:.3f} kW, temp rate: {temp_rate_per_hour:.2f}°C/h, efficiency: {efficiency_index:.1f}%, performance: {performance_score:.1f}")
+            
+        except Exception as e:
+            logger.error(f"Error calculating real-time energy sensor: {e}")
+            # Set default values on error
+            self.temperatures['realtime_energy_rate_kw'] = 0.0
+            self.temperatures['realtime_temp_rate_per_hour'] = 0.0
+            self.temperatures['energy_efficiency_factor'] = 0.0
+            self.temperatures['energy_temp_ratio'] = 0.0
+            self.temperatures['energy_total_ratio'] = 0.0
+            self.temperatures['temp_change_ratio'] = 0.0
+            self.temperatures['energy_efficiency_index'] = 0.0
+            self.temperatures['energy_trend'] = "unknown"
+            self.temperatures['temperature_trend'] = "unknown"
+            self.temperatures['system_performance_score'] = 0.0
     
     async def _process_control_logic(self):
         """Process control logic based on temperatures"""
@@ -1357,6 +1496,11 @@ class SolarHeatingSystem:
                 logger.info("Publishing system status...")
                 self.mqtt.publish_status(status_data)
                 logger.info("System status published successfully")
+                
+                # Publish real-time energy sensor data
+                logger.info("Publishing real-time energy sensor...")
+                self.mqtt.publish_realtime_energy_sensor(self.temperatures)
+                logger.info("Real-time energy sensor published successfully")
                 
         except Exception as e:
             logger.error(f"Error publishing status: {e}")

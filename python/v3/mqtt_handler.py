@@ -559,6 +559,28 @@ class MQTTHandler:
         }
         return self.publish(topic, message)
     
+    def publish_realtime_energy_sensor(self, sensor_data: Dict[str, Any]):
+        """Publish real-time energy rate sensor data"""
+        topic = f"{mqtt_topics.status_base}/realtime_energy_sensor"
+        message = {
+            "sensor": "realtime_energy_sensor",
+            "energy_rate_kw": sensor_data.get('realtime_energy_rate_kw', 0.0),
+            "temp_rate_per_hour": sensor_data.get('realtime_temp_rate_per_hour', 0.0),
+            "efficiency_index": sensor_data.get('energy_efficiency_index', 0.0),
+            "performance_score": sensor_data.get('system_performance_score', 0.0),
+            "energy_trend": sensor_data.get('energy_trend', 'unknown'),
+            "temperature_trend": sensor_data.get('temperature_trend', 'unknown'),
+            "energy_temp_ratio": sensor_data.get('energy_temp_ratio', 0.0),
+            "energy_total_ratio": sensor_data.get('energy_total_ratio', 0.0),
+            "temp_change_ratio": sensor_data.get('temp_change_ratio', 0.0),
+            "efficiency_factor": sensor_data.get('energy_efficiency_factor', 0.0),
+            "water_usage_rate_kw": sensor_data.get('water_usage_rate_kw', 0.0),
+            "water_usage_intensity": sensor_data.get('water_usage_intensity', 'none'),
+            "unit": "kW",
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
     def publish_system_status(self, status: Dict[str, Any]):
         """Publish system status"""
         topic = mqtt_topics.status_system
