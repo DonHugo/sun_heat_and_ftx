@@ -46,40 +46,16 @@ A continuous heartbeat message published to MQTT every 30 seconds containing sys
 }
 ```
 
-## Option 2: HTTP Health Check Server
+## Option 2: HTTP Monitor with MQTT Bridge
 
-### What It Is
-A lightweight HTTP server providing health check endpoints for traditional HTTP monitoring.
+If your MQTT broker doesn't support direct MQTT monitoring in Uptime Kuma, you can use an MQTT-to-HTTP bridge:
 
-### Advantages
-- **Standard HTTP**: Works with any HTTP monitoring tool
-- **Multiple endpoints**: `/health` for simple checks, `/status` for detailed info
-- **Status codes**: Proper HTTP status codes for different health states
-- **Easy integration**: Simple to set up with existing monitoring
+1. **Install MQTT-to-HTTP bridge** (e.g., Node-RED, Home Assistant, or custom script)
+2. **Configure bridge** to listen to `solar_heating_v3/heartbeat`
+3. **Set up HTTP endpoint** that responds when heartbeat is received
+4. **Monitor HTTP endpoint** in Uptime Kuma
 
-### Configuration
-- **Port**: 8080 (configurable)
-- **Endpoints**:
-  - `/health` - Simple health check
-  - `/status` - Detailed system status
-  - `/` - Service information
-
-### Uptime Kuma Setup
-1. Add new monitor
-2. Select "HTTP(s)" type
-3. Set URL to `http://YOUR_PI_IP:8080/health`
-4. Set check interval (recommended: 60 seconds)
-
-### Health Check Response
-```json
-{
-  "status": "healthy",
-  "timestamp": 1703123456.789,
-  "last_heartbeat": 1703123456.789,
-  "time_since_heartbeat": 15.5,
-  "uptime": 3600.0
-}
-```
+**Note**: This option requires additional setup and is not included in the current system.
 
 ## Option 3: File-based Monitoring
 
@@ -128,7 +104,6 @@ Monitor the systemd service directly to check if the application is running.
 
 ### ✅ Implemented
 - **MQTT Heartbeat**: Fully implemented and tested
-- **HTTP Health Server**: Created as standalone module
 - **Background Tasks**: System now uses proper async background tasks
 
 ### 🔄 Partially Implemented
