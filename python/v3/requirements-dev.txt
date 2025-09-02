@@ -1,0 +1,18 @@
+# Development and testing dependencies for Solar Heating System v3
+# Install with: pip install -r requirements-dev.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Additional development utilities
+ipython>=8.0.0
+jupyter>=1.0.0

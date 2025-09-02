@@ -38,7 +38,11 @@ Intelligent solar heating system with TaskMaster AI integration, Home Assistant 
 
 2. **Install dependencies**:
    ```bash
+   # For production use
    pip install -r requirements.txt
+   
+   # For development and testing
+   pip install -r requirements-dev.txt
    ```
 
 3. **Install Sequent Microsystems libraries**:
