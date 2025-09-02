@@ -6,14 +6,13 @@ Based on PRD requirements and existing system parameters
 import os
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
-from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-class SystemConfig(BaseSettings):
+class SystemConfig(BaseModel):
     """System configuration based on PRD requirements"""
     
     # Hardware Configuration
@@ -72,6 +71,18 @@ class SystemConfig(BaseSettings):
     class Config:
         env_file = ".env"
         env_prefix = "SOLAR_"
+    
+    def __init__(self, **data):
+        # Load environment variables manually for compatibility
+        env_data = {}
+        for field_name in self.__fields__:
+            env_key = f"SOLAR_{field_name.upper()}"
+            if env_key in os.environ:
+                env_data[field_name] = os.environ[env_key]
+        
+        # Update with any passed data
+        env_data.update(data)
+        super().__init__(**env_data)
 
 # Global configuration instance
 config = SystemConfig()
