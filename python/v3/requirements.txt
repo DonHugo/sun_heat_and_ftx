@@ -28,7 +28,6 @@ httpx>=0.25.0
 
 # Configuration and utilities
 python-dotenv>=1.0.0
-pydantic-settings>=2.0.0
 
 # Logging and monitoring
 structlog>=23.0.0
