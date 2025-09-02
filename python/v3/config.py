@@ -155,6 +155,9 @@ class MQTTTopics:
     taskmaster_base: str = "taskmaster"
     taskmaster_tasks: str = "taskmaster/tasks"
     taskmaster_recommendations: str = "taskmaster/recommendations"
+    
+    # Heartbeat topic for uptime monitoring
+    heartbeat: str = "heartbeat"
 
 # Global instances
 sensor_mapping = SensorMapping()

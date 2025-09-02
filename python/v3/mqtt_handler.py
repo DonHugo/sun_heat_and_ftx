@@ -614,6 +614,22 @@ class MQTTHandler:
         }
         return self.publish(topic, message)
     
+    def publish_heartbeat(self, system_info: Dict[str, Any] = None):
+        """Publish heartbeat message for uptime monitoring"""
+        topic = mqtt_topics.heartbeat
+        message = {
+            "status": "alive",
+            "timestamp": time.time(),
+            "version": "v3",
+            "uptime": time.time() - getattr(self, '_start_time', time.time())
+        }
+        
+        # Add system info if provided
+        if system_info:
+            message.update(system_info)
+        
+        return self.publish(topic, message, retain=False)
+    
     def publish_hass_discovery(self, entity_type: str, entity_id: str, config: Dict[str, Any]):
         """Publish Home Assistant discovery configuration"""
         topic = f"{mqtt_topics.hass_discovery_prefix}/{entity_type}/{entity_id}/config"
