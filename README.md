@@ -40,11 +40,22 @@ chmod +x deploy_to_pi.sh
 
 ## 📚 **Documentation**
 
+### **🚀 Start Here (New Users)**
+- **[Complete System Overview](docs/SYSTEM_OVERVIEW.md)** - Master guide to everything
+- **[Component Map](docs/COMPONENT_MAP.md)** - Visual navigation guide
+- **[Quick Start](docs/SYSTEM_OVERVIEW.md#quick-start-guide)** - Get running in 5 minutes
+
+### **🔧 Component-Specific Guides**
 - **System Setup**: See `docs/HOME_ASSISTANT_SETUP.md`
 - **Real-time Energy**: See `docs/REALTIME_ENERGY_SENSOR_SETUP.md`
 - **TaskMaster AI**: See `taskmaster/README_TASKMASTER.md`
 - **Python Implementation**: See `python/README.md`
 - **Deployment**: See `python/deployment/README.md`
+
+### **📊 Advanced Features**
+- **Rate of Change Sensors**: See `docs/RATE_OF_CHANGE_SENSORS_SUMMARY.md`
+- **Monitoring Options**: See `docs/MONITORING_OPTIONS.md`
+- **Watchdog System**: See `docs/WATCHDOG_SYSTEM.md`
 
 ## 🔧 **Hardware Requirements**
 

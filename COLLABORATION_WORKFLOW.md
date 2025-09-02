@@ -114,6 +114,12 @@ When you have a new requirement, please include:
 - **Testing Strategy**: How we'll verify it works
 - **User Guide**: How to use the new feature
 
+### **Documentation Maintenance:**
+- **Update Existing Docs**: All existing documentation and manuals must be updated if necessary
+- **Cross-Reference**: Ensure new features are properly referenced in relevant existing docs
+- **Version Control**: Keep track of which documentation versions apply to which system versions
+- **Consistency Check**: Verify that all documentation remains consistent and accurate
+
 ### **File Naming:**
 - `REQUIREMENTS_[feature_name].md` - Requirements and discussion
 - `DESIGN_[feature_name].md` - Technical design
@@ -127,6 +133,7 @@ A successful collaboration means:
 - ✅ No wasted time on wrong solutions
 - ✅ Clear understanding of what was built
 - ✅ Easy to maintain and extend
+- ✅ All existing documentation and manuals are updated as necessary
 - ✅ Both of us are satisfied with the process
 
 ## 📞 **When to Break the Process**
