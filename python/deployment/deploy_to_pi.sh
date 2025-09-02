@@ -61,12 +61,72 @@ if [ -d "$PROJECT_DIR/python/v3" ]; then
     pip install --upgrade pip
     pip install -r requirements.txt
     
-    # Create service file
-    echo "🔧 Creating v3 service file..."
+    # Install TaskMaster AI dependencies
+    echo "🧠 Installing TaskMaster AI dependencies..."
+    pip install httpx python-dotenv pydantic
+    
+    # Test TaskMaster AI integration
+    echo "🧪 Testing TaskMaster AI integration..."
+    if python3 test_taskmaster.py; then
+        echo "✅ TaskMaster AI integration test passed"
+    else
+        echo "⚠️  TaskMaster AI integration test failed - continuing anyway"
+    fi
+    
+    # Create TaskMaster AI configuration
+    echo "⚙️  Creating TaskMaster AI configuration..."
+    if [ ! -f ".env" ]; then
+        cat > .env << 'EOF'
+# TaskMaster AI Configuration
+SOLAR_TASKMASTER_ENABLED=true
+SOLAR_TASKMASTER_API_KEY=your_api_key_here
+SOLAR_TASKMASTER_BASE_URL=https://api.taskmaster.ai
+
+# System Configuration
+SOLAR_TEST_MODE=false
+SOLAR_DEBUG_MODE=false
+SOLAR_LOG_LEVEL=info
+
+# MQTT Configuration
+SOLAR_MQTT_BROKER=192.168.0.110
+SOLAR_MQTT_PORT=1883
+SOLAR_MQTT_USERNAME=mqtt_beaches
+SOLAR_MQTT_PASSWORD=uQX6NiZ.7R
+
+# Hardware Configuration
+SOLAR_HARDWARE_PLATFORM=raspberry_pi_zero_2_w
+SOLAR_RTD_BOARD_ADDRESS=0
+SOLAR_MEGABAS_BOARD_ADDRESS=3
+SOLAR_RELAY_BOARD_ADDRESS=2
+
+# Temperature Thresholds
+SOLAR_TEMPERATURE_THRESHOLD_HIGH=80.0
+SOLAR_TEMPERATURE_THRESHOLD_LOW=20.0
+SOLAR_TEMPERATURE_UPDATE_INTERVAL=30
+
+# Solar Collector Configuration
+SOLAR_SET_TEMP_TANK_1=70.0
+SOLAR_DTSTART_TANK_1=8.0
+SOLAR_DTSTOP_TANK_1=4.0
+SOLAR_KYLNING_KOLLEKTOR=90.0
+SOLAR_TEMP_KOK=150.0
+
+# Performance Configuration
+SOLAR_MAX_CONCURRENT_TASKS=5
+SOLAR_AI_ANALYSIS_INTERVAL=3600
+EOF
+        echo "✅ TaskMaster AI configuration created"
+    else
+        echo "ℹ️  .env file already exists - TaskMaster AI will use existing configuration"
+    fi
+    
+    # Create service file with TaskMaster AI support
+    echo "🔧 Creating v3 service file with TaskMaster AI support..."
     sudo tee /etc/systemd/system/solar_heating_v3.service > /dev/null <<EOF
 [Unit]
-Description=Solar Heating System v3
-After=network.target
+Description=Solar Heating System v3 with TaskMaster AI Integration
+After=network.target mqtt.service
+Wants=mqtt.service
 
 [Service]
 Type=simple
@@ -76,6 +136,12 @@ Environment=PATH=$PROJECT_DIR/python/v3/venv/bin
 ExecStart=$PROJECT_DIR/python/v3/venv/bin/python3 main_system.py
 Restart=always
 RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# TaskMaster AI specific environment variables
+Environment=SOLAR_TASKMASTER_ENABLED=true
+Environment=SOLAR_TASKMASTER_API_KEY=your_api_key_here
 
 [Install]
 WantedBy=multi-user.target
@@ -83,7 +149,20 @@ EOF
     
     sudo systemctl daemon-reload
     sudo systemctl enable solar_heating_v3.service
-    echo "✅ v3 system configured"
+    echo "✅ v3 system with TaskMaster AI configured"
+    
+    # Verify TaskMaster AI integration
+    echo "🔍 Verifying TaskMaster AI integration..."
+    if python3 -c "
+from taskmaster_integration import taskmaster
+from taskmaster_service import taskmaster_service
+print('✓ TaskMaster AI modules imported successfully')
+"; then
+        echo "✅ TaskMaster AI integration verified"
+    else
+        echo "❌ TaskMaster AI integration verification failed"
+        echo "   This may indicate missing dependencies or configuration issues"
+    fi
 else
     echo "❌ v3 system directory not found"
 fi
@@ -146,10 +225,14 @@ echo "2. Test v1 system:"
 echo "   sudo systemctl start temperature_monitoring.service"
 echo "   sudo systemctl status temperature_monitoring.service"
 echo ""
-echo "3. Test v3 system:"
+echo "3. Test v3 system with TaskMaster AI:"
 echo "   cd $PROJECT_DIR/python/v3"
 echo "   source venv/bin/activate"
-echo "   SOLAR_TEST_MODE=true python3 main.py"
+echo "   SOLAR_TEST_MODE=true python3 main_system.py"
+echo ""
+echo "4. Test TaskMaster AI integration:"
+echo "   python3 test_taskmaster.py"
+echo "   python3 demo_insights.py"
 echo ""
 echo "4. Switch between systems:"
 echo "   system_switch.py v1    # Switch to v1"
@@ -157,5 +240,11 @@ echo "   system_switch.py v3    # Switch to v3"
 echo "   system_switch.py status # Check status"
 echo ""
 echo "📚 For detailed instructions, see: $PROJECT_DIR/python/deployment_guide.md"
+echo ""
+echo "🧠 TaskMaster AI Integration Notes:"
+echo "   • TaskMaster AI is enabled by default"
+echo "   • Edit .env file to set your API key: SOLAR_TASKMASTER_API_KEY=your_key"
+echo "   • System will automatically create AI tasks for optimization"
+echo "   • Check logs for TaskMaster AI activity: sudo journalctl -u solar_heating_v3.service -f"
 echo ""
 echo "✅ Deployment script completed successfully!"
