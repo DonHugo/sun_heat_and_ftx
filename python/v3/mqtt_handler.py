@@ -114,6 +114,13 @@ class MQTTHandler:
     
     def _subscribe_to_topics(self):
         """Subscribe to MQTT topics"""
+        # Debug logging for topic variables
+        logger.debug(f"MQTT topic variables:")
+        logger.debug(f"  hass_base: {mqtt_topics.hass_base}")
+        logger.debug(f"  control_base: {mqtt_topics.control_base}")
+        logger.debug(f"  base_topic: {mqtt_topics.base_topic}")
+        logger.debug(f"  taskmaster_base: {mqtt_topics.taskmaster_base}")
+        
         topics = [
             # Home Assistant control topics (both old and new format)
             f"{mqtt_topics.hass_base}/+/control",
@@ -147,9 +154,34 @@ class MQTTHandler:
             "hass/test_switch",
         ]
         
+        # Debug logging for constructed topics
+        logger.debug(f"Constructed topics:")
+        for i, topic in enumerate(topics):
+            logger.debug(f"  {i}: {topic}")
+        
         for topic in topics:
-            self.client.subscribe(topic, 0)
-            logger.debug(f"Subscribed to topic: {topic}")
+            try:
+                self.client.subscribe(topic, 0)
+                logger.debug(f"Subscribed to topic: {topic}")
+            except Exception as e:
+                logger.error(f"Failed to subscribe to topic {topic}: {e}")
+    
+    def _is_valid_mqtt_topic(self, topic: str) -> bool:
+        """Validate MQTT topic format"""
+        if not topic or not isinstance(topic, str):
+            return False
+        
+        # Check for basic MQTT topic rules
+        # Topics cannot be empty, cannot start with $, and should not contain null characters
+        if topic.startswith('$') or '\x00' in topic:
+            return False
+        
+        # Check for valid characters (basic validation)
+        valid_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/+-_')
+        if not all(c in valid_chars for c in topic):
+            return False
+        
+        return True
     
     def _on_message(self, client, userdata, msg):
         """MQTT message callback"""
