@@ -13,6 +13,8 @@ import logging
 import signal
 import sys
 import time
+import os
+from datetime import datetime, time as dt_time
 from typing import Dict, Any
 
 # Import system-wide packages
@@ -59,7 +61,8 @@ class SolarHeatingSystem:
             'pump_runtime_hours': 0.0,
             'heating_cycles_count': 0,
             'last_pump_start': None,
-            'total_heating_time': 0.0,
+            'total_heating_time': 0.0,  # Daily heating time (resets at midnight)
+            'total_heating_time_lifetime': 0.0,  # Lifetime cumulative heating time (never resets)
             # Energy collection tracking
             'energy_collected_today': 0.0,  # kWh collected today
             'energy_collected_hour': 0.0,   # kWh collected this hour
@@ -103,6 +106,74 @@ class SolarHeatingSystem:
         }
         
         logger.info("Solar Heating System v3 (System-Wide) initialized")
+        
+        # Load persistent operational metrics
+        self._load_system_state()
+    
+    def _save_system_state(self):
+        """Save operational metrics to persistent storage"""
+        try:
+            state_file = 'system_operational_state.json'
+            operational_metrics = {
+                'pump_runtime_hours': self.system_state.get('pump_runtime_hours', 0.0),
+                'heating_cycles_count': self.system_state.get('heating_cycles_count', 0),
+                'total_heating_time': self.system_state.get('total_heating_time', 0.0),
+                'total_heating_time_lifetime': self.system_state.get('total_heating_time_lifetime', 0.0),
+                'last_save_time': time.time(),
+                'last_save_date': datetime.now().isoformat()
+            }
+            
+            with open(state_file, 'w') as f:
+                json.dump(operational_metrics, f, indent=2)
+            
+            logger.info(f"✅ Operational state saved: pump_runtime={operational_metrics['pump_runtime_hours']:.2f}h, cycles={operational_metrics['heating_cycles_count']}, daily_time={operational_metrics['total_heating_time']:.2f}h, lifetime={operational_metrics['total_heating_time_lifetime']:.2f}h")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to save operational state: {e}")
+    
+    def _load_system_state(self):
+        """Load operational metrics from persistent storage"""
+        try:
+            state_file = 'system_operational_state.json'
+            if os.path.exists(state_file):
+                with open(state_file, 'r') as f:
+                    saved_state = json.load(f)
+                
+                # Restore operational metrics
+                self.system_state['pump_runtime_hours'] = saved_state.get('pump_runtime_hours', 0.0)
+                self.system_state['heating_cycles_count'] = saved_state.get('heating_cycles_count', 0)
+                self.system_state['total_heating_time'] = saved_state.get('total_heating_time', 0.0)
+                self.system_state['total_heating_time_lifetime'] = saved_state.get('total_heating_time_lifetime', 0.0)
+                
+                last_save_date = saved_state.get('last_save_date', 'Unknown')
+                logger.info(f"✅ Operational state loaded: pump_runtime={self.system_state['pump_runtime_hours']:.2f}h, cycles={self.system_state['heating_cycles_count']}, daily_time={self.system_state['total_heating_time']:.2f}h, lifetime={self.system_state['total_heating_time_lifetime']:.2f}h (last saved: {last_save_date})")
+            else:
+                logger.info("ℹ️  No saved operational state found - starting with fresh counters")
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to load operational state: {e}")
+            logger.info("ℹ️  Continuing with default values")
+    
+    def _is_midnight_reset_needed(self):
+        """Check if we need to reset daily counters at midnight"""
+        now = datetime.now()
+        current_time = now.time()
+        
+        # Check if we're within a few seconds of midnight (00:00:00)
+        midnight = dt_time(0, 0, 0)
+        time_diff = abs((current_time.hour * 3600 + current_time.minute * 60 + current_time.second) - 
+                       (midnight.hour * 3600 + midnight.minute * 60 + midnight.second))
+        
+        # Allow reset within 5 seconds of midnight
+        if time_diff <= 5:
+            # Check if we haven't already reset today
+            last_reset_date = self.system_state.get('last_midnight_reset_date', '')
+            today = now.date().isoformat()
+            
+            if last_reset_date != today:
+                return True
+        
+        return False
     
     async def start(self):
         """Start the solar heating system"""
@@ -142,7 +213,8 @@ class SolarHeatingSystem:
                 'pump_runtime_hours': 0.0,
                 'heating_cycles_count': 0,
                 'last_pump_start': None,
-                'total_heating_time': 0.0,
+                'total_heating_time': 0.0,  # Daily heating time (resets at midnight)
+                'total_heating_time_lifetime': 0.0,  # Lifetime cumulative heating time (never resets)
                 # Energy collection tracking
                 'energy_collected_today': 0.0,  # kWh collected today
                 'energy_collected_hour': 0.0,   # kWh collected this hour
@@ -171,6 +243,8 @@ class SolarHeatingSystem:
                 'pellet_stove_energy_hour': 0.0,  # Energy this hour (kWh)
                 'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
                 'pellet_stove_status': False,  # ON/OFF status
+                # Midnight reset tracking
+                'last_midnight_reset_date': datetime.now().date().isoformat(),
         }
             
             # Initialize control parameters
@@ -207,8 +281,16 @@ class SolarHeatingSystem:
             await self._start_background_tasks()
             
             # Main control loop (simplified since background tasks handle the rest)
+            state_save_counter = 0
             while self.running:
                 await self._process_control_logic()
+                
+                # Save operational state periodically (every 5 minutes)
+                state_save_counter += 1
+                if state_save_counter >= 60:  # Assuming temperature_update_interval is 5 seconds
+                    self._save_system_state()
+                    state_save_counter = 0
+                
                 await asyncio.sleep(config.temperature_update_interval)
                 
         except Exception as e:
@@ -1013,6 +1095,7 @@ class SolarHeatingSystem:
             # Add operational metrics to temperatures
             self.temperatures['pump_runtime_hours'] = self.system_state.get('pump_runtime_hours', 0.0)
             self.temperatures['heating_cycles_count'] = self.system_state.get('heating_cycles_count', 0)
+            self.temperatures['total_heating_time_lifetime'] = self.system_state.get('total_heating_time_lifetime', 0.0)
             
             # Calculate real-time pump runtime (including current cycle if pump is running)
             real_time_runtime = self.system_state.get('pump_runtime_hours', 0.0)
@@ -1030,8 +1113,8 @@ class SolarHeatingSystem:
                 self.temperatures['average_heating_duration'] = 0.0
             
             # Debug logging for operational metrics
-            logger.debug(f"Operational metrics: pump_runtime={self.temperatures['pump_runtime_hours']}h, cycles={self.temperatures['heating_cycles_count']}, avg_duration={self.temperatures['average_heating_duration']}h")
-            logger.info(f"System state operational metrics: pump_runtime={self.system_state.get('pump_runtime_hours', 0)}h, cycles={self.system_state.get('heating_cycles_count', 0)}, total_time={self.system_state.get('total_heating_time', 0)}h, last_start={self.system_state.get('last_pump_start', 'None')}")
+            logger.debug(f"Operational metrics: pump_runtime={self.temperatures['pump_runtime_hours']}h, cycles={self.temperatures['heating_cycles_count']}, avg_duration={self.temperatures['average_heating_duration']}h, lifetime={self.temperatures['total_heating_time_lifetime']}h")
+            logger.info(f"System state operational metrics: pump_runtime={self.system_state.get('pump_runtime_hours', 0)}h, cycles={self.system_state.get('heating_cycles_count', 0)}, daily_time={self.system_state.get('total_heating_time', 0)}h, lifetime={self.system_state.get('total_heating_time_lifetime', 0)}h, last_start={self.system_state.get('last_pump_start', 'None')}")
             logger.info("Operational metrics added successfully")
             
             # Calculate solar collector dT values
@@ -1102,13 +1185,30 @@ class SolarHeatingSystem:
                 self.system_state['last_hour_reset'] = current_time
                 logger.info("Hourly energy collection counter reset")
             
-            if current_time - self.system_state.get('last_day_reset', 0) >= 86400:  # 24 hours
+            # Check for midnight reset of daily counters and operational metrics
+            if self._is_midnight_reset_needed():
+                # Reset daily energy counters
                 self.system_state['energy_collected_today'] = 0.0
                 self.system_state['solar_energy_today'] = 0.0
                 self.system_state['cartridge_energy_today'] = 0.0
                 self.system_state['pellet_energy_today'] = 0.0
+                
+                # Reset daily operational metrics
+                self.system_state['pump_runtime_hours'] = 0.0
+                self.system_state['heating_cycles_count'] = 0
+                self.system_state['total_heating_time'] = 0.0
+                # Note: total_heating_time_lifetime is NOT reset - it accumulates lifetime total
+                
+                # Update reset tracking
+                self.system_state['last_midnight_reset_date'] = datetime.now().date().isoformat()
                 self.system_state['last_day_reset'] = current_time
-                logger.info("Daily energy collection counter reset")
+                
+                logger.info("🕛 MIDNIGHT RESET: Daily counters and operational metrics reset")
+                logger.info(f"  📊 Energy: {self.system_state['energy_collected_today']:.2f} kWh, Solar: {self.system_state['solar_energy_today']:.2f} kWh, Cartridge: {self.system_state['cartridge_energy_today']:.2f} kWh, Pellet: {self.system_state['pellet_energy_today']:.2f} kWh")
+                logger.info(f"  ⚙️  Pump Runtime: {self.system_state['pump_runtime_hours']:.2f}h, Heating Cycles: {self.system_state['heating_cycles_count']}, Daily Time: {self.system_state['total_heating_time']:.2f}h, Lifetime: {self.system_state['total_heating_time_lifetime']:.2f}h")
+                
+                # Save the reset state immediately
+                self._save_system_state()
             
             # Calculate energy collected since last calculation
             last_energy = self.system_state.get('last_energy_calculation', current_time)
@@ -1389,6 +1489,9 @@ class SolarHeatingSystem:
                     self.system_state['heating_cycles_count'] += 1
                     logger.info(f"Primary pump started. dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C. Cycle #{self.system_state['heating_cycles_count']}")
                     
+                    # Save operational state after cycle count increment
+                    self._save_system_state()
+                    
                     # Create TaskMaster AI task for pump control (FR-008)
                     if config.taskmaster_enabled:
                         try:
@@ -1409,8 +1512,12 @@ class SolarHeatingSystem:
                     if self.system_state['last_pump_start']:
                         cycle_runtime = (time.time() - self.system_state['last_pump_start']) / 3600  # Convert to hours
                         self.system_state['total_heating_time'] += cycle_runtime
+                        self.system_state['total_heating_time_lifetime'] += cycle_runtime  # Add to lifetime total
                         self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
-                        logger.info(f"Primary pump stopped. dT={dT:.1f}°C <= {self.control_params['dTStop_tank_1']}°C. Cycle runtime: {cycle_runtime:.2f}h, Total runtime: {self.system_state['pump_runtime_hours']}h")
+                        logger.info(f"Primary pump stopped. dT={dT:.1f}°C <= {self.control_params['dTStop_tank_1']}°C. Cycle runtime: {cycle_runtime:.2f}h, Daily runtime: {self.system_state['pump_runtime_hours']}h, Lifetime: {self.system_state['total_heating_time_lifetime']:.2f}h")
+                        
+                        # Save operational state after runtime update
+                        self._save_system_state()
                         
                         # Create TaskMaster AI task for pump control (FR-008)
                         if config.taskmaster_enabled:
@@ -1698,6 +1805,10 @@ class SolarHeatingSystem:
                 logger.info("TaskMaster AI service cleaned up")
             except Exception as e:
                 logger.error(f"Error cleaning up TaskMaster AI service: {str(e)}")
+        
+        # Save final operational state before shutdown
+        logger.info("Saving final operational state...")
+        self._save_system_state()
         
         logger.info("Solar Heating System v3 stopped")
 
