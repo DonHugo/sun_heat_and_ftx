@@ -29,9 +29,9 @@ This document maps each legacy v1/v2 sensor to its v3 equivalent, showing what's
 
 | Legacy Topic | Legacy Format | v3 Equivalent | v3 Topic | Status |
 |--------------|---------------|----------------|----------|---------|
-| `sequentmicrosystems/sequentmicrosystems_1_6` | `{"name": "sequentmicrosystems_1_6", "temperature": value}` | `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | ✅ **DUPLICATED** |
-| `sequentmicrosystems/sequentmicrosystems_1_7` | `{"name": "sequentmicrosystems_1_7", "temperature": value}` | `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | ✅ **DUPLICATED** |
-| `sequentmicrosystems/sequentmicrosystems_1_8` | `{"name": "sequentmicrosystems_1_8", "temperature": value}` | `return_line` | `homeassistant/sensor/solar_heating_return_line/state` | ✅ **DUPLICATED** |
+| `sequentmicrosystems/sequentmicrosystems_4_6` | `{"name": "sequentmicrosystems_4_6", "temperature": value}` | `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | ✅ **DUPLICATED** |
+| `sequentmicrosystems/sequentmicrosystems_4_7` | `{"name": "sequentmicrosystems_4_7", "temperature": value}` | `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | ✅ **DUPLICATED** |
+| `sequentmicrosystems/sequentmicrosystems_4_8` | `{"name": "sequentmicrosystems_4_8", "temperature": value}` | `return_line` | `homeassistant/sensor/solar_heating_return_line/state` | ✅ **DUPLICATED** |
 | `sequentmicrosystems/sequentmicrosystems_4_1` | `{"name": "sequentmicrosystems_4_1", "temperature": value}` | `uteluft` | `homeassistant/sensor/solar_heating_uteluft/state` | ✅ **DUPLICATED** |
 | `sequentmicrosystems/sequentmicrosystems_4_2` | `{"name": "sequentmicrosystems_4_2", "temperature": value}` | `avluft` | `homeassistant/sensor/solar_heating_avluft/state` | ✅ **DUPLICATED** |
 | `sequentmicrosystems/sequentmicrosystems_4_3` | `{"name": "sequentmicrosystems_4_3", "temperature": value}` | `tilluft` | `homeassistant/sensor/solar_heating_tilluft/state` | ✅ **DUPLICATED** |

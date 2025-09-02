@@ -29,9 +29,9 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 
 | v3 Sensor | v3 Topic | Covers Legacy Sensor | Legacy Topic | Legacy Format |
 |-----------|----------|---------------------|--------------|---------------|
-| `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | `sequentmicrosystems_1_6` | `sequentmicrosystems/sequentmicrosystems_1_6` | `{"name": "sequentmicrosystems_1_6", "temperature": value}` |
-| `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | `sequentmicrosystems_1_7` | `sequentmicrosystems/sequentmicrosystems_1_7` | `{"name": "sequentmicrosystems_1_7", "temperature": value}` |
-| `return_line` | `homeassistant/sensor/solar_heating_return_line/state` | `sequentmicrosystems_1_8` | `sequentmicrosystems/sequentmicrosystems_1_8` | `{"name": "sequentmicrosystems_1_8", "temperature": value}` |
+| `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | `sequentmicrosystems_4_6` | `sequentmicrosystems/sequentmicrosystems_4_6` | `{"name": "sequentmicrosystems_4_6", "temperature": value}` |
+| `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | `sequentmicrosystems_4_7` | `sequentmicrosystems/sequentmicrosystems_4_7` | `{"name": "sequentmicrosystems_4_7", "temperature": value}` |
+| `return_line` | `homeassistant/sensor/solar_heating_return_line/state` | `sequentmicrosystems_4_8` | `sequentmicrosystems/sequentmicrosystems_4_8` | `{"name": "sequentmicrosystems_4_8", "temperature": value}` |
 | `uteluft` | `homeassistant/sensor/solar_heating_uteluft/state` | `sequentmicrosystems_4_1` | `sequentmicrosystems/sequentmicrosystems_4_1` | `{"name": "sequentmicrosystems_4_1", "temperature": value}` |
 | `avluft` | `homeassistant/sensor/solar_heating_avluft/state` | `sequentmicrosystems_4_2` | `sequentmicrosystems/sequentmicrosystems_4_2` | `{"name": "sequentmicrosystems_4_2", "temperature": value}` |
 | `tilluft` | `homeassistant/sensor/solar_heating_tilluft/state` | `sequentmicrosystems_4_3` | `sequentmicrosystems/sequentmicrosystems_4_3` | `{"name": "sequentmicrosystems_4_3", "temperature": value}` |
