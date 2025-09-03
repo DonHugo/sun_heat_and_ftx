@@ -128,6 +128,7 @@ class SolarHeatingSystem:
     
     def _calculate_rate_of_change(self):
         """Calculate rate of change for energy and temperature"""
+        logger.debug("Starting rate of change calculation...")
         try:
             current_time = time.time()
             current_energy = self.temperatures.get('stored_energy_kwh', 0)
@@ -234,9 +235,12 @@ class SolarHeatingSystem:
             self.temperatures['temperature_change_rate_c_h'] = round(temp_rate, 2)
             
             logger.debug(f"Rate calculation: Energy: {energy_rate:.3f} kW, Temp: {temp_rate:.2f} °C/h")
+            logger.debug("Rate calculation completed successfully")
             
         except Exception as e:
             logger.error(f"Error calculating rate of change: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             self.temperatures['energy_change_rate_kw'] = 0.0
             self.temperatures['temperature_change_rate_c_h'] = 0.0
     
@@ -914,10 +918,16 @@ class SolarHeatingSystem:
                 if sensor['device_class']:
                     config["device_class"] = sensor['device_class']
                 
-                # Add state_class for energy sensors
+                # Add state_class for different sensor types
                 if sensor['device_class'] == 'energy':
                     config["state_class"] = "total"
                 elif sensor['device_class'] == 'temperature':
+                    config["state_class"] = "measurement"
+                elif sensor['device_class'] == 'power':
+                    config["state_class"] = "measurement"
+                elif sensor['entity_id'] == 'temperature_change_rate_c_h':
+                    config["state_class"] = "measurement"
+                elif sensor['entity_id'] == 'energy_change_rate_kw':
                     config["state_class"] = "measurement"
                 
                 # No value_template needed since we're sending raw values
@@ -1514,8 +1524,14 @@ class SolarHeatingSystem:
             # Calculate real-time energy rate sensor (kW) and comparison metrics
             self._calculate_realtime_energy_sensor()
             
-            # Calculate rate of change sensors
-            self._calculate_rate_of_change()
+            # Calculate rate of change sensors (temporarily disabled for debugging)
+            try:
+                self._calculate_rate_of_change()
+            except Exception as e:
+                logger.error(f"Rate calculation error (continuing): {e}")
+                # Set default values to prevent sensor publishing issues
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
