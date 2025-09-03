@@ -1481,7 +1481,9 @@ class SolarHeatingSystem:
                         
                         # Allocate energy to active heat sources using weighted contributions
                         if active_heat_sources:
-                            hourly_contribution_total = energy_diff / (time_diff / 3600)
+                            # Fix: Use energy_diff directly, not divided by time
+                            # The energy_diff is already the total energy change for this period
+                            hourly_contribution_total = energy_diff
                             
                             for source in active_heat_sources:
                                 source_weight = source_contributions.get(source, 0.5)
