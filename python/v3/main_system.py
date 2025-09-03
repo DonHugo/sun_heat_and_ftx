@@ -119,6 +119,11 @@ class SolarHeatingSystem:
             'dTStop_tank_1': config.dTStop_tank_1,
             'kylning_kollektor': config.kylning_kollektor,
             'temp_kok': config.kylning_kollektor,
+            # Enhanced temperature management
+            'morning_peak_target': config.morning_peak_target,
+            'evening_peak_target': config.evening_peak_target,
+            'pellet_stove_max_temp': config.pellet_stove_max_temp,
+            'heat_distribution_temp': config.heat_distribution_temp,
         }
         
         logger.info("Solar Heating System v3 (System-Wide) initialized")
@@ -426,7 +431,12 @@ class SolarHeatingSystem:
                 'dTStart_tank_1': config.dTStart_tank_1,
                 'dTStop_tank_1': config.dTStop_tank_1,
                 'kylning_kollektor': config.kylning_kollektor,
-                'temp_kok': config.temp_kok
+                'temp_kok': config.temp_kok,
+                # Enhanced temperature management
+                'morning_peak_target': config.morning_peak_target,
+                'evening_peak_target': config.evening_peak_target,
+                'pellet_stove_max_temp': config.pellet_stove_max_temp,
+                'heat_distribution_temp': config.heat_distribution_temp,
             }
             
             # Initialize temperature storage
@@ -1059,6 +1069,43 @@ class SolarHeatingSystem:
                     'min_value': 100,
                     'max_value': 200,
                     'step': 5,
+                    'icon': 'mdi:thermometer-high'
+                },
+                # Enhanced temperature management
+                {
+                    'name': 'Morning Peak Target Temperature',
+                    'entity_id': 'morning_peak_target',
+                    'unit_of_measurement': '°C',
+                    'min_value': 70,
+                    'max_value': 90,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Evening Peak Target Temperature',
+                    'entity_id': 'evening_peak_target',
+                    'unit_of_measurement': '°C',
+                    'min_value': 70,
+                    'max_value': 90,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Pellet Stove Max Temperature',
+                    'entity_id': 'pellet_stove_max_temp',
+                    'unit_of_measurement': '°C',
+                    'min_value': 40,
+                    'max_value': 70,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-low'
+                },
+                {
+                    'name': 'Heat Distribution Temperature',
+                    'entity_id': 'heat_distribution_temp',
+                    'unit_of_measurement': '°C',
+                    'min_value': 80,
+                    'max_value': 95,
+                    'step': 1,
                     'icon': 'mdi:thermometer-high'
                 }
             ]
@@ -1863,6 +1910,11 @@ class SolarHeatingSystem:
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                # Enhanced temperature management
+                self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
+                self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
+                self._publish_number_state('pellet_stove_max_temp', self.control_params['pellet_stove_max_temp'])
+                self._publish_number_state('heat_distribution_temp', self.control_params['heat_distribution_temp'])
                 logger.info("Number states published successfully")
             
 
@@ -1956,6 +2008,15 @@ class SolarHeatingSystem:
                     self.control_params['kylning_kollektor'] = value
                 elif number_name == 'temp_kok':
                     self.control_params['temp_kok'] = value
+                # Enhanced temperature management
+                elif number_name == 'morning_peak_target':
+                    self.control_params['morning_peak_target'] = value
+                elif number_name == 'evening_peak_target':
+                    self.control_params['evening_peak_target'] = value
+                elif number_name == 'pellet_stove_max_temp':
+                    self.control_params['pellet_stove_max_temp'] = value
+                elif number_name == 'heat_distribution_temp':
+                    self.control_params['heat_distribution_temp'] = value
                 
                 # Publish number state back to Home Assistant
                 self._publish_number_state(number_name, value)

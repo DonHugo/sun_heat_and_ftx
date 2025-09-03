@@ -657,7 +657,38 @@ This project implements an intelligent solar heating system that combines tradit
 - **Medium Priority**: Home occupancy, water usage patterns, time context
 - **Low Priority**: Humidity sensors, advanced thermal modeling
 
+**Specific User Requirements Identified**:
+- **Weekday Schedule**: High hot water demand at 06:00 (showers) and evenings (baths)
+- **Solar System Constraint**: Cannot stop solar heating, but can radiate heat at night with pump
+- **Pellet Stove Limitations**: 20-30 minute warm-up time, 102kW capacity, 14kWh maximum output, 25kg storage (1.6 bags)
+- **Critical Constraint**: Pellet stove can run when tank temp < 55°C, but solar can heat up to 90°C safely
+- **High Consumption Scenarios**: Cartridge heater insufficient for high demand, pellet stove backup needed
+- **Comfort Preference**: Balanced approach with cost optimization
+- **Planning Horizon**: 12-14 hours ahead for optimal scheduling
+- **System Capabilities**: Pump can run continuously, pellet storage managed manually, Home Assistant notifications
+- **Data Sources**: Nordpool updates daily (today + tomorrow after 13:00), Tomorrow.io good forecasting, pellet monitoring 80-90% accurate
+
+**Nordpool Sensor Data Available**:
+- **Hourly Prices**: 24-hour arrays for today and tomorrow
+- **Price Range**: 0.212 - 2.049 SEK/kWh (significant variation)
+- **Peak Hours**: 08:00-10:00 and 18:00-20:00 typically highest
+- **Off-Peak Hours**: 00:00-06:00 typically lowest
+- **Additional Costs**: 1.0238 SEK/kWh network cost for grid electricity
+- **Solar PV Benefit**: Self-produced electricity avoids network costs
+
 **Status**: Requirements documented, implementation planning phase
+
+**Technical Approach for Enhanced Optimization**:
+- **Smart Fuel Source Selection**: Automatically choose cheapest heating source (solar > pellet > electric)
+- **Predictive Planning**: 12-14 hour horizon using Nordpool prices and weather forecasts
+- **Intelligent Timing**: Calculate optimal start time based on history, consumption, and weather
+- **Smart Temperature Management**: Solar can heat up to 90°C, pellet stove only when temp < 55°C, pump runs continuously near 90°C
+- **Enhanced Temperature Targets**: Morning peak 80°C (showers), evening peak 75°C (baths), general 75°C (balanced)
+**Pellet Stove Coordination**: 102kW capacity, 14kWh maximum output, 20-30 minute warm-up time, 25kg storage
+- **High Demand Handling**: Coordinate multiple heat sources when cartridge heater insufficient
+- **Night Heat Radiation**: Use pump to radiate excess heat when solar cannot be stopped
+- **User Override**: Manual override capability for all automatic decisions
+- **Continuous Pump Operation**: Pump can run as needed for heat management
 
 ## 🎉 **Conclusion**
 
