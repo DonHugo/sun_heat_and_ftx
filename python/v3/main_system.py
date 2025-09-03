@@ -96,19 +96,170 @@ class SolarHeatingSystem:
         # Temperature data
         self.temperatures = {}
         
+        # Rate of Change Sensor Data Structure
+        self.rate_data = {
+            'timestamps': [],
+            'energy_values': [],
+            'temp_values': [],
+            'max_samples': 20
+        }
+        
+        # Rate configuration
+        self.rate_config = {
+            'time_window': config.rate_time_window,
+            'smoothing': config.rate_smoothing,
+            'update_interval': config.rate_update_interval,
+            'smoothing_alpha': config.rate_smoothing_alpha
+        }
+        
         # Control parameters (from config)
         self.control_params = {
             'set_temp_tank_1': config.set_temp_tank_1,
             'dTStart_tank_1': config.dTStart_tank_1,
             'dTStop_tank_1': config.dTStop_tank_1,
             'kylning_kollektor': config.kylning_kollektor,
-            'temp_kok': config.temp_kok,
+            'temp_kok': config.kylning_kollektor,
         }
         
         logger.info("Solar Heating System v3 (System-Wide) initialized")
         
         # Load persistent operational metrics
         self._load_system_state()
+    
+    def _calculate_rate_of_change(self):
+        """Calculate rate of change for energy and temperature"""
+        try:
+            current_time = time.time()
+            current_energy = self.temperatures.get('stored_energy_kwh', 0)
+            current_temp = self.temperatures.get('average_temperature', 0)
+            
+            # Add current values to rate data
+            self.rate_data['timestamps'].append(current_time)
+            self.rate_data['energy_values'].append(current_energy)
+            self.rate_data['temp_values'].append(current_temp)
+            
+            # Keep only max_samples
+            if len(self.rate_data['timestamps']) > self.rate_data['max_samples']:
+                self.rate_data['timestamps'].pop(0)
+                self.rate_data['energy_values'].pop(0)
+                self.rate_data['temp_values'].pop(0)
+            
+            # Need at least 2 samples to calculate rate
+            if len(self.rate_data['timestamps']) < 2:
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
+                return
+            
+            # Get time window based on configuration
+            time_windows = {
+                'fast': 30,      # 30 seconds
+                'medium': 120,   # 2 minutes
+                'slow': 300      # 5 minutes
+            }
+            target_window = time_windows.get(self.rate_config['time_window'], 120)
+            
+            # Find samples within the time window
+            window_start = current_time - target_window
+            valid_indices = [i for i, t in enumerate(self.rate_data['timestamps']) if t >= window_start]
+            
+            if len(valid_indices) < 2:
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
+                return
+            
+            # Get oldest and newest valid samples
+            oldest_idx = min(valid_indices)
+            newest_idx = max(valid_indices)
+            
+            # Calculate time difference in hours
+            time_diff_hours = (self.rate_data['timestamps'][newest_idx] - self.rate_data['timestamps'][oldest_idx]) / 3600
+            
+            if time_diff_hours < 0.001:  # Less than 3.6 seconds
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
+                return
+            
+            # Calculate raw rates
+            energy_diff = self.rate_data['energy_values'][newest_idx] - self.rate_data['energy_values'][oldest_idx]
+            temp_diff = self.rate_data['temp_values'][newest_idx] - self.rate_data['temp_values'][oldest_idx]
+            
+            raw_energy_rate = energy_diff / time_diff_hours  # kW
+            raw_temp_rate = temp_diff / time_diff_hours      # °C/hour
+            
+            # Apply smoothing based on configuration
+            if self.rate_config['smoothing'] == 'raw':
+                energy_rate = raw_energy_rate
+                temp_rate = raw_temp_rate
+            elif self.rate_config['smoothing'] == 'simple':
+                # Simple 3-point moving average
+                if len(valid_indices) >= 3:
+                    recent_energy_rates = []
+                    recent_temp_rates = []
+                    for i in range(len(valid_indices) - 1):
+                        if i + 1 < len(valid_indices):
+                            t1, t2 = valid_indices[i], valid_indices[i + 1]
+                            e_rate = (self.rate_data['energy_values'][t2] - self.rate_data['energy_values'][t1]) / ((self.rate_data['timestamps'][t2] - self.rate_data['timestamps'][t1]) / 3600)
+                            temp_rate = (self.rate_data['temp_values'][t2] - self.rate_data['temp_values'][t1]) / ((self.rate_data['timestamps'][t2] - self.rate_data['timestamps'][t1]) / 3600)
+                            recent_energy_rates.append(e_rate)
+                            recent_temp_rates.append(temp_rate)
+                    
+                    if recent_energy_rates:
+                        energy_rate = sum(recent_energy_rates) / len(recent_energy_rates)
+                        temp_rate = sum(recent_temp_rates) / len(recent_temp_rates)
+                    else:
+                        energy_rate = raw_energy_rate
+                        temp_rate = raw_temp_rate
+                else:
+                    energy_rate = raw_energy_rate
+                    temp_rate = raw_temp_rate
+            elif self.rate_config['smoothing'] == 'exponential':
+                # Exponential smoothing
+                if hasattr(self, '_last_smoothed_energy_rate'):
+                    alpha = self.rate_config['smoothing_alpha']
+                    energy_rate = alpha * raw_energy_rate + (1 - alpha) * self._last_smoothed_energy_rate
+                    temp_rate = alpha * raw_temp_rate + (1 - alpha) * self._last_smoothed_temp_rate
+                else:
+                    energy_rate = raw_energy_rate
+                    temp_rate = raw_temp_rate
+                
+                # Store smoothed values for next iteration
+                self._last_smoothed_energy_rate = energy_rate
+                self._last_smoothed_temp_rate = temp_rate
+            else:
+                energy_rate = raw_energy_rate
+                temp_rate = raw_temp_rate
+            
+            # Store calculated rates
+            self.temperatures['energy_change_rate_kw'] = round(energy_rate, 3)
+            self.temperatures['temperature_change_rate_c_h'] = round(temp_rate, 2)
+            
+            logger.debug(f"Rate calculation: Energy: {energy_rate:.3f} kW, Temp: {temp_rate:.2f} °C/h")
+            
+        except Exception as e:
+            logger.error(f"Error calculating rate of change: {e}")
+            self.temperatures['energy_change_rate_kw'] = 0.0
+            self.temperatures['temperature_change_rate_c_h'] = 0.0
+    
+    def _update_rate_config(self, new_config: Dict[str, Any]):
+        """Update rate configuration at runtime"""
+        try:
+            # Update configuration
+            for key, value in new_config.items():
+                if key in self.rate_config:
+                    old_value = self.rate_config[key]
+                    self.rate_config[key] = value
+                    logger.info(f"Rate {key} updated from {old_value} to {value}")
+                    
+                    # Reset smoothing buffers if method changes
+                    if key == 'smoothing':
+                        if hasattr(self, '_last_smoothed_energy_rate'):
+                            delattr(self, '_last_smoothed_energy_rate')
+                        if hasattr(self, '_last_smoothed_temp_rate'):
+                            delattr(self, '_last_smoothed_temp_rate')
+                        logger.info(f"Rate smoothing buffers reset for new method: {value}")
+            
+        except Exception as e:
+            logger.error(f"Error updating rate configuration: {e}")
     
     def _is_mqtt_ready(self) -> bool:
         """Check if MQTT is ready for operations"""
@@ -709,6 +860,19 @@ class SolarHeatingSystem:
                     'entity_id': 'average_temperature',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
+                },
+                # Rate of Change Sensors
+                {
+                    'name': 'Energy Change Rate',
+                    'entity_id': 'energy_change_rate_kw',
+                    'device_class': 'power',
+                    'unit_of_measurement': 'kW'
+                },
+                {
+                    'name': 'Temperature Change Rate',
+                    'entity_id': 'temperature_change_rate_c_h',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C/h'
                 }
             ]
             
@@ -1349,6 +1513,9 @@ class SolarHeatingSystem:
             
             # Calculate real-time energy rate sensor (kW) and comparison metrics
             self._calculate_realtime_energy_sensor()
+            
+            # Calculate rate of change sensors
+            self._calculate_rate_of_change()
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
