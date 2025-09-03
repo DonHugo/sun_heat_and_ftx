@@ -33,7 +33,7 @@ logging.basicConfig(
     level=getattr(logging, config.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('solar_heating_v3.log'),
+        logging.FileHandler('/home/pi/solar_heating/logs/solar_heating_v3.log'),
         logging.StreamHandler(sys.stdout)
     ]
 )

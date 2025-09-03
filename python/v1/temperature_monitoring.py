@@ -155,13 +155,13 @@ def logging_testmode(queue, event):
 
 
                 if log_level == "debug":       
-                    logging.basicConfig(filename="temperature_monitoring.log",
+                    logging.basicConfig(filename="/home/pi/solar_heating/logs/temperature_monitoring_v1.log",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
                 else:
-                    logging.basicConfig(filename="temperature_monitoring.log",
+                    logging.basicConfig(filename="/home/pi/solar_heating/logs/temperature_monitoring_v1.log",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
