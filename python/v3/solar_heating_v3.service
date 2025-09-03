@@ -9,7 +9,8 @@ User=pi
 WorkingDirectory=/home/pi/solar_heating/python/v3
 ExecStart=/opt/solar_heating_v3/bin/python3 main_system.py
 Restart=always
-RestartSec=10
+RestartSec=30
+RestartPreventExitStatus=0
 Environment=PYTHONUNBUFFERED=1
 
 [Install]

@@ -110,6 +110,10 @@ class SolarHeatingSystem:
         # Load persistent operational metrics
         self._load_system_state()
     
+    def _is_mqtt_ready(self) -> bool:
+        """Check if MQTT is ready for operations"""
+        return self.mqtt is not None and self.mqtt.is_connected()
+    
     def _save_system_state(self):
         """Save operational metrics to persistent storage"""
         try:
@@ -187,17 +191,31 @@ class SolarHeatingSystem:
                 logger.warning("Hardware libraries not available - forcing simulation mode")
             self.hardware = HardwareInterface(simulation_mode=simulation_mode)
             
-            # Initialize MQTT handler
+            # Initialize MQTT handler with persistent retry logic
             self.mqtt = MQTTHandler()
-            if not self.mqtt.connect():
-                logger.warning("Failed to connect to MQTT broker - continuing without MQTT")
-                self.mqtt = None
-            else:
-                # Register system callback for switch commands
-                self.mqtt.system_callback = self._handle_mqtt_command
+            mqtt_connected = False
+            initial_mqtt_retries = 5
+            initial_retry_delay = 10
+            
+            # Try initial connection with limited retries
+            for attempt in range(initial_mqtt_retries):
+                if self.mqtt.connect():
+                    mqtt_connected = True
+                    logger.info(f"MQTT connection successful on attempt {attempt + 1}")
+                    # Register system callback for switch commands
+                    self.mqtt.system_callback = self._handle_mqtt_command
+                    break
+                else:
+                    if attempt < initial_mqtt_retries - 1:
+                        logger.warning(f"MQTT connection failed on attempt {attempt + 1}/{initial_mqtt_retries}, retrying in {initial_retry_delay} seconds...")
+                        await asyncio.sleep(initial_retry_delay)
+                    else:
+                        logger.warning(f"Initial MQTT connection failed after {initial_mqtt_retries} attempts - will continue retrying in background")
+                        # Don't set mqtt to None - keep trying in background
+                        mqtt_connected = False
             
             # Publish Home Assistant discovery configuration
-            if self.mqtt and self.mqtt.is_connected():
+            if mqtt_connected and self.mqtt and self.mqtt.is_connected():
                 await self._publish_hass_discovery()
             
             # Initialize system state
@@ -755,9 +773,6 @@ class SolarHeatingSystem:
             
             logger.info(f"Published discovery for {discovery_count} regular sensors successfully")
             
-            # Remove legacy secondary pump entity from Home Assistant
-            self._remove_legacy_entities()
-            
             # Publish binary sensor discovery configurations
             logger.info(f"Publishing discovery for {len(binary_sensors)} binary sensors...")
             binary_discovery_count = 0
@@ -901,38 +916,6 @@ class SolarHeatingSystem:
             logger.error(f"Error publishing Home Assistant discovery: {e}")
             import traceback
             logger.error(f"Discovery error traceback: {traceback.format_exc()}")
-    
-    def _remove_legacy_entities(self):
-        """Remove legacy entities that are no longer used in v3"""
-        try:
-            if self.mqtt and self.mqtt.is_connected():
-                # Remove secondary pump entity
-                secondary_pump_config = {
-                    "name": "Secondary Pump (Removed)",
-                    "unique_id": "solar_heating_v3_secondary_pump",
-                    "state_topic": f"homeassistant/switch/solar_heating_secondary_pump/state",
-                    "command_topic": f"homeassistant/switch/solar_heating_secondary_pump/set",
-                    "icon": "mdi:pump-off",
-                    "device": {
-                        "name": "Solar Heating System v3",
-                        "identifiers": ["solar_heating_v3"],
-                        "manufacturer": "Custom",
-                        "model": "Solar Heating System v3"
-                    }
-                }
-                
-                # Publish removal message (empty config removes the entity)
-                topic = "homeassistant/switch/solar_heating_secondary_pump/config"
-                self.mqtt.publish(topic, "", retain=True)
-                logger.info("Published secondary pump removal message to Home Assistant")
-                
-                # Also remove any state topics
-                state_topic = "homeassistant/switch/solar_heating_secondary_pump/state"
-                self.mqtt.publish_raw(state_topic, "")
-                logger.info("Cleared secondary pump state topic")
-                
-        except Exception as e:
-            logger.error(f"Error removing legacy entities: {e}")
         finally:
             logger.info("=== HOME ASSISTANT DISCOVERY COMPLETED ===")
     
@@ -1848,6 +1831,7 @@ class SolarHeatingSystem:
         # Stop pumps
         if self.hardware:
             self.hardware.set_relay_state(1, False)  # Primary pump
+            self.hardware.set_relay_state(2, False)  # Secondary pump
         
         # Disconnect MQTT
         if self.mqtt and self.mqtt.is_connected():
@@ -1879,6 +1863,9 @@ class SolarHeatingSystem:
         
         # Start heartbeat task for uptime monitoring
         self.heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+        
+        # Start MQTT health monitoring task
+        self.mqtt_health_task = asyncio.create_task(self._mqtt_health_monitoring_loop())
         
         logger.info("Background tasks started successfully")
     
@@ -1925,6 +1912,69 @@ class SolarHeatingSystem:
                 
             except Exception as e:
                 logger.error(f"Error in heartbeat loop: {e}")
+                await asyncio.sleep(10)  # Wait before retrying
+    
+    async def _mqtt_health_monitoring_loop(self):
+        """MQTT health monitoring and persistent reconnection loop"""
+        persistent_retry_delay = 30  # Retry every 30 seconds for persistent failures
+        consecutive_failures = 0
+        max_consecutive_failures = 10  # After 10 failures, increase delay
+        
+        while self.running:
+            try:
+                if self.mqtt and not self.mqtt.is_connected():
+                    consecutive_failures += 1
+                    
+                    # Adjust retry delay based on consecutive failures
+                    if consecutive_failures <= max_consecutive_failures:
+                        retry_delay = persistent_retry_delay
+                        log_level = "WARNING"
+                    else:
+                        retry_delay = persistent_retry_delay * 2  # Increase delay
+                        log_level = "INFO"
+                    
+                    logger.log(getattr(logging, log_level), 
+                             f"MQTT connection attempt {consecutive_failures} - retrying in {retry_delay} seconds...")
+                    
+                    if self.mqtt.connect():
+                        logger.info("MQTT connection successful!")
+                        consecutive_failures = 0  # Reset failure counter
+                        
+                        # Re-register system callback
+                        self.mqtt.system_callback = self._handle_mqtt_command
+                        
+                        # Re-publish discovery and initial status
+                        try:
+                            await self._publish_hass_discovery()
+                            logger.info("Home Assistant discovery re-published successfully")
+                        except Exception as e:
+                            logger.error(f"Error re-publishing discovery: {e}")
+                        
+                        # Publish current system status
+                        try:
+                            await self._publish_status()
+                            logger.info("System status published successfully")
+                        except Exception as e:
+                            logger.error(f"Error publishing status: {e}")
+                            
+                    else:
+                        if consecutive_failures == 1:
+                            logger.warning("MQTT reconnection failed - will continue retrying")
+                        elif consecutive_failures % 10 == 0:  # Log every 10th failure
+                            logger.info(f"MQTT connection still unavailable after {consecutive_failures} attempts")
+                    
+                    await asyncio.sleep(retry_delay)
+                else:
+                    # MQTT is connected, reset failure counter
+                    if consecutive_failures > 0:
+                        logger.info("MQTT connection restored - monitoring resumed")
+                        consecutive_failures = 0
+                    
+                    # Normal health check interval
+                    await asyncio.sleep(60)
+                
+            except Exception as e:
+                logger.error(f"Error in MQTT health monitoring loop: {e}")
                 await asyncio.sleep(10)  # Wait before retrying
 
 async def main():
