@@ -2074,14 +2074,23 @@ class SolarHeatingSystem:
                 value = data['value']
                 
                 # Update pellet stove data in system state
-                if sensor in self.system_state:
-                    self.system_state[sensor] = value
-                    logger.info(f"Updated pellet stove data: {sensor} = {value}")
-                else:
-                    logger.warning(f"Unknown pellet stove sensor: {sensor}")
+                # Store all pellet stove sensors, even if not predefined
+                self.system_state[sensor] = value
+                logger.info(f"Updated pellet stove data: {sensor} = {value}")
+                
+                # Also store in a dedicated pellet stove data section
+                if 'pellet_stove_sensors' not in self.system_state:
+                    self.system_state['pellet_stove_sensors'] = {}
+                self.system_state['pellet_stove_sensors'][sensor] = value
+                
+            else:
+                # Handle unexpected command types gracefully
+                logger.debug(f"Received unexpected MQTT command type: {command_type}")
+                logger.debug(f"Command data: {data}")
                 
         except Exception as e:
-            logger.error(f"Error handling MQTT command: {e}")
+            logger.error(f"Error handling MQTT command '{command_type}': {e}")
+            logger.debug(f"Command data: {data}")
     
     def _publish_switch_state(self, switch_name: str, state: bool):
         """Publish switch state to Home Assistant"""
