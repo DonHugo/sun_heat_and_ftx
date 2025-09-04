@@ -158,6 +158,10 @@ class MQTTTopics:
     temperature_return_line: str = "temperature/return_line"
     temperature_heat_exchanger: str = "temperature/heat_exchanger"
     
+    # Sensor topics
+    sensor_base: str = "sensor"
+    sensor_realtime_energy: str = "sensor/realtime_energy"
+    
     # Control topics
     control_base: str = "control"
     control_pump: str = "control/pump"

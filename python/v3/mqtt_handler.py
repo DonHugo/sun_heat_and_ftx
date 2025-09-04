@@ -562,6 +562,19 @@ class MQTTHandler:
             logger.error(f"Error publishing energy status: {e}")
             return False
     
+    def publish_realtime_energy_sensor(self, sensor_data: Dict[str, Any]) -> bool:
+        """Publish real-time energy sensor data"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/sensor/realtime_energy"
+            message = {
+                "sensor_data": sensor_data,
+                "timestamp": time.time()
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing real-time energy sensor: {e}")
+            return False
+    
     def publish_heartbeat(self, system_info: Dict[str, Any]) -> bool:
         """Publish system heartbeat"""
         try:
