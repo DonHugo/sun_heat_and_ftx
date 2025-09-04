@@ -281,8 +281,10 @@ class MQTTHandler:
             # Call system callback if available
             if self.system_callback:
                 try:
+                    # Extract sensor name from topic for the main system
+                    sensor_name = topic.split('/')[2]  # Get sensor name from topic
                     self.system_callback('pellet_stove_data', {
-                        'topic': topic,
+                        'sensor': sensor_name,
                         'value': value,
                         'payload': payload
                     })
@@ -460,7 +462,7 @@ class MQTTHandler:
         except Exception as e:
             logger.error(f"Error handling TaskMaster AI message: {e}")
     
-    def publish(self, topic: str, message: Dict[str, Any]) -> bool:
+    def publish(self, topic: str, message: Dict[str, Any], retain: bool = False) -> bool:
         """Publish JSON message to MQTT topic"""
         try:
             if not self.connected or not self.client:
@@ -468,10 +470,10 @@ class MQTTHandler:
                 return False
             
             payload = json.dumps(message)
-            result = self.client.publish(topic, payload)
+            result = self.client.publish(topic, payload, retain=retain)
             
             if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
-                logger.debug(f"Published to {topic}: {message}")
+                logger.debug(f"Published to {topic}: {message} (retain: {retain})")
                 return True
             else:
                 logger.error(f"Failed to publish to {topic}: {result.rc}")
@@ -499,6 +501,52 @@ class MQTTHandler:
                 
         except Exception as e:
             logger.error(f"Error publishing raw to {topic}: {e}")
+            return False
+    
+    def publish_status(self, status_data: Dict[str, Any]) -> bool:
+        """Publish system status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status"
+            message = {
+                "timestamp": time.time(),
+                "version": "v3",
+                **status_data
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing status: {e}")
+            return False
+    
+    def publish_system_status(self, status_data: Dict[str, Any]) -> bool:
+        """Publish system status (alias for publish_status)"""
+        return self.publish_status(status_data)
+    
+    def publish_pump_status(self, pump_id: str, status: bool, mode: str = "auto") -> bool:
+        """Publish pump status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status/pump/{pump_id}"
+            message = {
+                "pump_id": pump_id,
+                "status": "on" if status else "off",
+                "mode": mode,
+                "timestamp": time.time()
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing pump status: {e}")
+            return False
+    
+    def publish_energy_status(self, energy_data: Dict[str, Any]) -> bool:
+        """Publish energy status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status/energy"
+            message = {
+                "energy": energy_data,
+                "timestamp": time.time()
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing energy status: {e}")
             return False
     
     def publish_heartbeat(self, system_info: Dict[str, Any]) -> bool:

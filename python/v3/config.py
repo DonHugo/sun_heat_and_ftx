@@ -168,6 +168,7 @@ class MQTTTopics:
     status_system: str = "status/system"
     status_pump: str = "status/pump"
     status_energy: str = "status/energy"
+    status: str = "status"  # General status topic
     
     # Home Assistant topics
     hass_base: str = "hass"
