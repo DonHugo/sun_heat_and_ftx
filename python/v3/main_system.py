@@ -57,6 +57,7 @@ class SolarHeatingSystem:
             'test_mode': config.test_mode,
             'manual_control': False,
             'overheated': False,
+            'collector_cooling_active': False,
             'last_update': time.time(),
             'pump_runtime_hours': 0.0,
             'heating_cycles_count': 0,
@@ -118,7 +119,8 @@ class SolarHeatingSystem:
             'dTStart_tank_1': config.dTStart_tank_1,
             'dTStop_tank_1': config.dTStop_tank_1,
             'kylning_kollektor': config.kylning_kollektor,
-            'temp_kok': config.kylning_kollektor,
+            'kylning_kollektor_hysteres': config.kylning_kollektor_hysteres,
+            'temp_kok': config.temp_kok,
             # Enhanced temperature management
             'morning_peak_target': config.morning_peak_target,
             'evening_peak_target': config.evening_peak_target,
@@ -422,6 +424,7 @@ class SolarHeatingSystem:
                 'test_mode': config.test_mode,
                 'manual_control': False,
                 'overheated': False,
+                'collector_cooling_active': False,
                 'last_update': time.time(),
                 'pump_runtime_hours': 0.0,
                 'heating_cycles_count': 0,
@@ -1758,13 +1761,69 @@ class SolarHeatingSystem:
             # Enhanced control logic with proper temperature difference handling
             dT = solar_collector - storage_tank
             
-            # Emergency stop conditions
+            # Emergency stop conditions (highest priority)
             if solar_collector >= self.control_params['temp_kok']:
                 if self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, False)  # Primary pump relay
                     self.system_state['primary_pump'] = False
                     self.system_state['overheated'] = True
                     logger.warning(f"Emergency pump stop: Collector temperature {solar_collector}°C >= {self.control_params['temp_kok']}°C")
+            
+            # Collector cooling logic (medium priority) - from V1 implementation
+            elif solar_collector >= self.control_params['kylning_kollektor']:
+                if not self.system_state['primary_pump']:
+                    self.hardware.set_relay_state(1, True)  # Primary pump relay
+                    self.system_state['primary_pump'] = True
+                    self.system_state['last_pump_start'] = time.time()
+                    self.system_state['heating_cycles_count'] += 1
+                    self.system_state['collector_cooling_active'] = True
+                    logger.warning(f"Collector cooling activated: Collector temperature {solar_collector}°C >= {self.control_params['kylning_kollektor']}°C. Cycle #{self.system_state['heating_cycles_count']}")
+                    
+                    # Save operational state after cycle count increment
+                    self._save_system_state()
+                    
+                    # Create TaskMaster AI task for collector cooling
+                    if config.taskmaster_enabled:
+                        try:
+                            await taskmaster_service.process_pump_control("start", {
+                                "reason": "collector_cooling",
+                                "collector_temp": solar_collector,
+                                "threshold": self.control_params['kylning_kollektor'],
+                                "cycle_number": self.system_state['heating_cycles_count']
+                            })
+                        except Exception as e:
+                            logger.error(f"Error creating TaskMaster AI collector cooling task: {str(e)}")
+            
+            # Collector cooling stop with hysteresis
+            elif (self.system_state.get('collector_cooling_active', False) and 
+                  solar_collector < (self.control_params['kylning_kollektor'] - self.control_params.get('kylning_kollektor_hysteres', 4.0))):
+                if self.system_state['primary_pump']:
+                    self.hardware.set_relay_state(1, False)  # Primary pump relay
+                    self.system_state['primary_pump'] = False
+                    self.system_state['collector_cooling_active'] = False
+                    # Calculate runtime for this cooling cycle
+                    if self.system_state['last_pump_start']:
+                        cycle_runtime = (time.time() - self.system_state['last_pump_start']) / 3600  # Convert to hours
+                        self.system_state['total_heating_time'] += cycle_runtime
+                        self.system_state['total_heating_time_lifetime'] += cycle_runtime
+                        self.system_state['pump_runtime_hours'] = round(self.system_state['total_heating_time'], 2)
+                        logger.info(f"Collector cooling stopped: Collector temperature {solar_collector}°C < {self.control_params['kylning_kollektor'] - self.control_params.get('kylning_kollektor_hysteres', 4.0)}°C. Cooling cycle runtime: {cycle_runtime:.2f}h")
+                        
+                        # Save operational state after runtime update
+                        self._save_system_state()
+                        
+                        # Create TaskMaster AI task for collector cooling stop
+                        if config.taskmaster_enabled:
+                            try:
+                                await taskmaster_service.process_pump_control("stop", {
+                                    "reason": "collector_cooling_complete",
+                                    "collector_temp": solar_collector,
+                                    "threshold": self.control_params['kylning_kollektor'] - self.control_params.get('kylning_kollektor_hysteres', 4.0),
+                                    "cycle_runtime": cycle_runtime,
+                                    "total_runtime": self.system_state['pump_runtime_hours']
+                                })
+                            except Exception as e:
+                                logger.error(f"Error creating TaskMaster AI collector cooling stop task: {str(e)}")
             
             # Detect unexpected heating at night (cartridge heater running when it shouldn't be)
             if (not self.system_state.get('primary_pump', False) and  # Pump not running
@@ -1858,6 +1917,9 @@ class SolarHeatingSystem:
             elif self.system_state.get('overheated', False):
                 new_mode = 'overheated'
                 reason = f"Emergency stop: Collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C"
+            elif self.system_state.get('collector_cooling_active', False):
+                new_mode = 'collector_cooling'
+                reason = f"Collector cooling: Collector {solar_collector:.1f}°C >= {self.control_params['kylning_kollektor']}°C"
             elif self.system_state.get('primary_pump', False):
                 new_mode = 'heating'
                 reason = f"Pump ON: dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C (collector {solar_collector:.1f}°C, tank {storage_tank:.1f}°C)"
@@ -1928,6 +1990,8 @@ class SolarHeatingSystem:
                 reasoning['explanation'] = f"Overheated mode: Emergency stop because collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C"
             elif current_mode == 'manual':
                 reasoning['explanation'] = "Manual mode: User has manual control override"
+            elif current_mode == 'collector_cooling':
+                reasoning['explanation'] = f"Collector cooling: Active cooling to prevent overheating at {solar_collector:.1f}°C"
             elif current_mode == 'test':
                 reasoning['explanation'] = "Test mode: System running in simulation mode"
             else:
