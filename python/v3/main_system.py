@@ -743,22 +743,10 @@ class SolarHeatingSystem:
                 },
                 # Solar Collector sensors
                 {
-                    'name': 'Solar Collector dT Running',
-                    'entity_id': 'solar_collector_dt_running',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
                     'name': 'Solar Collector dT',
                     'entity_id': 'solar_collector_dt',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Solar Collector Pump Status',
-                    'entity_id': 'solar_collector_pump',
-                    'device_class': None,
-                    'unit_of_measurement': None
                 },
                 {
                     'name': 'Solar Collector Mode',
@@ -769,12 +757,6 @@ class SolarHeatingSystem:
                 {
                     'name': 'Solar Collector State',
                     'entity_id': 'solar_collector_state',
-                    'device_class': None,
-                    'unit_of_measurement': None
-                },
-                {
-                    'name': 'Solar Collector Sub State',
-                    'entity_id': 'solar_collector_sub_state',
                     'device_class': None,
                     'unit_of_measurement': None
                 },
@@ -1400,12 +1382,9 @@ class SolarHeatingSystem:
             dT = solar_collector - storage_tank if solar_collector and storage_tank else 0
             logger.info("Solar collector dT calculation started")
             
-            self.temperatures['solar_collector_dt_running'] = dT
             self.temperatures['solar_collector_dt'] = dT
-            self.temperatures['solar_collector_pump'] = "ON" if self.system_state.get('primary_pump', False) else "OFF"
             self.temperatures['solar_collector_mode'] = self.system_state.get('mode', 'unknown')
             self.temperatures['solar_collector_state'] = self.system_state.get('mode', 'unknown')
-            self.temperatures['solar_collector_sub_state'] = "0"
             self.temperatures['solar_collector_overheated'] = "true" if self.system_state.get('overheated', False) else "false"
             logger.info("Solar collector dT values calculated successfully")
             
