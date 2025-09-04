@@ -83,13 +83,30 @@ class HardwareInterface:
             
             # Validate temperature reading
             if temp > 200 or temp < -50:
-                logger.warning(f"Invalid RTD temperature reading: {temp}°C for sensor {sensor_id}")
+                # Only log warning once per sensor to reduce spam
+                if not hasattr(self, '_rtd_warnings'):
+                    self._rtd_warnings = set()
+                
+                if sensor_id not in self._rtd_warnings:
+                    logger.warning(f"Invalid RTD temperature reading: {temp}°C for sensor {sensor_id}")
+                    self._rtd_warnings.add(sensor_id)
                 return None
+            
+            # Clear warning if sensor is working again
+            if hasattr(self, '_rtd_warnings') and sensor_id in self._rtd_warnings:
+                logger.info(f"RTD sensor {sensor_id} is working again")
+                self._rtd_warnings.remove(sensor_id)
                 
             return round(temp, 1)
             
         except Exception as e:
-            logger.error(f"Error reading RTD sensor {sensor_id}: {e}")
+            # Only log error once per sensor to reduce spam
+            if not hasattr(self, '_rtd_errors'):
+                self._rtd_errors = set()
+            
+            if sensor_id not in self._rtd_errors:
+                logger.error(f"Error reading RTD sensor {sensor_id}: {e}")
+                self._rtd_errors.add(sensor_id)
             return None
     
     def read_megabas_temperature(self, sensor_id: int, stack: int = None) -> Optional[float]:
@@ -113,15 +130,32 @@ class HardwareInterface:
             sensor = m.getRIn1K(stack, sensor_id)
             
             if sensor == 60:  # Error value
-                logger.warning(f"Error reading MegaBAS sensor {sensor_id}")
+                # Only log warning once per sensor to reduce spam
+                if not hasattr(self, '_sensor_warnings'):
+                    self._sensor_warnings = set()
+                
+                if sensor_id not in self._sensor_warnings:
+                    logger.warning(f"Error reading MegaBAS sensor {sensor_id} - sensor may be disconnected or faulty")
+                    self._sensor_warnings.add(sensor_id)
                 return None
+            
+            # Clear warning if sensor is working again
+            if hasattr(self, '_sensor_warnings') and sensor_id in self._sensor_warnings:
+                logger.info(f"MegaBAS sensor {sensor_id} is working again")
+                self._sensor_warnings.remove(sensor_id)
             
             # Convert to temperature using existing calibration
             temp = self._convert_megabas_to_temperature(sensor)
             return temp
             
         except Exception as e:
-            logger.error(f"Error reading MegaBAS sensor {sensor_id}: {e}")
+            # Only log error once per sensor to reduce spam
+            if not hasattr(self, '_sensor_errors'):
+                self._sensor_errors = set()
+            
+            if sensor_id not in self._sensor_errors:
+                logger.error(f"Error reading MegaBAS sensor {sensor_id}: {e}")
+                self._sensor_errors.add(sensor_id)
             return None
     
     def _convert_megabas_to_temperature(self, sensor_value: float) -> float:
