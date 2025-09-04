@@ -48,7 +48,7 @@ class SystemConfig(BaseModel):
     hass_discovery_prefix: str = Field(default="homeassistant", description="HA discovery prefix")
     
     # TaskMaster AI Configuration
-    taskmaster_enabled: bool = Field(default=True, description="Enable TaskMaster AI integration")
+    taskmaster_enabled: bool = Field(default=False, description="Enable TaskMaster AI integration")
     taskmaster_api_key: str = Field(default="", description="TaskMaster AI API key")
     taskmaster_base_url: str = Field(default="https://api.taskmaster.ai", description="TaskMaster AI base URL")
     
