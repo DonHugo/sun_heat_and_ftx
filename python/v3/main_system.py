@@ -275,28 +275,41 @@ class SolarHeatingSystem:
         return self.mqtt is not None and self.mqtt.is_connected()
     
     def _save_system_state(self):
-        """Save operational metrics to persistent storage"""
+        """Save operational metrics and energy collection data to persistent storage"""
         try:
             state_file = 'system_operational_state.json'
-            operational_metrics = {
+            state_data = {
+                # Operational metrics
                 'pump_runtime_hours': self.system_state.get('pump_runtime_hours', 0.0),
                 'heating_cycles_count': self.system_state.get('heating_cycles_count', 0),
                 'total_heating_time': self.system_state.get('total_heating_time', 0.0),
                 'total_heating_time_lifetime': self.system_state.get('total_heating_time_lifetime', 0.0),
+                
+                # Energy collection data (daily counters)
+                'energy_collected_today': self.system_state.get('energy_collected_today', 0.0),
+                'solar_energy_today': self.system_state.get('solar_energy_today', 0.0),
+                'cartridge_energy_today': self.system_state.get('cartridge_energy_today', 0.0),
+                'pellet_energy_today': self.system_state.get('pellet_energy_today', 0.0),
+                
+                # Reset tracking
+                'last_midnight_reset_date': self.system_state.get('last_midnight_reset_date', ''),
+                'last_day_reset': self.system_state.get('last_day_reset', 0),
+                
+                # Timestamps
                 'last_save_time': time.time(),
                 'last_save_date': datetime.now().isoformat()
             }
             
             with open(state_file, 'w') as f:
-                json.dump(operational_metrics, f, indent=2)
+                json.dump(state_data, f, indent=2)
             
-            logger.info(f"✅ Operational state saved: pump_runtime={operational_metrics['pump_runtime_hours']:.2f}h, cycles={operational_metrics['heating_cycles_count']}, daily_time={operational_metrics['total_heating_time']:.2f}h, lifetime={operational_metrics['total_heating_time_lifetime']:.2f}h")
+            logger.info(f"✅ System state saved: pump_runtime={state_data['pump_runtime_hours']:.2f}h, cycles={state_data['heating_cycles_count']}, daily_time={state_data['total_heating_time']:.2f}h, energy_today={state_data['energy_collected_today']:.2f}kWh")
             
         except Exception as e:
-            logger.error(f"❌ Failed to save operational state: {e}")
+            logger.error(f"❌ Failed to save system state: {e}")
     
     def _load_system_state(self):
-        """Load operational metrics from persistent storage"""
+        """Load operational metrics and energy collection data from persistent storage"""
         try:
             state_file = 'system_operational_state.json'
             if os.path.exists(state_file):
@@ -309,13 +322,23 @@ class SolarHeatingSystem:
                 self.system_state['total_heating_time'] = saved_state.get('total_heating_time', 0.0)
                 self.system_state['total_heating_time_lifetime'] = saved_state.get('total_heating_time_lifetime', 0.0)
                 
+                # Restore energy collection data (daily counters)
+                self.system_state['energy_collected_today'] = saved_state.get('energy_collected_today', 0.0)
+                self.system_state['solar_energy_today'] = saved_state.get('solar_energy_today', 0.0)
+                self.system_state['cartridge_energy_today'] = saved_state.get('cartridge_energy_today', 0.0)
+                self.system_state['pellet_energy_today'] = saved_state.get('pellet_energy_today', 0.0)
+                
+                # Restore reset tracking
+                self.system_state['last_midnight_reset_date'] = saved_state.get('last_midnight_reset_date', '')
+                self.system_state['last_day_reset'] = saved_state.get('last_day_reset', time.time())
+                
                 last_save_date = saved_state.get('last_save_date', 'Unknown')
-                logger.info(f"✅ Operational state loaded: pump_runtime={self.system_state['pump_runtime_hours']:.2f}h, cycles={self.system_state['heating_cycles_count']}, daily_time={self.system_state['total_heating_time']:.2f}h, lifetime={self.system_state['total_heating_time_lifetime']:.2f}h (last saved: {last_save_date})")
+                logger.info(f"✅ System state loaded: pump_runtime={self.system_state['pump_runtime_hours']:.2f}h, cycles={self.system_state['heating_cycles_count']}, daily_time={self.system_state['total_heating_time']:.2f}h, energy_today={self.system_state['energy_collected_today']:.2f}kWh (last saved: {last_save_date})")
             else:
-                logger.info("ℹ️  No saved operational state found - starting with fresh counters")
+                logger.info("ℹ️  No saved system state found - starting with fresh counters")
                 
         except Exception as e:
-            logger.error(f"❌ Failed to load operational state: {e}")
+            logger.error(f"❌ Failed to load system state: {e}")
             logger.info("ℹ️  Continuing with default values")
     
     def _is_midnight_reset_needed(self):
@@ -323,18 +346,30 @@ class SolarHeatingSystem:
         now = datetime.now()
         current_time = now.time()
         
-        # Check if we're within a few seconds of midnight (00:00:00)
-        midnight = dt_time(0, 0, 0)
-        time_diff = abs((current_time.hour * 3600 + current_time.minute * 60 + current_time.second) - 
-                       (midnight.hour * 3600 + midnight.minute * 60 + midnight.second))
+        # Check if we're within 10 seconds of midnight (00:00:00) for more reliable detection
+        # Handle both before and after midnight cases
+        current_seconds = current_time.hour * 3600 + current_time.minute * 60 + current_time.second
+        midnight_seconds = 0  # 00:00:00 = 0 seconds
         
-        # Allow reset within 5 seconds of midnight
-        if time_diff <= 5:
+        # Calculate time difference, handling the day boundary
+        if current_seconds >= 23 * 3600 + 59 * 60 + 50:  # After 23:59:50 (10 seconds before midnight)
+            # We're approaching midnight from the previous day
+            time_diff = (24 * 3600) - current_seconds
+        elif current_seconds <= 10:  # Within 10 seconds after midnight
+            # We're just after midnight
+            time_diff = current_seconds
+        else:
+            # We're not near midnight
+            time_diff = 999  # Large number to ensure no reset
+        
+        # Allow reset within 10 seconds of midnight
+        if time_diff <= 10:
             # Check if we haven't already reset today
             last_reset_date = self.system_state.get('last_midnight_reset_date', '')
             today = now.date().isoformat()
             
             if last_reset_date != today:
+                logger.info(f"🕛 Midnight reset check: current_time={current_time}, time_diff={time_diff}s, last_reset={last_reset_date}, today={today}")
                 return True
         
         return False
@@ -441,6 +476,9 @@ class SolarHeatingSystem:
             
             # Initialize temperature storage
             self.temperatures = {}
+            
+            # Load persisted system state (overwrites default values with saved data)
+            self._load_system_state()
             
             # Test hardware
             hardware_test = self.hardware.test_hardware_connection()
@@ -1447,6 +1485,8 @@ class SolarHeatingSystem:
             
             # Check for midnight reset of daily counters and operational metrics
             if self._is_midnight_reset_needed():
+                logger.info("🕛 MIDNIGHT RESET TRIGGERED - Resetting daily counters...")
+                
                 # Reset daily energy counters
                 self.system_state['energy_collected_today'] = 0.0
                 self.system_state['solar_energy_today'] = 0.0
@@ -1463,12 +1503,13 @@ class SolarHeatingSystem:
                 self.system_state['last_midnight_reset_date'] = datetime.now().date().isoformat()
                 self.system_state['last_day_reset'] = current_time
                 
-                logger.info("🕛 MIDNIGHT RESET: Daily counters and operational metrics reset")
+                logger.info("🕛 MIDNIGHT RESET COMPLETED: Daily counters and operational metrics reset")
                 logger.info(f"  📊 Energy: {self.system_state['energy_collected_today']:.2f} kWh, Solar: {self.system_state['solar_energy_today']:.2f} kWh, Cartridge: {self.system_state['cartridge_energy_today']:.2f} kWh, Pellet: {self.system_state['pellet_energy_today']:.2f} kWh")
                 logger.info(f"  ⚙️  Pump Runtime: {self.system_state['pump_runtime_hours']:.2f}h, Heating Cycles: {self.system_state['heating_cycles_count']}, Daily Time: {self.system_state['total_heating_time']:.2f}h, Lifetime: {self.system_state['total_heating_time_lifetime']:.2f}h")
                 
                 # Save the reset state immediately
                 self._save_system_state()
+                logger.info("✅ Midnight reset state saved to persistent storage")
             
             # Calculate energy collected since last calculation
             last_energy = self.system_state.get('last_energy_calculation', current_time)
@@ -1569,6 +1610,9 @@ class SolarHeatingSystem:
             self.temperatures['solar_energy_hour_kwh'] = round(self.system_state.get('solar_energy_hour', 0.0), 2)
             self.temperatures['cartridge_energy_hour_kwh'] = round(self.system_state.get('cartridge_energy_hour', 0.0), 2)
             self.temperatures['pellet_energy_hour_kwh'] = round(self.system_state.get('pellet_energy_hour', 0.0), 2)
+            
+            # Save state after energy collection updates to persist daily totals
+            self._save_system_state()
             
             # Calculate real-time energy rate sensor (kW) and comparison metrics
             self._calculate_realtime_energy_sensor()
