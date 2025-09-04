@@ -1629,6 +1629,8 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
         finally:
+            # Update system mode after temperature reading and control logic
+            self._update_system_mode()
             logger.debug("Completed _read_temperatures method")
     
     def _calculate_realtime_energy_sensor(self):
@@ -1774,9 +1776,6 @@ class SolarHeatingSystem:
             solar_collector = self.temperatures.get('solar_collector', 0)
             storage_tank = self.temperatures.get('storage_tank', 0)
             
-            # Update system mode based on current state
-            self._update_system_mode()
-            
             # Enhanced control logic with proper temperature difference handling
             dT = solar_collector - storage_tank
             
@@ -1852,6 +1851,9 @@ class SolarHeatingSystem:
             # Keep current state when 4°C < dT < 8°C (hysteresis zone)
             else:
                 logger.debug(f"Pump state unchanged. dT={dT:.1f}°C (hysteresis zone: {self.control_params['dTStop_tank_1']}°C < dT < {self.control_params['dTStart_tank_1']}°C)")
+            
+            # Update system mode AFTER pump state changes
+            self._update_system_mode()
                     
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
@@ -2365,6 +2367,8 @@ class SolarHeatingSystem:
                 # Update system state
                 if switch_name == 'primary_pump':
                     self.system_state['primary_pump'] = state
+                    # Update system mode after direct pump control
+                    self._update_system_mode()
                 
                 elif switch_name == 'primary_pump_manual':
                     self.system_state['primary_pump_manual'] = state
@@ -2377,6 +2381,9 @@ class SolarHeatingSystem:
                         # Manual control OFF - force pump to stay OFF
                         self.system_state['primary_pump'] = False
                         logger.info("Primary pump manual control OFF - pump forced OFF")
+                    
+                    # Update system mode after manual control change
+                    self._update_system_mode()
                 
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state
