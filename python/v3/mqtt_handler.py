@@ -218,12 +218,18 @@ class MQTTHandler:
                 if (self._is_pellet_stove_sensor(topic)):
                     self._handle_pellet_stove_data(topic, payload)
                     return
+                
+                # For non-pellet stove sensors, just store the data without warnings
+                # These are normal Home Assistant sensor values (strings, not JSON)
+                return
             
-            # Parse JSON payload for other messages
+            # Parse JSON payload for other messages (only for non-sensor topics)
             try:
                 data = json.loads(payload)
             except json.JSONDecodeError:
-                logger.warning(f"Invalid JSON payload on topic {topic}: {payload}")
+                # Only warn for topics that should contain JSON
+                if not topic.startswith("homeassistant/sensor/") and not topic.startswith("homeassistant/binary_sensor/"):
+                    logger.warning(f"Invalid JSON payload on topic {topic}: {payload}")
                 return
             
             # Handle other message types
@@ -267,13 +273,20 @@ class MQTTHandler:
                 value = payload.lower() in ['on', 'true', '1']
                 logger.info(f"Pellet stove binary sensor {topic}: {value}")
             else:
-                # Numeric sensor
-                try:
-                    value = float(payload)
-                    logger.info(f"Pellet stove sensor {topic}: {value}")
-                except ValueError:
-                    logger.warning(f"Pellet stove sensor {topic}: invalid numeric value '{payload}'")
-                    return
+                # Check if it's a timestamp (common for pellet stove sensors)
+                if payload.startswith('20') and ('T' in payload or '-' in payload):
+                    # This is a timestamp, not a numeric value - store as string
+                    value = payload
+                    logger.debug(f"Pellet stove timestamp sensor {topic}: {value}")
+                else:
+                    # Try to parse as numeric sensor
+                    try:
+                        value = float(payload)
+                        logger.info(f"Pellet stove numeric sensor {topic}: {value}")
+                    except ValueError:
+                        # Not numeric, not timestamp - store as string value
+                        value = payload
+                        logger.debug(f"Pellet stove string sensor {topic}: {value}")
             
             # Store the data for system use
             self.last_messages[topic] = payload
