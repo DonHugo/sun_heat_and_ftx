@@ -121,6 +121,7 @@ class SolarHeatingSystem:
             'kylning_kollektor': config.kylning_kollektor,
             'kylning_kollektor_hysteres': config.kylning_kollektor_hysteres,
             'temp_kok': config.temp_kok,
+            'temp_kok_hysteres': config.temp_kok_hysteres,
             # Enhanced temperature management
             'morning_peak_target': config.morning_peak_target,
             'evening_peak_target': config.evening_peak_target,
@@ -470,6 +471,7 @@ class SolarHeatingSystem:
                 'dTStop_tank_1': config.dTStop_tank_1,
                 'kylning_kollektor': config.kylning_kollektor,
                 'temp_kok': config.temp_kok,
+                'temp_kok_hysteres': config.temp_kok_hysteres,
                 # Enhanced temperature management
                 'morning_peak_target': config.morning_peak_target,
                 'evening_peak_target': config.evening_peak_target,
@@ -1093,6 +1095,15 @@ class SolarHeatingSystem:
                     'max_value': 200,
                     'step': 5,
                     'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Boiling Temperature Hysteresis',
+                    'entity_id': 'temp_kok_hysteres',
+                    'unit_of_measurement': '°C',
+                    'min_value': 1,
+                    'max_value': 50,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-minus'
                 },
                 # Enhanced temperature management
                 {
@@ -1769,6 +1780,12 @@ class SolarHeatingSystem:
                     self.system_state['overheated'] = True
                     logger.warning(f"Emergency pump stop: Collector temperature {solar_collector}°C >= {self.control_params['temp_kok']}°C")
             
+            # Emergency stop recovery with hysteresis
+            elif (self.system_state.get('overheated', False) and 
+                  solar_collector < (self.control_params['temp_kok'] - self.control_params['temp_kok_hysteres'])):
+                self.system_state['overheated'] = False
+                logger.info(f"Emergency stop recovery: Collector temperature {solar_collector}°C < {self.control_params['temp_kok'] - self.control_params['temp_kok_hysteres']}°C (hysteresis recovery)")
+            
             # Collector cooling logic (medium priority) - from V1 implementation
             elif solar_collector >= self.control_params['kylning_kollektor']:
                 if not self.system_state['primary_pump']:
@@ -1972,7 +1989,8 @@ class SolarHeatingSystem:
                 'control_thresholds': {
                     'start_threshold': self.control_params['dTStart_tank_1'],
                     'stop_threshold': self.control_params['dTStop_tank_1'],
-                    'emergency_threshold': self.control_params['temp_kok']
+                    'emergency_threshold': self.control_params['temp_kok'],
+                    'emergency_hysteresis': self.control_params['temp_kok_hysteres']
                 },
                 'status': {
                     'test_mode': self.system_state.get('test_mode', False),
@@ -1987,7 +2005,7 @@ class SolarHeatingSystem:
             elif current_mode == 'standby':
                 reasoning['explanation'] = f"Standby mode: Pump is OFF because dT={dT:.1f}°C < {self.control_params['dTStart_tank_1']}°C"
             elif current_mode == 'overheated':
-                reasoning['explanation'] = f"Overheated mode: Emergency stop because collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C"
+                reasoning['explanation'] = f"Overheated mode: Emergency stop because collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C (recovery at {self.control_params['temp_kok'] - self.control_params['temp_kok_hysteres']}°C)"
             elif current_mode == 'manual':
                 reasoning['explanation'] = "Manual mode: User has manual control override"
             elif current_mode == 'collector_cooling':
@@ -2138,6 +2156,7 @@ class SolarHeatingSystem:
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                self._publish_number_state('temp_kok_hysteres', self.control_params['temp_kok_hysteres'])
                 # Enhanced temperature management
                 self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
                 self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
@@ -2268,6 +2287,7 @@ class SolarHeatingSystem:
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                self._publish_number_state('temp_kok_hysteres', self.control_params['temp_kok_hysteres'])
                 # Enhanced temperature management
                 self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
                 self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
@@ -2404,6 +2424,7 @@ class SolarHeatingSystem:
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                self._publish_number_state('temp_kok_hysteres', self.control_params['temp_kok_hysteres'])
                 # Enhanced temperature management
                 self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
                 self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
@@ -2484,6 +2505,9 @@ class SolarHeatingSystem:
                 
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state
+                    # Control cartridge heater relay (relay 2) with NC inversion like V1
+                    self.hardware.set_relay_state(config.cartridge_heater_relay, state)
+                    logger.info(f"Cartridge heater relay {config.cartridge_heater_relay} set to {'ON' if state else 'OFF'}")
                 
                 # Publish switch state back to Home Assistant
                 self._publish_switch_state(switch_name, state)
@@ -2505,6 +2529,8 @@ class SolarHeatingSystem:
                     self.control_params['kylning_kollektor'] = value
                 elif number_name == 'temp_kok':
                     self.control_params['temp_kok'] = value
+                elif number_name == 'temp_kok_hysteres':
+                    self.control_params['temp_kok_hysteres'] = value
                 # Enhanced temperature management
                 elif number_name == 'morning_peak_target':
                     self.control_params['morning_peak_target'] = value
@@ -2556,10 +2582,10 @@ class SolarHeatingSystem:
                     self._set_system_mode(mode)
                     logger.info(f"System mode changed via HA to: {mode}")
                 
-            else:
-                # Handle unexpected command types gracefully
-                logger.debug(f"Received unexpected MQTT command type: {command_type}")
-                logger.debug(f"Command data: {data}")
+                else:
+                    # Handle unexpected command types gracefully
+                    logger.debug(f"Received unexpected MQTT command type: {command_type}")
+                    logger.debug(f"Command data: {data}")
                 
         except Exception as e:
             logger.error(f"Error handling MQTT command '{command_type}': {e}")
