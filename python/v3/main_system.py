@@ -1939,6 +1939,60 @@ class SolarHeatingSystem:
             logger.error(f"Error getting mode reasoning: {e}")
             return {'error': str(e)}
     
+    def _set_system_mode(self, mode):
+        """Set system operating mode with appropriate parameters"""
+        try:
+            old_mode = self.system_state.get('mode', 'unknown')
+            
+            if mode == 'auto':
+                # Auto Mode: Full automatic operation
+                self.system_state['manual_control'] = False
+                self.system_state['eco_mode'] = False
+                # Reset to default parameters
+                self.control_params['dTStart_tank_1'] = 8.0
+                self.control_params['dTStop_tank_1'] = 4.0
+                self.control_params['set_temp_tank_1'] = 60.0
+                logger.info("🤖 Auto Mode: Full automatic operation enabled")
+                
+            elif mode == 'manual':
+                # Manual Mode: Manual control with safety limits
+                self.system_state['manual_control'] = True
+                self.system_state['eco_mode'] = False
+                # Keep current parameters but enable manual control
+                logger.info("✋ Manual Mode: Manual control enabled with safety limits")
+                
+            elif mode == 'eco':
+                # Eco Mode: Energy-saving operation
+                self.system_state['manual_control'] = False
+                self.system_state['eco_mode'] = True
+                # Set eco-friendly parameters
+                self.control_params['dTStart_tank_1'] = 10.0  # Higher threshold for energy saving
+                self.control_params['dTStop_tank_1'] = 6.0   # Higher stop threshold
+                self.control_params['set_temp_tank_1'] = 55.0  # Lower target temperature
+                logger.info("🌱 Eco Mode: Energy-saving operation enabled")
+                
+            else:
+                logger.warning(f"Unknown mode requested: {mode}")
+                return
+            
+            # Update system mode
+            self.system_state['mode'] = mode
+            
+            # Log mode change with parameters
+            logger.info(f"🔄 Mode changed: {old_mode} → {mode}")
+            logger.info(f"   📊 Control Parameters:")
+            logger.info(f"      Start Threshold: {self.control_params['dTStart_tank_1']}°C")
+            logger.info(f"      Stop Threshold: {self.control_params['dTStop_tank_1']}°C")
+            logger.info(f"      Target Temperature: {self.control_params['set_temp_tank_1']}°C")
+            logger.info(f"      Manual Control: {self.system_state.get('manual_control', False)}")
+            logger.info(f"      Eco Mode: {self.system_state.get('eco_mode', False)}")
+            
+            # Update system mode after parameter changes
+            self._update_system_mode()
+            
+        except Exception as e:
+            logger.error(f"Error setting system mode: {e}")
+    
     async def _publish_status(self):
         """Publish system status to MQTT"""
         try:
@@ -2424,6 +2478,19 @@ class SolarHeatingSystem:
                 if self.mqtt and self.mqtt.is_connected():
                     self.mqtt.publish('solar_heating/mode_reasoning', reasoning)
                     logger.info(f"Published mode reasoning: {reasoning['current_mode']} - {reasoning['explanation']}")
+                
+            elif command_type == 'mode_control':
+                # Handle system mode control from Home Assistant
+                mode = data.get('mode', 'auto')
+                self._set_system_mode(mode)
+                logger.info(f"System mode changed to: {mode}")
+                
+            elif command_type == 'select_command':
+                # Handle Home Assistant select entity commands
+                if data.get('entity_id') == 'solar_heating_system_mode':
+                    mode = data.get('option', 'auto')
+                    self._set_system_mode(mode)
+                    logger.info(f"System mode changed via HA to: {mode}")
                 
             else:
                 # Handle unexpected command types gracefully
