@@ -1998,6 +1998,270 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
     
+    async def _publish_hourly_aggregation(self):
+        """Publish complete hourly energy aggregation at end of hour"""
+        try:
+            logger.info("🕐 Publishing hourly energy aggregation...")
+            
+            # Publish ALL sensors including hourly energy data
+            sensor_count = 0
+            total_sensors = len(self.temperatures)
+            logger.info(f"Publishing complete {total_sensors} sensors with hourly aggregation")
+            
+            for sensor_name, value in self.temperatures.items():
+                if self.mqtt and self.mqtt.is_connected():
+                    # Publish to Home Assistant compatible topic
+                    topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    
+                    # Determine if this is a temperature sensor or other type
+                    if sensor_name == 'heat_exchanger_efficiency':
+                        # For efficiency, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.debug(f"Published {sensor_name}: {value}% to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published efficiency sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'system_mode':
+                        # For system mode, send the string value
+                        message = str(value) if value is not None else "unknown"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published system mode sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'is_heating':
+                        # For heating status, send the boolean value as string
+                        message = str(value).lower() if value is not None else "false"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published heating status sensor: {sensor_name} = {value}")
+                        
+                        # Also publish to binary_sensor topic with proper ON/OFF format
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
+                    elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
+                        # For energy sensors, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value} kWh to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published energy sensor: {sensor_name} = {value}")
+                    elif sensor_name in ['energy_collected_hour_kwh', 'solar_energy_hour_kwh', 
+                                     'cartridge_energy_hour_kwh', 'pellet_energy_hour_kwh']:
+                        # For hourly energy sensors, send the complete hour's data
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"🕐 Published hourly energy sensor: {sensor_name} = {value} kWh (complete hour)")
+                        sensor_count += 1
+                    elif sensor_name == 'average_temperature':
+                        # For average temperature, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published average temperature sensor: {sensor_name} = {value}")
+                    else:
+                        # For temperature sensors, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published temperature sensor: {sensor_name} = {value}")
+                    
+                    # Send raw number, not quoted string
+                    self.mqtt.publish_raw(topic, message)
+            
+            logger.info(f"🕐 Published {sensor_count} sensors with complete hourly aggregation")
+            
+            # Publish switch states
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing switch states...")
+                self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
+                self._publish_switch_state('primary_pump_manual', self.system_state['primary_pump_manual'])
+                self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
+                logger.info("Switch states published successfully")
+            
+            # Publish number states
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing number states...")
+                self._publish_number_state('set_temp_tank_1', self.control_params['set_temp_tank_1'])
+                self._publish_number_state('dTStart_tank_1', self.control_params['dTStart_tank_1'])
+                self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
+                self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
+                self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                # Enhanced temperature management
+                self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
+                self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
+                self._publish_number_state('pellet_stove_max_temp', self.control_params['pellet_stove_max_temp'])
+                self._publish_number_state('heat_distribution_temp', self.control_params['heat_distribution_temp'])
+                logger.info("Number states published successfully")
+            
+            # Publish system status
+            status_data = {
+                'system_state': self.system_state,
+                'temperatures': self.temperatures,
+                'timestamp': time.time(),
+                'hourly_aggregation': True
+            }
+            
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing system status with hourly aggregation...")
+                self.mqtt.publish_status(status_data)
+                logger.info("System status with hourly aggregation published successfully")
+                
+                # Publish real-time energy sensor data
+                logger.info("Publishing real-time energy sensor with hourly data...")
+                self.mqtt.publish_realtime_energy_sensor(self.temperatures)
+                logger.info("Real-time energy sensor with hourly data published successfully")
+                
+                # Process system status with TaskMaster AI (FR-008)
+                if config.taskmaster_enabled:
+                    try:
+                        system_status = {
+                            'mode': self.system_state.get('mode', 'unknown'),
+                            'primary_pump': self.system_state.get('primary_pump', False),
+                            'pump_runtime_hours': self.system_state.get('pump_runtime_hours', 0),
+                            'heating_cycles_count': self.system_state.get('heating_cycles_count', 0),
+                            'uptime': time.time() - self.system_state.get('last_update', time.time()),
+                            'temperatures': self.temperatures,
+                            'hourly_aggregation': True
+                        }
+                        await taskmaster_service.process_system_status(system_status)
+                    except Exception as e:
+                        logger.error(f"Error processing system status with TaskMaster AI: {str(e)}")
+                
+                # Log hourly summary
+                logger.info("🕐 Hourly Energy Summary:")
+                logger.info(f"  📊 Total Energy: {self.temperatures.get('energy_collected_hour_kwh', 0):.3f} kWh")
+                logger.info(f"  ☀️  Solar Energy: {self.temperatures.get('solar_energy_hour_kwh', 0):.3f} kWh")
+                logger.info(f"  🔥 Cartridge Energy: {self.temperatures.get('cartridge_energy_hour_kwh', 0):.3f} kWh")
+                logger.info(f"  🌲 Pellet Energy: {self.temperatures.get('pellet_energy_hour_kwh', 0):.3f} kWh")
+                
+        except Exception as e:
+            logger.error(f"Error publishing hourly aggregation: {e}")
+    
+    async def _publish_basic_status(self):
+        """Publish basic system status (no hourly energy data)"""
+        try:
+            logger.info("Publishing basic system status...")
+            
+            # Publish individual sensors for Home Assistant (excluding hourly energy)
+            sensor_count = 0
+            total_sensors = len(self.temperatures)
+            logger.info(f"Starting to publish {total_sensors} sensors to Home Assistant")
+            
+            for sensor_name, value in self.temperatures.items():
+                if self.mqtt and self.mqtt.is_connected():
+                    # Skip hourly energy sensors during the hour
+                    if sensor_name in ['energy_collected_hour_kwh', 'solar_energy_hour_kwh', 
+                                     'cartridge_energy_hour_kwh', 'pellet_energy_hour_kwh']:
+                        continue
+                    
+                    # Publish to Home Assistant compatible topic
+                    topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    
+                    # Determine if this is a temperature sensor or other type
+                    if sensor_name == 'heat_exchanger_efficiency':
+                        # For efficiency, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.debug(f"Published {sensor_name}: {value}% to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published efficiency sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'system_mode':
+                        # For system mode, send the string value
+                        message = str(value) if value is not None else "unknown"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published system mode sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'is_heating':
+                        # For heating status, send the boolean value as string
+                        message = str(value).lower() if value is not None else "false"
+                        logger.debug(f"Published {sensor_name}: {value} to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published heating status sensor: {sensor_name} = {value}")
+                        
+                        # Also publish to binary_sensor topic with proper ON/OFF format
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
+                    elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
+                        # For energy sensors, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value} kWh to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published energy sensor: {sensor_name} = {value}")
+                    elif sensor_name == 'average_temperature':
+                        # For average temperature, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.info(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published average temperature sensor: {sensor_name} = {value}")
+                    else:
+                        # For temperature sensors, send the raw number
+                        message = str(value) if value is not None else "0"
+                        logger.debug(f"Published {sensor_name}: {value}°C to {topic}")
+                        sensor_count += 1
+                        logger.info(f"Published temperature sensor: {sensor_name} = {value}")
+                    
+                    # Send raw number, not quoted string
+                    self.mqtt.publish_raw(topic, message)
+            
+            logger.info(f"Published {sensor_count} sensors to Home Assistant (excluding hourly energy)")
+            
+            # Publish switch states
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing switch states...")
+                self._publish_switch_state('primary_pump', self.system_state['primary_pump'])
+                self._publish_switch_state('primary_pump_manual', self.system_state['primary_pump_manual'])
+                self._publish_switch_state('cartridge_heater', self.system_state['cartridge_heater'])
+                logger.info("Switch states published successfully")
+            
+            # Publish number states
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing number states...")
+                self._publish_number_state('set_temp_tank_1', self.control_params['set_temp_tank_1'])
+                self._publish_number_state('dTStart_tank_1', self.control_params['dTStart_tank_1'])
+                self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
+                self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
+                self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                # Enhanced temperature management
+                self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
+                self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
+                self._publish_number_state('pellet_stove_max_temp', self.control_params['pellet_stove_max_temp'])
+                self._publish_number_state('heat_distribution_temp', self.control_params['heat_distribution_temp'])
+                logger.info("Number states published successfully")
+            
+            # Publish system status
+            status_data = {
+                'system_state': self.system_state,
+                'temperatures': self.temperatures,
+                'timestamp': time.time()
+            }
+            
+            if self.mqtt and self.mqtt.is_connected():
+                logger.info("Publishing system status...")
+                self.mqtt.publish_status(status_data)
+                logger.info("System status published successfully")
+                
+                # Publish real-time energy sensor data
+                logger.info("Publishing real-time energy sensor...")
+                self.mqtt.publish_realtime_energy_sensor(self.temperatures)
+                logger.info("Real-time energy sensor published successfully")
+                
+                # Process system status with TaskMaster AI (FR-008)
+                if config.taskmaster_enabled:
+                    try:
+                        system_status = {
+                            'mode': self.system_state.get('mode', 'unknown'),
+                            'primary_pump': self.system_state.get('primary_pump', False),
+                            'pump_runtime_hours': self.system_state.get('pump_runtime_hours', 0),
+                            'heating_cycles_count': self.system_state.get('heating_cycles_count', 0),
+                            'uptime': time.time() - self.system_state.get('last_update', time.time()),
+                            'temperatures': self.temperatures
+                        }
+                        await taskmaster_service.process_system_status(system_status)
+                    except Exception as e:
+                        logger.error(f"Error processing system status with TaskMaster AI: {str(e)}")
+                
+        except Exception as e:
+            logger.error(f"Error publishing basic status: {e}")
+    
 
 
 
@@ -2179,11 +2443,33 @@ class SolarHeatingSystem:
                 await asyncio.sleep(10)  # Wait before retrying
     
     async def _status_publishing_loop(self):
-        """Status publishing loop"""
+        """Status publishing loop with hourly aggregation"""
         while self.running:
             try:
-                await self._publish_status()
-                await asyncio.sleep(60)  # Publish status every minute
+                current_time = time.time()
+                current_hour = int(current_time // 3600)  # Current hour since epoch
+                
+                # Check if we're at the end of an hour (last 10 seconds of the hour)
+                seconds_into_hour = current_time % 3600
+                is_end_of_hour = seconds_into_hour >= 3590  # Last 10 seconds
+                
+                if is_end_of_hour:
+                    # End of hour - publish aggregated hourly data
+                    await self._publish_hourly_aggregation()
+                    logger.info(f"🕐 End of hour {current_hour} - published hourly aggregation")
+                    
+                    # Wait for next hour to start
+                    await asyncio.sleep(10)  # Wait for hour boundary
+                else:
+                    # During the hour - just publish basic status (no hourly data)
+                    await self._publish_basic_status()
+                    
+                    # Calculate time until next hour
+                    time_until_next_hour = 3600 - seconds_into_hour
+                    # Publish basic status every 5 minutes during the hour
+                    sleep_time = min(300, time_until_next_hour - 10)  # 5 minutes or until end of hour
+                    await asyncio.sleep(sleep_time)
+                    
             except Exception as e:
                 logger.error(f"Error in status publishing loop: {e}")
                 await asyncio.sleep(10)  # Wait before retrying
