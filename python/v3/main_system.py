@@ -1629,6 +1629,8 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
         finally:
+            # Update system mode after temperature reading and control logic
+            self._update_system_mode()
             logger.debug("Completed _read_temperatures method")
     
     def _calculate_realtime_energy_sensor(self):
@@ -1774,9 +1776,6 @@ class SolarHeatingSystem:
             solar_collector = self.temperatures.get('solar_collector', 0)
             storage_tank = self.temperatures.get('storage_tank', 0)
             
-            # Update system mode based on current state
-            self._update_system_mode()
-            
             # Enhanced control logic with proper temperature difference handling
             dT = solar_collector - storage_tank
             
@@ -1852,26 +1851,114 @@ class SolarHeatingSystem:
             # Keep current state when 4°C < dT < 8°C (hysteresis zone)
             else:
                 logger.debug(f"Pump state unchanged. dT={dT:.1f}°C (hysteresis zone: {self.control_params['dTStop_tank_1']}°C < dT < {self.control_params['dTStart_tank_1']}°C)")
+            
+            # Update system mode AFTER pump state changes
+            self._update_system_mode()
                     
         except Exception as e:
             logger.error(f"Error in control logic: {e}")
     
     def _update_system_mode(self):
-        """Update system mode based on current state"""
+        """Update system mode based on current state with detailed reasoning"""
         try:
+            old_mode = self.system_state.get('mode', 'unknown')
+            new_mode = None
+            reason = ""
+            
+            # Get current temperatures for mode reasoning
+            solar_collector = self.temperatures.get('solar_collector_temp', 0)
+            storage_tank = self.temperatures.get('storage_tank_temp', 0)
+            dT = solar_collector - storage_tank
+            
             if self.system_state.get('test_mode', False):
-                self.system_state['mode'] = 'test'
+                new_mode = 'test'
+                reason = "Test mode enabled"
             elif self.system_state.get('manual_control', False):
-                self.system_state['mode'] = 'manual'
+                new_mode = 'manual'
+                reason = "Manual control active"
             elif self.system_state.get('overheated', False):
-                self.system_state['mode'] = 'overheated'
+                new_mode = 'overheated'
+                reason = f"Emergency stop: Collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C"
             elif self.system_state.get('primary_pump', False):
-                self.system_state['mode'] = 'heating'
+                new_mode = 'heating'
+                reason = f"Pump ON: dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C (collector {solar_collector:.1f}°C, tank {storage_tank:.1f}°C)"
             else:
-                self.system_state['mode'] = 'standby'
+                new_mode = 'standby'
+                if dT < self.control_params['dTStart_tank_1']:
+                    reason = f"Pump OFF: dT={dT:.1f}°C < {self.control_params['dTStart_tank_1']}°C (collector {solar_collector:.1f}°C, tank {storage_tank:.1f}°C)"
+                else:
+                    reason = f"Pump OFF: dT={dT:.1f}°C (collector {solar_collector:.1f}°C, tank {storage_tank:.1f}°C)"
+            
+            # Update mode if changed
+            if new_mode != old_mode:
+                self.system_state['mode'] = new_mode
+                logger.info(f"🔄 Mode changed: {old_mode} → {new_mode}")
+                logger.info(f"   Reason: {reason}")
+                
+                # Log additional context for heating/standby transitions
+                if new_mode in ['heating', 'standby'] and old_mode in ['heating', 'standby']:
+                    logger.info(f"   📊 Temperature Status:")
+                    logger.info(f"      ☀️  Solar Collector: {solar_collector:.1f}°C")
+                    logger.info(f"      🏠 Storage Tank: {storage_tank:.1f}°C")
+                    logger.info(f"      📈 Temperature Difference: {dT:.1f}°C")
+                    logger.info(f"      ⚙️  Control Thresholds: Start={self.control_params['dTStart_tank_1']}°C, Stop={self.control_params['dTStop_tank_1']}°C")
+                    logger.info(f"      🔧 Pump State: {'ON' if self.system_state.get('primary_pump', False) else 'OFF'}")
+            else:
+                # Log current status even if mode didn't change (for monitoring)
+                if new_mode in ['heating', 'standby']:
+                    logger.debug(f"Mode unchanged: {new_mode} - {reason}")
                 
         except Exception as e:
             logger.error(f"Error updating system mode: {e}")
+    
+    def get_mode_reasoning(self):
+        """Get detailed reasoning for current system mode"""
+        try:
+            solar_collector = self.temperatures.get('solar_collector_temp', 0)
+            storage_tank = self.temperatures.get('storage_tank_temp', 0)
+            dT = solar_collector - storage_tank
+            current_mode = self.system_state.get('mode', 'unknown')
+            pump_state = self.system_state.get('primary_pump', False)
+            
+            reasoning = {
+                'current_mode': current_mode,
+                'pump_state': 'ON' if pump_state else 'OFF',
+                'temperatures': {
+                    'solar_collector': round(solar_collector, 1),
+                    'storage_tank': round(storage_tank, 1),
+                    'temperature_difference': round(dT, 1)
+                },
+                'control_thresholds': {
+                    'start_threshold': self.control_params['dTStart_tank_1'],
+                    'stop_threshold': self.control_params['dTStop_tank_1'],
+                    'emergency_threshold': self.control_params['temp_kok']
+                },
+                'status': {
+                    'test_mode': self.system_state.get('test_mode', False),
+                    'manual_control': self.system_state.get('manual_control', False),
+                    'overheated': self.system_state.get('overheated', False)
+                }
+            }
+            
+            # Add reasoning explanation
+            if current_mode == 'heating':
+                reasoning['explanation'] = f"Heating mode: Pump is ON because dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C"
+            elif current_mode == 'standby':
+                reasoning['explanation'] = f"Standby mode: Pump is OFF because dT={dT:.1f}°C < {self.control_params['dTStart_tank_1']}°C"
+            elif current_mode == 'overheated':
+                reasoning['explanation'] = f"Overheated mode: Emergency stop because collector {solar_collector:.1f}°C >= {self.control_params['temp_kok']}°C"
+            elif current_mode == 'manual':
+                reasoning['explanation'] = "Manual mode: User has manual control override"
+            elif current_mode == 'test':
+                reasoning['explanation'] = "Test mode: System running in simulation mode"
+            else:
+                reasoning['explanation'] = f"Unknown mode: {current_mode}"
+            
+            return reasoning
+            
+        except Exception as e:
+            logger.error(f"Error getting mode reasoning: {e}")
+            return {'error': str(e)}
     
     async def _publish_status(self):
         """Publish system status to MQTT"""
@@ -2280,6 +2367,8 @@ class SolarHeatingSystem:
                 # Update system state
                 if switch_name == 'primary_pump':
                     self.system_state['primary_pump'] = state
+                    # Update system mode after direct pump control
+                    self._update_system_mode()
                 
                 elif switch_name == 'primary_pump_manual':
                     self.system_state['primary_pump_manual'] = state
@@ -2292,6 +2381,9 @@ class SolarHeatingSystem:
                         # Manual control OFF - force pump to stay OFF
                         self.system_state['primary_pump'] = False
                         logger.info("Primary pump manual control OFF - pump forced OFF")
+                    
+                    # Update system mode after manual control change
+                    self._update_system_mode()
                 
                 elif switch_name == 'cartridge_heater':
                     self.system_state['cartridge_heater'] = state
@@ -2346,6 +2438,13 @@ class SolarHeatingSystem:
                 if 'pellet_stove_sensors' not in self.system_state:
                     self.system_state['pellet_stove_sensors'] = {}
                 self.system_state['pellet_stove_sensors'][sensor] = value
+                
+            elif command_type == 'get_mode_reasoning':
+                # Get detailed mode reasoning and publish it
+                reasoning = self.get_mode_reasoning()
+                if self.mqtt and self.mqtt.is_connected():
+                    self.mqtt.publish('solar_heating/mode_reasoning', reasoning)
+                    logger.info(f"Published mode reasoning: {reasoning['current_mode']} - {reasoning['explanation']}")
                 
             else:
                 # Handle unexpected command types gracefully
