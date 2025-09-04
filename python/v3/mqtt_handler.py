@@ -218,12 +218,18 @@ class MQTTHandler:
                 if (self._is_pellet_stove_sensor(topic)):
                     self._handle_pellet_stove_data(topic, payload)
                     return
+                
+                # For non-pellet stove sensors, just store the data without warnings
+                # These are normal Home Assistant sensor values (strings, not JSON)
+                return
             
-            # Parse JSON payload for other messages
+            # Parse JSON payload for other messages (only for non-sensor topics)
             try:
                 data = json.loads(payload)
             except json.JSONDecodeError:
-                logger.warning(f"Invalid JSON payload on topic {topic}: {payload}")
+                # Only warn for topics that should contain JSON
+                if not topic.startswith("homeassistant/sensor/") and not topic.startswith("homeassistant/binary_sensor/"):
+                    logger.warning(f"Invalid JSON payload on topic {topic}: {payload}")
                 return
             
             # Handle other message types
@@ -267,13 +273,20 @@ class MQTTHandler:
                 value = payload.lower() in ['on', 'true', '1']
                 logger.info(f"Pellet stove binary sensor {topic}: {value}")
             else:
-                # Numeric sensor
-                try:
-                    value = float(payload)
-                    logger.info(f"Pellet stove sensor {topic}: {value}")
-                except ValueError:
-                    logger.warning(f"Pellet stove sensor {topic}: invalid numeric value '{payload}'")
-                    return
+                # Check if it's a timestamp (common for pellet stove sensors)
+                if payload.startswith('20') and ('T' in payload or '-' in payload):
+                    # This is a timestamp, not a numeric value - store as string
+                    value = payload
+                    logger.debug(f"Pellet stove timestamp sensor {topic}: {value}")
+                else:
+                    # Try to parse as numeric sensor
+                    try:
+                        value = float(payload)
+                        logger.info(f"Pellet stove numeric sensor {topic}: {value}")
+                    except ValueError:
+                        # Not numeric, not timestamp - store as string value
+                        value = payload
+                        logger.debug(f"Pellet stove string sensor {topic}: {value}")
             
             # Store the data for system use
             self.last_messages[topic] = payload
@@ -281,8 +294,10 @@ class MQTTHandler:
             # Call system callback if available
             if self.system_callback:
                 try:
+                    # Extract sensor name from topic for the main system
+                    sensor_name = topic.split('/')[2]  # Get sensor name from topic
                     self.system_callback('pellet_stove_data', {
-                        'topic': topic,
+                        'sensor': sensor_name,
                         'value': value,
                         'payload': payload
                     })
@@ -460,7 +475,7 @@ class MQTTHandler:
         except Exception as e:
             logger.error(f"Error handling TaskMaster AI message: {e}")
     
-    def publish(self, topic: str, message: Dict[str, Any]) -> bool:
+    def publish(self, topic: str, message: Dict[str, Any], retain: bool = False) -> bool:
         """Publish JSON message to MQTT topic"""
         try:
             if not self.connected or not self.client:
@@ -468,10 +483,10 @@ class MQTTHandler:
                 return False
             
             payload = json.dumps(message)
-            result = self.client.publish(topic, payload)
+            result = self.client.publish(topic, payload, retain=retain)
             
             if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
-                logger.debug(f"Published to {topic}: {message}")
+                logger.debug(f"Published to {topic}: {message} (retain: {retain})")
                 return True
             else:
                 logger.error(f"Failed to publish to {topic}: {result.rc}")
@@ -499,6 +514,52 @@ class MQTTHandler:
                 
         except Exception as e:
             logger.error(f"Error publishing raw to {topic}: {e}")
+            return False
+    
+    def publish_status(self, status_data: Dict[str, Any]) -> bool:
+        """Publish system status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status"
+            message = {
+                "timestamp": time.time(),
+                "version": "v3",
+                **status_data
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing status: {e}")
+            return False
+    
+    def publish_system_status(self, status_data: Dict[str, Any]) -> bool:
+        """Publish system status (alias for publish_status)"""
+        return self.publish_status(status_data)
+    
+    def publish_pump_status(self, pump_id: str, status: bool, mode: str = "auto") -> bool:
+        """Publish pump status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status/pump/{pump_id}"
+            message = {
+                "pump_id": pump_id,
+                "status": "on" if status else "off",
+                "mode": mode,
+                "timestamp": time.time()
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing pump status: {e}")
+            return False
+    
+    def publish_energy_status(self, energy_data: Dict[str, Any]) -> bool:
+        """Publish energy status"""
+        try:
+            topic = f"{mqtt_topics.base_topic}/status/energy"
+            message = {
+                "energy": energy_data,
+                "timestamp": time.time()
+            }
+            return self.publish(topic, message)
+        except Exception as e:
+            logger.error(f"Error publishing energy status: {e}")
             return False
     
     def publish_heartbeat(self, system_info: Dict[str, Any]) -> bool:
