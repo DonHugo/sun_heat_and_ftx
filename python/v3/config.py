@@ -27,13 +27,13 @@ class SystemConfig(BaseModel):
     temperature_threshold_low: float = Field(default=20.0, description="Low temperature threshold in Celsius")
     
     # Solar Collector Configuration
-    set_temp_tank_1: float = Field(default=70.0, description="Target tank temperature")
+    set_temp_tank_1: float = Field(default=75.0, description="Target tank temperature (balanced for general use)")
     set_temp_tank_1_hysteres: float = Field(default=2.0, description="Tank temperature hysteresis")
     dTStart_tank_1: float = Field(default=8.0, description="Temperature difference to start pump")
     dTStop_tank_1: float = Field(default=4.0, description="Temperature difference to stop pump")
-    kylning_kollektor: float = Field(default=90.0, description="Collector cooling temperature")
+    kylning_kollektor: float = Field(default=90.0, description="Collector cooling temperature (maximum safe solar heating)")
     kylning_kollektor_hysteres: float = Field(default=4.0, description="Collector cooling hysteresis")
-    temp_kok: float = Field(default=150.0, description="Boiling temperature threshold")
+    temp_kok: float = Field(default=150.0, description="Boiling temperature threshold (emergency shutdown)")
     temp_kok_hysteres: float = Field(default=10.0, description="Boiling temperature hysteresis")
     
     # MQTT Configuration
@@ -73,6 +73,12 @@ class SystemConfig(BaseModel):
     rate_smoothing: str = Field(default="exponential", description="Rate smoothing method (raw/simple/exponential)")
     rate_update_interval: int = Field(default=30, description="Rate calculation interval in seconds")
     rate_smoothing_alpha: float = Field(default=0.3, description="Exponential smoothing factor (0.1-0.9)")
+    
+    # Enhanced Temperature Management Configuration
+    morning_peak_target: float = Field(default=80.0, description="Morning peak temperature target for showers")
+    evening_peak_target: float = Field(default=75.0, description="Evening peak temperature target for baths")
+    pellet_stove_max_temp: float = Field(default=55.0, description="Maximum temperature for pellet stove operation")
+    heat_distribution_temp: float = Field(default=85.0, description="Temperature to start continuous pump for heat distribution")
     
     class Config:
         env_file = ".env"

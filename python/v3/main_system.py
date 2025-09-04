@@ -33,7 +33,7 @@ logging.basicConfig(
     level=getattr(logging, config.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('solar_heating_v3.log'),
+        logging.FileHandler('/home/pi/solar_heating/logs/solar_heating_v3.log'),
         logging.StreamHandler(sys.stdout)
     ]
 )
@@ -119,6 +119,11 @@ class SolarHeatingSystem:
             'dTStop_tank_1': config.dTStop_tank_1,
             'kylning_kollektor': config.kylning_kollektor,
             'temp_kok': config.kylning_kollektor,
+            # Enhanced temperature management
+            'morning_peak_target': config.morning_peak_target,
+            'evening_peak_target': config.evening_peak_target,
+            'pellet_stove_max_temp': config.pellet_stove_max_temp,
+            'heat_distribution_temp': config.heat_distribution_temp,
         }
         
         logger.info("Solar Heating System v3 (System-Wide) initialized")
@@ -128,6 +133,7 @@ class SolarHeatingSystem:
     
     def _calculate_rate_of_change(self):
         """Calculate rate of change for energy and temperature"""
+        logger.debug("Starting rate of change calculation...")
         try:
             current_time = time.time()
             current_energy = self.temperatures.get('stored_energy_kwh', 0)
@@ -234,9 +240,12 @@ class SolarHeatingSystem:
             self.temperatures['temperature_change_rate_c_h'] = round(temp_rate, 2)
             
             logger.debug(f"Rate calculation: Energy: {energy_rate:.3f} kW, Temp: {temp_rate:.2f} °C/h")
+            logger.debug("Rate calculation completed successfully")
             
         except Exception as e:
             logger.error(f"Error calculating rate of change: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             self.temperatures['energy_change_rate_kw'] = 0.0
             self.temperatures['temperature_change_rate_c_h'] = 0.0
     
@@ -422,7 +431,12 @@ class SolarHeatingSystem:
                 'dTStart_tank_1': config.dTStart_tank_1,
                 'dTStop_tank_1': config.dTStop_tank_1,
                 'kylning_kollektor': config.kylning_kollektor,
-                'temp_kok': config.temp_kok
+                'temp_kok': config.temp_kok,
+                # Enhanced temperature management
+                'morning_peak_target': config.morning_peak_target,
+                'evening_peak_target': config.evening_peak_target,
+                'pellet_stove_max_temp': config.pellet_stove_max_temp,
+                'heat_distribution_temp': config.heat_distribution_temp,
             }
             
             # Initialize temperature storage
@@ -914,10 +928,16 @@ class SolarHeatingSystem:
                 if sensor['device_class']:
                     config["device_class"] = sensor['device_class']
                 
-                # Add state_class for energy sensors
+                # Add state_class for different sensor types
                 if sensor['device_class'] == 'energy':
                     config["state_class"] = "total"
                 elif sensor['device_class'] == 'temperature':
+                    config["state_class"] = "measurement"
+                elif sensor['device_class'] == 'power':
+                    config["state_class"] = "measurement"
+                elif sensor['entity_id'] == 'temperature_change_rate_c_h':
+                    config["state_class"] = "measurement"
+                elif sensor['entity_id'] == 'energy_change_rate_kw':
                     config["state_class"] = "measurement"
                 
                 # No value_template needed since we're sending raw values
@@ -1049,6 +1069,43 @@ class SolarHeatingSystem:
                     'min_value': 100,
                     'max_value': 200,
                     'step': 5,
+                    'icon': 'mdi:thermometer-high'
+                },
+                # Enhanced temperature management
+                {
+                    'name': 'Morning Peak Target Temperature',
+                    'entity_id': 'morning_peak_target',
+                    'unit_of_measurement': '°C',
+                    'min_value': 70,
+                    'max_value': 90,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Evening Peak Target Temperature',
+                    'entity_id': 'evening_peak_target',
+                    'unit_of_measurement': '°C',
+                    'min_value': 70,
+                    'max_value': 90,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-high'
+                },
+                {
+                    'name': 'Pellet Stove Max Temperature',
+                    'entity_id': 'pellet_stove_max_temp',
+                    'unit_of_measurement': '°C',
+                    'min_value': 40,
+                    'max_value': 70,
+                    'step': 1,
+                    'icon': 'mdi:thermometer-low'
+                },
+                {
+                    'name': 'Heat Distribution Temperature',
+                    'entity_id': 'heat_distribution_temp',
+                    'unit_of_measurement': '°C',
+                    'min_value': 80,
+                    'max_value': 95,
+                    'step': 1,
                     'icon': 'mdi:thermometer-high'
                 }
             ]
@@ -1471,7 +1528,9 @@ class SolarHeatingSystem:
                         
                         # Allocate energy to active heat sources using weighted contributions
                         if active_heat_sources:
-                            hourly_contribution_total = energy_diff / (time_diff / 3600)
+                            # Fix: Use energy_diff directly, not divided by time
+                            # The energy_diff is already the total energy change for this period
+                            hourly_contribution_total = energy_diff
                             
                             for source in active_heat_sources:
                                 source_weight = source_contributions.get(source, 0.5)
@@ -1514,8 +1573,14 @@ class SolarHeatingSystem:
             # Calculate real-time energy rate sensor (kW) and comparison metrics
             self._calculate_realtime_energy_sensor()
             
-            # Calculate rate of change sensors
-            self._calculate_rate_of_change()
+            # Calculate rate of change sensors (temporarily disabled for debugging)
+            try:
+                self._calculate_rate_of_change()
+            except Exception as e:
+                logger.error(f"Rate calculation error (continuing): {e}")
+                # Set default values to prevent sensor publishing issues
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
                 
         except Exception as e:
             logger.error(f"Error reading temperatures: {e}")
@@ -1845,6 +1910,11 @@ class SolarHeatingSystem:
                 self._publish_number_state('dTStop_tank_1', self.control_params['dTStop_tank_1'])
                 self._publish_number_state('kylning_kollektor', self.control_params['kylning_kollektor'])
                 self._publish_number_state('temp_kok', self.control_params['temp_kok'])
+                # Enhanced temperature management
+                self._publish_number_state('morning_peak_target', self.control_params['morning_peak_target'])
+                self._publish_number_state('evening_peak_target', self.control_params['evening_peak_target'])
+                self._publish_number_state('pellet_stove_max_temp', self.control_params['pellet_stove_max_temp'])
+                self._publish_number_state('heat_distribution_temp', self.control_params['heat_distribution_temp'])
                 logger.info("Number states published successfully")
             
 
@@ -1938,6 +2008,15 @@ class SolarHeatingSystem:
                     self.control_params['kylning_kollektor'] = value
                 elif number_name == 'temp_kok':
                     self.control_params['temp_kok'] = value
+                # Enhanced temperature management
+                elif number_name == 'morning_peak_target':
+                    self.control_params['morning_peak_target'] = value
+                elif number_name == 'evening_peak_target':
+                    self.control_params['evening_peak_target'] = value
+                elif number_name == 'pellet_stove_max_temp':
+                    self.control_params['pellet_stove_max_temp'] = value
+                elif number_name == 'heat_distribution_temp':
+                    self.control_params['heat_distribution_temp'] = value
                 
                 # Publish number state back to Home Assistant
                 self._publish_number_state(number_name, value)

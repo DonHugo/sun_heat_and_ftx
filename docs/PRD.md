@@ -42,6 +42,9 @@ This project implements an intelligent solar heating system that combines tradit
 - ✅ Pump control via relay outputs
 - ✅ MQTT messaging for system communication
 - ✅ TaskMaster AI API for intelligent task management
+- 🆕 **Home Assistant Sensor Integration**: External weather, energy, and occupancy sensors
+- 🆕 **Weather Service Integration**: Solar radiation, ambient temperature, humidity data
+- 🆕 **Energy System Integration**: Grid power, solar PV, and home energy sensors
 
 ## ⚙️ **Functional Requirements**
 
@@ -98,6 +101,15 @@ This project implements an intelligent solar heating system that combines tradit
 - ✅ Calculate stored energy in water using proper physics (0-36 kWh for 360L tank)
 - ✅ Validate energy calculations against realistic physical limits
 - ✅ Monitor energy collection rate and daily/hourly energy totals
+
+#### **FR-003.6: Enhanced Sensor Integration & Optimization** 🆕
+- **Home Assistant Sensor Integration**: Integrate external sensors for enhanced optimization
+- **Weather Data Integration**: Solar radiation, ambient temperature, humidity sensors
+- **Energy Context Sensors**: Grid power consumption, solar PV output, home occupancy
+- **Usage Pattern Sensors**: Water usage patterns, time-based heating optimization
+- **Real-time Cost Analysis**: Compare solar heating vs. electric heating costs
+- **Predictive Heating**: Optimize heating based on occupancy and usage patterns
+- **Coordinated Energy Management**: Integrate with solar PV and grid power systems
 
 #### **FR-003.5: Predictive and Economic Metrics** ✅
 - ✅ Estimate time to reach target temperature
@@ -191,9 +203,28 @@ This project implements an intelligent solar heating system that combines tradit
 - ✅ Performance reporting
 - ✅ Predictive analytics
 
+### **Home Assistant Integration & External Sensors**
+
+#### **FR-013: Enhanced Home Assistant Integration** 🆕
+- **External Sensor Integration**: Integrate Home Assistant sensors for enhanced optimization
+- **Weather Data Sources**: Solar radiation, ambient temperature, humidity from weather services
+- **Energy Context**: Grid power consumption, solar PV output, home occupancy status
+- **Usage Pattern Analysis**: Water usage patterns, time-based heating optimization
+- **Real-time Cost Analysis**: Live comparison of solar vs. electric heating costs
+- **Predictive Heating**: AI-powered heating optimization based on external sensor data
+- **Coordinated Energy Management**: Integration with solar PV and grid power systems
+
+#### **FR-014: Advanced Optimization Algorithms** 🆕
+- **Multi-Sensor Optimization**: Use external sensor data to optimize heating decisions
+- **Weather-Aware Heating**: Adjust heating strategy based on solar radiation and weather
+- **Occupancy-Based Optimization**: Reduce heating when home is unoccupied
+- **Cost-Aware Optimization**: Optimize for lowest cost heating based on grid prices
+- **Predictive Demand**: Anticipate hot water demand based on usage patterns
+- **Energy Coordination**: Coordinate with solar PV generation for optimal timing
+
 ### **User Interface**
 
-#### **FR-013: Web-Based Monitoring Interface** ✅
+#### **FR-015: Web-Based Monitoring Interface** ✅
 - ✅ Real-time temperature display
 - ✅ System status overview
 - ✅ Control panel for manual operations
@@ -569,6 +600,11 @@ This project implements an intelligent solar heating system that combines tradit
 - 🔄 Enhanced alerting and notification systems
 - 🔄 Integration with external monitoring platforms
 - 🔄 Advanced health scoring and trend analysis
+- 🆕 **Home Assistant Sensor Integration**: Weather, energy, and occupancy sensors
+- 🆕 **Weather-Aware Optimization**: Solar radiation and weather-based heating optimization
+- 🆕 **Cost-Aware Heating**: Grid price and solar PV integration for cost optimization
+- 🆕 **Occupancy-Based Optimization**: Smart heating based on home presence
+- 🆕 **Predictive Demand Management**: Anticipate hot water usage patterns
 
 ### **Scalability Plans** 🔄
 - 🔄 Multi-site system support
@@ -600,6 +636,60 @@ This project implements an intelligent solar heating system that combines tradit
 
 **Result**: Energy values now show realistic range (0-36 kWh) based on actual tank volume and water properties, providing accurate monitoring data for system optimization.
 
+### **Enhanced Sensor Integration Requirements (Latest Discovery)** 🆕
+**New Opportunity Identified**: Home Assistant MQTT bus provides access to valuable external sensors that could significantly enhance solar heating optimization.
+
+**Potential Sensors Identified**:
+- **Weather Sensors**: Solar radiation, ambient temperature, humidity for weather-aware heating
+- **Energy Context**: Grid power consumption, solar PV output for cost-aware optimization  
+- **Home Automation**: Occupancy sensors, water usage patterns for predictive heating
+- **Time Context**: Time-based optimization and demand prediction
+
+**Benefits of Integration**:
+- **Weather-Aware Optimization**: Adjust heating strategy based on actual solar radiation
+- **Cost-Aware Heating**: Optimize for lowest cost using grid prices and solar PV data
+- **Occupancy-Based Optimization**: Reduce heating when home is unoccupied
+- **Predictive Demand**: Anticipate hot water demand based on usage patterns
+- **Energy Coordination**: Coordinate with solar PV generation for optimal timing
+
+**Implementation Priority**:
+- **High Priority**: Solar radiation, weather temperature, grid power consumption
+- **Medium Priority**: Home occupancy, water usage patterns, time context
+- **Low Priority**: Humidity sensors, advanced thermal modeling
+
+**Specific User Requirements Identified**:
+- **Weekday Schedule**: High hot water demand at 06:00 (showers) and evenings (baths)
+- **Solar System Constraint**: Cannot stop solar heating, but can radiate heat at night with pump
+- **Pellet Stove Limitations**: 20-30 minute warm-up time, 102kW capacity, 14kWh maximum output, 25kg storage (1.6 bags)
+- **Critical Constraint**: Pellet stove can run when tank temp < 55°C, but solar can heat up to 90°C safely
+- **High Consumption Scenarios**: Cartridge heater insufficient for high demand, pellet stove backup needed
+- **Comfort Preference**: Balanced approach with cost optimization
+- **Planning Horizon**: 12-14 hours ahead for optimal scheduling
+- **System Capabilities**: Pump can run continuously, pellet storage managed manually, Home Assistant notifications
+- **Data Sources**: Nordpool updates daily (today + tomorrow after 13:00), Tomorrow.io good forecasting, pellet monitoring 80-90% accurate
+
+**Nordpool Sensor Data Available**:
+- **Hourly Prices**: 24-hour arrays for today and tomorrow
+- **Price Range**: 0.212 - 2.049 SEK/kWh (significant variation)
+- **Peak Hours**: 08:00-10:00 and 18:00-20:00 typically highest
+- **Off-Peak Hours**: 00:00-06:00 typically lowest
+- **Additional Costs**: 1.0238 SEK/kWh network cost for grid electricity
+- **Solar PV Benefit**: Self-produced electricity avoids network costs
+
+**Status**: Requirements documented, implementation planning phase
+
+**Technical Approach for Enhanced Optimization**:
+- **Smart Fuel Source Selection**: Automatically choose cheapest heating source (solar > pellet > electric)
+- **Predictive Planning**: 12-14 hour horizon using Nordpool prices and weather forecasts
+- **Intelligent Timing**: Calculate optimal start time based on history, consumption, and weather
+- **Smart Temperature Management**: Solar can heat up to 90°C, pellet stove only when temp < 55°C, pump runs continuously near 90°C
+- **Enhanced Temperature Targets**: Morning peak 80°C (showers), evening peak 75°C (baths), general 75°C (balanced)
+**Pellet Stove Coordination**: 102kW capacity, 14kWh maximum output, 20-30 minute warm-up time, 25kg storage
+- **High Demand Handling**: Coordinate multiple heat sources when cartridge heater insufficient
+- **Night Heat Radiation**: Use pump to radiate excess heat when solar cannot be stopped
+- **User Override**: Manual override capability for all automatic decisions
+- **Continuous Pump Operation**: Pump can run as needed for heat management
+
 ## 🎉 **Conclusion**
 
 This PRD outlines the comprehensive requirements for the Solar Heating System with TaskMaster AI Integration. The system combines traditional temperature monitoring and control with modern AI-powered optimization to create an intelligent, efficient, and reliable solar heating solution.
@@ -626,6 +716,12 @@ The integration of TaskMaster AI provides intelligent task management, automated
 - **Testing Requirements**: All 4 requirements complete
 - **Maintenance Requirements**: All 3 requirements complete
 - **Success Criteria**: All 3 categories complete
+
+### **🆕 New Requirements Discovered: In Planning**
+- **Enhanced Sensor Integration**: Home Assistant sensor integration for weather, energy, and occupancy data
+- **Advanced Optimization Algorithms**: Multi-sensor optimization and weather-aware heating
+- **Cost-Aware Heating**: Grid price and solar PV integration for cost optimization
+- **Predictive Demand Management**: Occupancy and usage pattern-based heating optimization
 
 ### **🔄 Future Enhancements: In Planning**
 - Advanced AI and machine learning features

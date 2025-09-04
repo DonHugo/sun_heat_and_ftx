@@ -33,7 +33,7 @@ class TemperatureMonitoringSystem:
         """Configure logging"""
         level = logging.DEBUG if self.args.debug_mode == "true" or self.log_level == "debug" else logging.INFO
         logging.basicConfig(
-            filename="temperature_monitoring.log",
+            filename="/home/pi/solar_heating/logs/temperature_monitoring_v2.log",
             filemode='a',
             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
             datefmt='%H:%M:%S',

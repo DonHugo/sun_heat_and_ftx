@@ -77,14 +77,14 @@ Monitor system operation through logs:
 
 ```bash
 # View real-time logs
-tail -f solar_heating_v3.log
+tail -f /home/pi/solar_heating/logs/solar_heating_v3.log
 
 # View recent logs
-tail -n 100 solar_heating_v3.log
+tail -n 100 /home/pi/solar_heating/logs/solar_heating_v3.log
 
 # Search for specific events
-grep "PUMP STARTED" solar_heating_v3.log
-grep "EMERGENCY" solar_heating_v3.log
+grep "PUMP STARTED" /home/pi/solar_heating/logs/solar_heating_v3.log
+grep "EMERGENCY" /home/pi/solar_heating/logs/solar_heating_v3.log
 ```
 
 #### **MQTT Topics**
@@ -326,13 +326,13 @@ print('System Status:', status)
 
 ```bash
 # Check temperature update frequency
-grep "Temperature update" solar_heating_v3.log | tail -10
+grep "Temperature update" /home/pi/solar_heating/logs/solar_heating_v3.log | tail -10
 
 # Check pump operation
-grep "Pump" solar_heating_v3.log | tail -10
+grep "Pump" /home/pi/solar_heating/logs/solar_heating_v3.log | tail -10
 
 # Check MQTT communication
-grep "MQTT" solar_heating_v3.log | tail -10
+grep "MQTT" /home/pi/solar_heating/logs/solar_heating_v3.log | tail -10
 ```
 
 ### **Temperature Sensor Calibration**
@@ -497,7 +497,7 @@ sudo systemctl restart solar_heating_v3
 cp .env .env.backup.$(date +%Y%m%d)
 
 # Backup logs
-cp solar_heating_v3.log solar_heating_v3.log.backup.$(date +%Y%m%d)
+cp /home/pi/solar_heating/logs/solar_heating_v3.log /home/pi/solar_heating/logs/solar_heating_v3.log.backup.$(date +%Y%m%d)
 ```
 
 #### **System Recovery**
@@ -582,23 +582,23 @@ SOLAR_DEBUG_MODE=true SOLAR_LOG_LEVEL=debug python main_system.py
 
 ```bash
 # Find all errors
-grep "ERROR" solar_heating_v3.log
+grep "ERROR" /home/pi/solar_heating/logs/solar_heating_v3.log
 
 # Find warnings
-grep "WARNING" solar_heating_v3.log
+grep "WARNING" /home/pi/solar_heating/logs/solar_heating_v3.log
 
 # Find critical events
-grep "CRITICAL" solar_heating_v3.log
+grep "CRITICAL" /home/pi/solar_heating/logs/solar_heating_v3.log
 ```
 
 #### **Performance Issues**
 
 ```bash
 # Check response times
-grep "Response time" solar_heating_v3.log
+grep "Response time" /home/pi/solar_heating/logs/solar_heating_v3.log
 
 # Check update frequency
-grep "Temperature update" solar_heating_v3.log | tail -20
+grep "Temperature update" /home/pi/solar_heating/logs/solar_heating_v3.log | tail -20
 ```
 
 ## 📱 **Mobile and Remote Access**
