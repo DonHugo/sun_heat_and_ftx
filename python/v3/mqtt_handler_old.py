@@ -1,0 +1,685 @@
+"""
+MQTT Handler Module for Solar Heating System v3
+Handles MQTT communication with Home Assistant and other systems
+"""
+
+import json
+import logging
+import time
+from typing import Dict, Any, Optional, Callable
+from paho.mqtt import client as mqtt_client
+import random
+
+from config import config, mqtt_topics
+
+logger = logging.getLogger(__name__)
+
+class MQTTHandler:
+    """MQTT handler for system communication"""
+    
+    def __init__(self):
+        self.client = None
+        self.connected = False
+        self.message_handlers: Dict[str, Callable] = {}
+        self.last_messages: Dict[str, Any] = {}
+        
+        # MQTT connection parameters
+        self.broker = config.mqtt_broker
+        self.port = config.mqtt_port
+        self.username = config.mqtt_username
+        self.password = config.mqtt_password
+        self.client_id = f"{config.mqtt_client_id}_{random.randint(0, 1000)}"
+        
+        # Connection retry parameters
+        self.first_reconnect_delay = 1
+        self.reconnect_rate = 2
+        self.max_reconnect_count = 12
+        self.max_reconnect_delay = 60
+        
+        logger.info(f"MQTT handler initialized for broker: {self.broker}:{self.port}")
+    
+    def connect(self) -> bool:
+        """Connect to MQTT broker"""
+        try:
+            self.client = mqtt_client.Client(client_id=self.client_id)
+            self.client.username_pw_set(self.username, self.password)
+            self.client.on_connect = self._on_connect
+            self.client.on_disconnect = self._on_disconnect
+            self.client.on_message = self._on_message
+            
+            self.client.connect(self.broker, self.port, keepalive=60)
+            self.client.loop_start()
+            
+            # Wait for connection
+            timeout = 10
+            while not self.connected and timeout > 0:
+                time.sleep(0.1)
+                timeout -= 0.1
+            
+            return self.connected
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to MQTT broker: {e}")
+            return False
+    
+    def disconnect(self):
+        """Disconnect from MQTT broker"""
+        if self.client:
+            self.client.loop_stop()
+            self.client.disconnect()
+            self.connected = False
+            logger.info("Disconnected from MQTT broker")
+    
+    def _on_connect(self, client, userdata, flags, rc):
+        """MQTT connection callback"""
+        if rc == 0 and client.is_connected():
+            self.connected = True
+            logger.info("Connected to MQTT broker successfully")
+            
+            # Subscribe to topics
+            self._subscribe_to_topics()
+        else:
+            self.connected = False
+            logger.error(f"Failed to connect to MQTT broker, return code: {rc}")
+    
+    def _on_disconnect(self, client, userdata, rc):
+        """MQTT disconnection callback"""
+        self.connected = False
+        logger.info(f"Disconnected from MQTT broker with result code: {rc}")
+        
+        # Attempt reconnection
+        self._reconnect()
+    
+    def _reconnect(self):
+        """Reconnect to MQTT broker with exponential backoff"""
+        reconnect_count = 0
+        reconnect_delay = self.first_reconnect_delay
+        
+        while reconnect_count < self.max_reconnect_count:
+            logger.info(f"Reconnecting to MQTT broker in {reconnect_delay} seconds...")
+            time.sleep(reconnect_delay)
+            
+            try:
+                self.client.reconnect()
+                logger.info("Reconnected to MQTT broker successfully")
+                return
+            except Exception as err:
+                logger.error(f"Reconnect failed: {err}")
+            
+            reconnect_delay *= self.reconnect_rate
+            reconnect_delay = min(reconnect_delay, self.max_reconnect_delay)
+            reconnect_count += 1
+        
+        logger.error(f"Failed to reconnect after {self.max_reconnect_count} attempts")
+    
+    def _subscribe_to_topics(self):
+        """Subscribe to MQTT topics"""
+        # Debug logging for topic variables
+        logger.debug(f"MQTT topic variables:")
+        logger.debug(f"  hass_base: {mqtt_topics.hass_base}")
+        logger.debug(f"  control_base: {mqtt_topics.control_base}")
+        logger.debug(f"  base_topic: {mqtt_topics.base_topic}")
+        logger.debug(f"  taskmaster_base: {mqtt_topics.taskmaster_base}")
+        
+        topics = [
+            # Home Assistant control topics (both old and new format)
+            f"{mqtt_topics.hass_base}/+/control",
+            f"{mqtt_topics.hass_base}/+/set",
+            
+            # Home Assistant discovery format topics
+            "homeassistant/switch/+/set",
+            "homeassistant/number/+/set",
+            
+            # Pellet stove data from Home Assistant (existing sensors)
+            "homeassistant/sensor/pelletskamin_+/state",
+            "homeassistant/binary_sensor/pelletskamin_+/state",
+            "homeassistant/sensor/pellet_stove_+/state",
+            "homeassistant/binary_sensor/pellet_stove_+/state",
+            "homeassistant/sensor/pellet_stove_monitoring_+/state",
+            "homeassistant/binary_sensor/pellet_stove_monitoring_+/state",
+            # Hall sensor and pulse counter
+            "homeassistant/binary_sensor/hall_sensor/state",
+            "homeassistant/sensor/pulse_counter_60s/state",
+            
+            # System control topics
+            f"{mqtt_topics.control_base}/+",
+            
+            # Configuration topics
+            f"{mqtt_topics.base_topic}/config/+",
+            
+            # TaskMaster AI topics
+            f"{mqtt_topics.taskmaster_base}/+",
+            
+            # v1 compatibility topics
+            "hass/test_switch",
+        ]
+        
+        # Debug logging for constructed topics
+        logger.debug(f"Constructed topics:")
+        for i, topic in enumerate(topics):
+            logger.debug(f"  {i}: {topic}")
+        
+        for topic in topics:
+            try:
+                self.client.subscribe(topic, 0)
+                logger.debug(f"Subscribed to topic: {topic}")
+            except Exception as e:
+                logger.error(f"Failed to subscribe to topic {topic}: {e}")
+    
+    def _is_valid_mqtt_topic(self, topic: str) -> bool:
+        """Validate MQTT topic format"""
+        if not topic or not isinstance(topic, str):
+            return False
+        
+        # Check for basic MQTT topic rules
+        # Topics cannot be empty, cannot start with $, and should not contain null characters
+        if topic.startswith('$') or '\x00' in topic:
+            return False
+        
+        # Check for valid characters (basic validation)
+        valid_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/+-_')
+        if not all(c in valid_chars for c in topic):
+            return False
+        
+        return True
+    
+    def _on_message(self, client, userdata, msg):
+        """MQTT message callback"""
+        try:
+            topic = msg.topic
+            payload = msg.payload.decode()
+            
+            logger.debug(f"Received message on topic {topic}: {payload}")
+            
+            # Store last message for each topic
+            self.last_messages[topic] = payload
+            
+            # Handle Home Assistant switch commands (raw string payload)
+            if topic.startswith("homeassistant/switch/solar_heating_") and topic.endswith("/set"):
+                self._handle_switch_command(topic, payload)
+                return
+            
+            # Handle Home Assistant number commands (raw string payload)
+            if topic.startswith("homeassistant/number/solar_heating_") and topic.endswith("/set"):
+                self._handle_number_command(topic, payload)
+                return
+            
+            # Handle v1 test switch command (raw string payload)
+            if topic == "hass/test_switch":
+                self._handle_v1_test_switch_command(topic, payload)
+                return
+            
+            # Handle pellet stove data from Home Assistant
+            if (topic.startswith("homeassistant/sensor/pelletskamin_") or 
+                topic.startswith("homeassistant/binary_sensor/pelletskamin_") or
+                topic.startswith("homeassistant/sensor/pellet_stove_") or
+                topic.startswith("homeassistant/binary_sensor/pellet_stove_") or
+                topic.startswith("homeassistant/sensor/pellet_stove_monitoring_") or
+                topic.startswith("homeassistant/binary_sensor/pellet_stove_monitoring_") or
+                topic == "homeassistant/binary_sensor/hall_sensor/state" or
+                topic == "homeassistant/sensor/pulse_counter_60s/state"):
+                self._handle_pellet_stove_data(topic, payload)
+                return
+            
+            # Parse JSON payload for other messages
+            try:
+                data = json.loads(payload)
+            except json.JSONDecodeError:
+                logger.warning(f"Invalid JSON payload on topic {topic}: {payload}")
+                return
+            
+            # Handle message based on topic
+            self._handle_message(topic, data)
+            
+        except Exception as e:
+            logger.error(f"Error handling MQTT message: {e}")
+    
+    def _handle_message(self, topic: str, data: Dict[str, Any]):
+        """Handle incoming MQTT messages"""
+        
+        # Home Assistant control messages
+        if topic.startswith(f"{mqtt_topics.hass_base}/"):
+            self._handle_hass_message(topic, data)
+        
+        # System control messages
+        elif topic.startswith(f"{mqtt_topics.control_base}/"):
+            self._handle_control_message(topic, data)
+        
+        # Configuration messages
+        elif topic.startswith(f"{mqtt_topics.base_topic}/config/"):
+            self._handle_config_message(topic, data)
+        
+        # TaskMaster AI messages
+        elif topic.startswith(f"{mqtt_topics.taskmaster_base}/"):
+            self._handle_taskmaster_message(topic, data)
+        
+        # Call registered message handlers
+        if topic in self.message_handlers:
+            try:
+                self.message_handlers[topic](data)
+            except Exception as e:
+                logger.error(f"Error in message handler for topic {topic}: {e}")
+    
+    def _handle_hass_message(self, topic: str, data: Dict[str, Any]):
+        """Handle Home Assistant messages"""
+        logger.info(f"Handling Home Assistant message: {topic}")
+        
+        # Extract entity from topic
+        entity = topic.split('/')[1]
+        
+        if 'state' in data:
+            # Handle state changes
+            self._handle_hass_state_change(entity, data['state'])
+        elif 'command' in data:
+            # Handle commands
+            self._handle_hass_command(entity, data['command'])
+    
+    def _handle_switch_command(self, topic: str, payload: str):
+        """Handle Home Assistant switch commands"""
+        try:
+            logger.info(f"Handling switch command: {topic} = {payload}")
+            
+            # Extract switch name from topic
+            # topic format: homeassistant/switch/solar_heating_{switch_name}/set
+            full_name = topic.split('/')[2]
+            switch_name = full_name.replace('solar_heating_', '')
+            
+            # Map switch names to relay numbers
+            switch_mapping = {
+                'primary_pump': 1,
+                'primary_pump_manual': 1,  # Manual control also uses relay 1
+                'cartridge_heater': 2  # Cartridge heater uses relay 2
+            }
+            
+            if switch_name in switch_mapping:
+                relay_num = switch_mapping[switch_name]
+                state = payload.lower() == 'on'
+                
+                # Call the system callback if available
+                if hasattr(self, 'system_callback'):
+                    self.system_callback('switch_command', {
+                        'switch': switch_name,
+                        'relay': relay_num,
+                        'state': state
+                    })
+                else:
+                    logger.warning("No system callback registered for switch commands")
+            else:
+                logger.warning(f"Switch '{switch_name}' not found in mapping: {list(switch_mapping.keys())}")
+                    
+        except Exception as e:
+            logger.error(f"Error handling switch command: {e}")
+    
+    def _handle_number_command(self, topic: str, payload: str):
+        """Handle Home Assistant number commands"""
+        try:
+            logger.info(f"Handling number command: {topic} = {payload}")
+            
+            # Extract number name from topic
+            # topic format: homeassistant/number/solar_heating_{number_name}/set
+            full_name = topic.split('/')[2]
+            number_name = full_name.replace('solar_heating_', '')
+            
+            # Convert payload to float
+            try:
+                value = float(payload)
+            except ValueError:
+                logger.error(f"Invalid number value: {payload}")
+                return
+            
+            # Call the system callback if available
+            if hasattr(self, 'system_callback'):
+                self.system_callback('number_command', {
+                    'number': number_name,
+                    'value': value
+                })
+            else:
+                logger.warning("No system callback registered for number commands")
+                
+        except Exception as e:
+            logger.error(f"Error handling number command: {e}")
+    
+    def _handle_v1_test_switch_command(self, topic: str, payload: str):
+        """Handle v1 test switch command from hass/test_switch topic"""
+        try:
+            logger.info(f"Handling v1 test switch command: {topic} = {payload}")
+            
+            # Parse payload (expects "1" for ON, "0" for OFF)
+            if payload == "1":
+                state = True
+                logger.info("v1 test switch command: ON")
+            elif payload == "0":
+                state = False
+                logger.info("v1 test switch command: OFF")
+            else:
+                logger.error(f"Invalid v1 test switch payload: {payload}")
+                return
+            
+            # Call the system callback if available
+            if hasattr(self, 'system_callback'):
+                self.system_callback('v1_test_switch_command', {
+                    'state': state
+                })
+            else:
+                logger.warning("No system callback registered for v1 test switch commands")
+                
+        except Exception as e:
+            logger.error(f"Error handling v1 test switch command: {e}")
+    
+    def _handle_pellet_stove_data(self, topic: str, payload: str):
+        """Handle pellet stove data from Home Assistant"""
+        try:
+            logger.info(f"Handling pellet stove data: {topic} = {payload}")
+            
+            # Extract sensor name from topic
+            # topic format: homeassistant/sensor/pelletskamin_power/state
+            # or: homeassistant/binary_sensor/hall_sensor/state
+            if topic == "homeassistant/binary_sensor/hall_sensor/state":
+                sensor_name = "hall_sensor"
+            elif topic == "homeassistant/sensor/pulse_counter_60s/state":
+                sensor_name = "pulse_counter_60s"
+            else:
+                sensor_name = topic.split('/')[3]
+            
+            # Map sensor names to our system state
+            sensor_mapping = {
+                # Direct pellet stove sensors
+                'pelletskamin_power': 'pellet_stove_power',
+                'pelletskamin_brinntid': 'pellet_stove_burn_time',
+                'pelletskamin_dagens_förbrukning': 'pellet_stove_daily_consumption',
+                'pelletskamin_storage_level': 'pellet_stove_storage_level',
+                'pelletskamin_storage_percentage': 'pellet_stove_storage_percentage',
+                'pelletskamin_storage_energy': 'pellet_stove_storage_energy',
+                'pelletskamin_storage_weight': 'pellet_stove_storage_weight',
+                'pelletskamin_electric_consumption': 'pellet_stove_electric_consumption',
+                'pelletskamin_bags_until_cleaning': 'pellet_stove_bags_until_cleaning',
+                'pelletskamin_status': 'pellet_stove_status',
+                
+                # Hall sensor and pulse counter
+                'hall_sensor': 'pellet_stove_hall_sensor',
+                'pulse_counter_60s': 'pellet_stove_pulse_counter_60s',
+                
+                # Energy sensors (from your system)
+                'pellet_energy_today_kwh': 'pellet_stove_energy_today',
+                'pellet_energy_hour_kwh': 'pellet_stove_energy_hour',
+            }
+            
+            if sensor_name in sensor_mapping:
+                system_key = sensor_mapping[sensor_name]
+                
+                # Convert payload to appropriate type
+                try:
+                    if sensor_name in ['pelletskamin_status', 'hall_sensor']:
+                        # Binary sensor - convert to boolean
+                        value = payload.lower() == 'on'
+                    else:
+                        # Numeric sensor - convert to float
+                        value = float(payload)
+                    
+                    # Call the system callback if available
+                    if hasattr(self, 'system_callback'):
+                        self.system_callback('pellet_stove_data', {
+                            'sensor': system_key,
+                            'value': value,
+                            'original_topic': topic,
+                            'original_payload': payload
+                        })
+                    else:
+                        logger.warning("No system callback registered for pellet stove data")
+                        
+                except ValueError:
+                    logger.error(f"Invalid pellet stove data value: {payload} for sensor {sensor_name}")
+                    
+            else:
+                logger.debug(f"Unknown pellet stove sensor: {sensor_name}")
+                
+        except Exception as e:
+            logger.error(f"Error handling pellet stove data: {e}")
+    
+    def _handle_hass_state_change(self, entity: str, state: Any):
+        """Handle Home Assistant state changes"""
+        logger.info(f"Home Assistant state change: {entity} = {state}")
+        
+        # Map entity names to system controls
+        entity_mapping = {
+            'pump': 'primary_pump',
+            'heater': 'cartridge_heater',
+            'test_mode': 'test_mode',
+            'manual_control': 'manual_control',
+            'set_temp_tank': 'set_temp_tank_1',
+            'delta_temp_start': 'dTStart_tank_1',
+            'delta_temp_stop': 'dTStop_tank_1',
+            'cooling_collector': 'kylning_kollektor',
+            'boiling_temp': 'temp_kok',
+        }
+        
+        if entity in entity_mapping:
+            system_control = entity_mapping[entity]
+            # Emit event for system to handle
+            self._emit_system_event(f"hass_{system_control}_change", {
+                'entity': entity,
+                'system_control': system_control,
+                'value': state
+            })
+    
+    def _handle_hass_command(self, entity: str, command: str):
+        """Handle Home Assistant commands"""
+        logger.info(f"Home Assistant command: {entity} -> {command}")
+        
+        # Map commands to system actions
+        command_mapping = {
+            'pump_on': {'action': 'set_pump', 'state': True},
+            'pump_off': {'action': 'set_pump', 'state': False},
+            'heater_on': {'action': 'set_heater', 'state': True},
+            'heater_off': {'action': 'set_heater', 'state': False},
+            'emergency_stop': {'action': 'emergency_stop'},
+            'reset_system': {'action': 'reset_system'},
+        }
+        
+        if command in command_mapping:
+            action_data = command_mapping[command]
+            self._emit_system_event(f"hass_command_{command}", action_data)
+    
+    def _handle_control_message(self, topic: str, data: Dict[str, Any]):
+        """Handle system control messages"""
+        logger.info(f"Handling control message: {topic}")
+        
+        control_type = topic.split('/')[-1]
+        
+        if control_type == 'pump':
+            self._emit_system_event('control_pump', data)
+        elif control_type == 'heater':
+            self._emit_system_event('control_heater', data)
+        elif control_type == 'system':
+            self._emit_system_event('control_system', data)
+    
+    def _handle_config_message(self, topic: str, data: Dict[str, Any]):
+        """Handle configuration messages"""
+        logger.info(f"Handling config message: {topic}")
+        
+        config_type = topic.split('/')[-1]
+        self._emit_system_event(f"config_{config_type}", data)
+    
+    def _handle_taskmaster_message(self, topic: str, data: Dict[str, Any]):
+        """Handle TaskMaster AI messages"""
+        logger.info(f"Handling TaskMaster message: {topic}")
+        
+        message_type = topic.split('/')[-1]
+        self._emit_system_event(f"taskmaster_{message_type}", data)
+    
+    def _emit_system_event(self, event_type: str, data: Dict[str, Any]):
+        """Emit system event for other components to handle"""
+        # This would typically use an event system or callback mechanism
+        logger.debug(f"Emitting system event: {event_type} with data: {data}")
+        
+        # For now, we'll use a simple callback mechanism
+        if hasattr(self, 'system_event_callback'):
+            try:
+                self.system_event_callback(event_type, data)
+            except Exception as e:
+                logger.error(f"Error in system event callback: {e}")
+    
+    def publish(self, topic: str, message: Dict[str, Any], retain: bool = False) -> bool:
+        """
+        Publish message to MQTT topic
+        
+        Args:
+            topic: MQTT topic
+            message: Message data (will be converted to JSON)
+            retain: Whether to retain the message
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.connected:
+            logger.warning("Cannot publish: MQTT not connected")
+            return False
+        
+        try:
+            payload = json.dumps(message)
+            result = self.client.publish(topic, payload, retain=retain)
+            
+            if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
+                logger.debug(f"Published to {topic}: {payload}")
+                return True
+            else:
+                logger.error(f"Failed to publish to {topic}: {result.rc}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error publishing to {topic}: {e}")
+            return False
+    
+    def publish_raw(self, topic: str, message: str, retain: bool = False) -> bool:
+        """
+        Publish raw string message to MQTT topic (no JSON conversion)
+        
+        Args:
+            topic: MQTT topic
+            message: Raw string message
+            retain: Whether to retain the message
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.connected:
+            logger.warning("Cannot publish: MQTT not connected")
+            return False
+        
+        try:
+            result = self.client.publish(topic, message, retain=retain)
+            
+            if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
+                logger.debug(f"Published raw to {topic}: {message}")
+                return True
+            else:
+                logger.error(f"Failed to publish to {topic}: {result.rc}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error publishing to {topic}: {e}")
+            return False
+    
+    def publish_temperature(self, sensor_name: str, temperature: float):
+        """Publish temperature reading"""
+        topic = f"{mqtt_topics.temperature_base}/{sensor_name}"
+        message = {
+            "sensor": sensor_name,
+            "temperature": temperature,
+            "unit": "celsius",
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
+    def publish_realtime_energy_sensor(self, sensor_data: Dict[str, Any]):
+        """Publish real-time energy rate sensor data"""
+        topic = f"{mqtt_topics.status_base}/realtime_energy_sensor"
+        message = {
+            "sensor": "realtime_energy_sensor",
+            "energy_rate_kw": sensor_data.get('realtime_energy_rate_kw', 0.0),
+            "temp_rate_per_hour": sensor_data.get('realtime_temp_rate_per_hour', 0.0),
+            "efficiency_index": sensor_data.get('energy_efficiency_index', 0.0),
+            "performance_score": sensor_data.get('system_performance_score', 0.0),
+            "energy_trend": sensor_data.get('energy_trend', 'unknown'),
+            "temperature_trend": sensor_data.get('temperature_trend', 'unknown'),
+            "energy_temp_ratio": sensor_data.get('energy_temp_ratio', 0.0),
+            "energy_total_ratio": sensor_data.get('energy_total_ratio', 0.0),
+            "temp_change_ratio": sensor_data.get('temp_change_ratio', 0.0),
+            "efficiency_factor": sensor_data.get('energy_efficiency_factor', 0.0),
+            "water_usage_rate_kw": sensor_data.get('water_usage_rate_kw', 0.0),
+            "water_usage_intensity": sensor_data.get('water_usage_intensity', 'none'),
+            "unit": "kW",
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
+    def publish_system_status(self, status: Dict[str, Any]):
+        """Publish system status"""
+        topic = mqtt_topics.status_system
+        message = {
+            "status": status,
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
+    def publish_status(self, status_data: Dict[str, Any]):
+        """Publish status data (alias for publish_system_status)"""
+        return self.publish_system_status(status_data)
+    
+    def publish_pump_status(self, pump_id: str, status: bool, mode: str = "auto"):
+        """Publish pump status"""
+        topic = f"{mqtt_topics.status_pump}/{pump_id}"
+        message = {
+            "pump_id": pump_id,
+            "status": "on" if status else "off",
+            "mode": mode,
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
+    def publish_energy_status(self, energy_data: Dict[str, Any]):
+        """Publish energy status"""
+        topic = mqtt_topics.status_energy
+        message = {
+            "energy": energy_data,
+            "timestamp": time.time()
+        }
+        return self.publish(topic, message)
+    
+    def publish_heartbeat(self, system_info: Dict[str, Any] = None):
+        """Publish heartbeat message for uptime monitoring"""
+        topic = mqtt_topics.heartbeat
+        message = {
+            "status": "alive",
+            "timestamp": time.time(),
+            "version": "v3",
+            "uptime": time.time() - getattr(self, '_start_time', time.time())
+        }
+        
+        # Add system info if provided
+        if system_info:
+            message.update(system_info)
+        
+        return self.publish(topic, message, retain=False)
+    
+    def publish_hass_discovery(self, entity_type: str, entity_id: str, config: Dict[str, Any]):
+        """Publish Home Assistant discovery configuration"""
+        topic = f"{mqtt_topics.hass_discovery_prefix}/{entity_type}/{entity_id}/config"
+        return self.publish(topic, config, retain=True)
+    
+    def register_message_handler(self, topic: str, handler: Callable):
+        """Register a message handler for a specific topic"""
+        self.message_handlers[topic] = handler
+        logger.debug(f"Registered message handler for topic: {topic}")
+    
+    def get_last_message(self, topic: str) -> Optional[Any]:
+        """Get the last message received on a topic"""
+        return self.last_messages.get(topic)
+    
+    def is_connected(self) -> bool:
+        """Check if MQTT is connected"""
+        return self.connected and self.client and self.client.is_connected()
+    
+    def set_system_event_callback(self, callback: Callable):
+        """Set callback for system events"""
+        self.system_event_callback = callback

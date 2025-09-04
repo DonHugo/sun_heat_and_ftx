@@ -93,6 +93,12 @@ class TaskMasterAI:
                 logger.error(f"Failed to create task: {response.status_code} - {response.text}")
                 return self._create_local_task(task_name, parameters)
                 
+        except httpx.ConnectError as e:
+            logger.warning(f"TaskMaster AI connection failed for {task_name}: {str(e)} - using local task")
+            return self._create_local_task(task_name, parameters)
+        except httpx.TimeoutException as e:
+            logger.warning(f"TaskMaster AI timeout for {task_name}: {str(e)} - using local task")
+            return self._create_local_task(task_name, parameters)
         except Exception as e:
             logger.error(f"Error creating TaskMaster AI task {task_name}: {str(e)}")
             return self._create_local_task(task_name, parameters)

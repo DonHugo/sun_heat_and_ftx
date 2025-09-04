@@ -397,7 +397,7 @@ class SolarHeatingSystem:
                 if self.mqtt.connect():
                     mqtt_connected = True
                     logger.info(f"MQTT connection successful on attempt {attempt + 1}")
-                    # Register system callback for switch commands
+                    # Register system callback for all MQTT commands including pellet stove data
                     self.mqtt.system_callback = self._handle_mqtt_command
                     break
                 else:
