@@ -13,7 +13,7 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("✅ Connected to MQTT broker")
         # Subscribe to switch state topics to see responses
-        client.subscribe("homeassistant/switch/solar_heating_+/state")
+        client.subscribe("homeassistant/switch/+/state")
     else:
         print(f"❌ Failed to connect to MQTT broker: {rc}")
 
