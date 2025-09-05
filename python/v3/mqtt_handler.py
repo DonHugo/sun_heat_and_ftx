@@ -323,17 +323,32 @@ class MQTTHandler:
                 logger.warning(f"Invalid switch payload: {payload}")
                 return
             
-            logger.info(f"Switch command: {switch_name} = {state}")
+            # Map switch names to relay numbers
+            switch_mapping = {
+                'primary_pump': 1,
+                'primary_pump_manual': 1,  # Manual control also uses relay 1
+                'cartridge_heater': 2  # Cartridge heater uses relay 2
+            }
+            
+            if switch_name not in switch_mapping:
+                logger.warning(f"Switch '{switch_name}' not found in mapping: {list(switch_mapping.keys())}")
+                return
+            
+            relay_num = switch_mapping[switch_name]
+            logger.info(f"Switch command: {switch_name} = {state} (relay {relay_num})")
             
             # Call system callback if available
             if self.system_callback:
                 try:
                     self.system_callback('switch_command', {
                         'switch': switch_name,
+                        'relay': relay_num,
                         'state': state
                     })
                 except Exception as e:
                     logger.error(f"Error calling system callback: {e}")
+            else:
+                logger.warning("No system callback registered for switch commands")
                     
         except Exception as e:
             logger.error(f"Error handling switch command: {e}")
