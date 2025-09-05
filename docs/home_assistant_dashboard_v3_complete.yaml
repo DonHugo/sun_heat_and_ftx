@@ -254,3 +254,41 @@ cards:
         name: "RTD Sensor 7"
         unit_of_measurement: "°C"
 
+  - type: entities
+    title: MegaBAS Temperature Sensors
+    entities:
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_1_2
+        name: "MegaBAS Sensor 1"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_2_2
+        name: "MegaBAS Sensor 2"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_3_2
+        name: "MegaBAS Sensor 3"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_4_2
+        name: "MegaBAS Sensor 4"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_5_2
+        name: "MegaBAS Sensor 5"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_6_2
+        name: "MegaBAS Sensor 6"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_7_2
+        name: "MegaBAS Sensor 7"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_megabas_sensor_8_2
+        name: "MegaBAS Sensor 8"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Legacy Temperature Sensors
+    entities:
+      - entity: sensor.solar_heating_system_v3_exhaust_air_temperature_2
+        name: "Exhaust Air Temperature (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_outside_air_temperature_2
+        name: "Outside Air Temperature (Legacy)"
+        unit_of_measurement: "°C"
+
