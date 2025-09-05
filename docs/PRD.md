@@ -126,12 +126,21 @@ This project implements an intelligent solar heating system that combines tradit
 - ✅ Automatic pump activation based on temperature conditions
 - ✅ Manual pump control via API, GUI or Home Assistant
 - ✅ Emergency stop functionality
+- ✅ **Collector cooling functionality** - Active cooling when collector temperature ≥ 90°C
+- ✅ **Hysteresis control** - Collector cooling stops when temperature < 86°C (prevents rapid cycling)
 
 #### **FR-005: Intelligent Pump Control** ✅
 - ✅ Increase flow when high temperature detected
 - ✅ Decrease flow when low temperature detected
 - ✅ Optimize pump operation based on AI recommendations
 - ✅ Prevent pump damage through safety controls
+
+#### **FR-005.1: Priority-Based Control Logic** ✅
+- ✅ **Emergency Stop** (Highest Priority): Automatic shutdown at boiling temperature (150°C)
+- ✅ **Collector Cooling** (Medium Priority): Active cooling when collector ≥ 90°C, stops at < 86°C
+- ✅ **Normal Heating** (Standard Priority): Pump control based on temperature difference (dT ≥ 8°C start, dT ≤ 4°C stop)
+- ✅ **Hysteresis Control**: Prevents rapid pump cycling in all control modes
+- ✅ **Mode Tracking**: System tracks and reports current operational mode (heating, cooling, standby, etc.)
 
 ### **TaskMaster AI Integration**
 
