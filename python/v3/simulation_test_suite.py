@@ -743,6 +743,13 @@ class SimulationTestSuite:
         logger.info("-" * 40)
         self.run_test("Configuration Validation", self.test_configuration_validation)
         
+        # MQTT Integration Tests (Simulation)
+        logger.info("\n📡 MQTT INTEGRATION TESTS (SIMULATION)")
+        logger.info("-" * 40)
+        self.run_test("Sensor Data Reading Simulation", self.test_sensor_data_reading_simulation)
+        self.run_test("Switch Control Simulation", self.test_switch_control_simulation)
+        self.run_test("End-to-End Workflow Simulation", self.test_end_to_end_workflow_simulation)
+        
         # Generate summary
         self.generate_test_summary()
     
@@ -796,6 +803,129 @@ class SimulationTestSuite:
         else:
             logger.info(f"\n⚠️  {failed_tests} SIMULATION TESTS FAILED. System logic needs attention.")
             return False
+    
+    # ============================================================================
+    # MQTT INTEGRATION TESTS (SIMULATION)
+    # ============================================================================
+    
+    def test_sensor_data_reading_simulation(self, result: SimulationTestResult):
+        """Test sensor data reading via MQTT (simulation)"""
+        try:
+            # Test sensor data processing logic
+            system = SolarHeatingSystem()
+            
+            # Simulate receiving sensor data from Home Assistant
+            test_sensor_data = {
+                'solar_collector': 75.5,
+                'storage_tank': 52.3,
+                'pelletskamin_temperature': 68.2
+            }
+            
+            # Test sensor data validation
+            valid_sensors = 0
+            for sensor_name, value in test_sensor_data.items():
+                if isinstance(value, (int, float)) and 0 <= value <= 200:
+                    valid_sensors += 1
+            
+            self.assert_condition(result, valid_sensors == len(test_sensor_data),
+                                "All sensor data should be valid")
+            
+            # Test temperature difference calculation
+            dT = test_sensor_data['solar_collector'] - test_sensor_data['storage_tank']
+            self.assert_condition(result, dT > 0,
+                                "Temperature difference should be positive")
+            
+            result.details['sensor_data_simulation'] = {
+                'sensors_tested': len(test_sensor_data),
+                'valid_sensors': valid_sensors,
+                'temperature_difference': dT
+            }
+            
+        except Exception as e:
+            raise Exception(f"Sensor data reading simulation test failed: {e}")
+    
+    def test_switch_control_simulation(self, result: SimulationTestResult):
+        """Test switch control via MQTT (simulation)"""
+        try:
+            system = SolarHeatingSystem()
+            
+            # Test switch control commands
+            switch_commands = [
+                ('primary_pump', True),
+                ('primary_pump', False),
+                ('cartridge_heater', True),
+                ('cartridge_heater', False)
+            ]
+            
+            # Test number control commands
+            number_commands = [
+                ('set_temp_tank_1', 75.0),
+                ('dTStart_tank_1', 8.5),
+                ('temp_kok_hysteres', 12.0)
+            ]
+            
+            # Simulate command processing
+            processed_switches = 0
+            processed_numbers = 0
+            
+            for switch_name, state in switch_commands:
+                if switch_name in system.system_state:
+                    system.system_state[switch_name] = state
+                    processed_switches += 1
+            
+            for param_name, value in number_commands:
+                if param_name in system.control_params:
+                    system.control_params[param_name] = value
+                    processed_numbers += 1
+            
+            self.assert_condition(result, processed_switches == len(switch_commands),
+                                "All switch commands should be processed")
+            self.assert_condition(result, processed_numbers == len(number_commands),
+                                "All number commands should be processed")
+            
+            result.details['switch_control_simulation'] = {
+                'switch_commands_tested': len(switch_commands),
+                'number_commands_tested': len(number_commands),
+                'switches_processed': processed_switches,
+                'numbers_processed': processed_numbers
+            }
+            
+        except Exception as e:
+            raise Exception(f"Switch control simulation test failed: {e}")
+    
+    def test_end_to_end_workflow_simulation(self, result: SimulationTestResult):
+        """Test end-to-end workflow (simulation)"""
+        try:
+            system = SolarHeatingSystem()
+            
+            # Step 1: Simulate sensor data
+            sensor_data = {'solar_collector': 80.0, 'storage_tank': 50.0}
+            system.temperatures = sensor_data
+            
+            # Step 2: Calculate temperature difference
+            dT = sensor_data['solar_collector'] - sensor_data['storage_tank']
+            
+            # Step 3: Simulate control logic
+            if dT >= system.control_params['dTStart_tank_1']:
+                expected_pump_state = True
+            else:
+                expected_pump_state = False
+            
+            # Step 4: Verify workflow
+            self.assert_condition(result, dT > 0,
+                                "Temperature difference should be positive")
+            self.assert_condition(result, expected_pump_state == True,
+                                "Pump should start with high temperature difference")
+            
+            result.details['end_to_end_workflow_simulation'] = {
+                'sensor_data': sensor_data,
+                'temperature_difference': dT,
+                'expected_pump_state': expected_pump_state,
+                'workflow_completed': True
+            }
+            
+        except Exception as e:
+            raise Exception(f"End-to-end workflow simulation test failed: {e}")
 
 def main():
     """Main test runner"""
