@@ -250,7 +250,15 @@ class HardwareInterface:
         
         try:
             stack = stack or self.relay_board
-            relay_value = pump_config.set_pump_status(state)
+            
+            # Apply NC inversion based on relay type
+            if relay_id == 1:  # Primary pump - use pump config logic
+                relay_value = pump_config.set_pump_status(state)
+            elif relay_id == 2:  # Cartridge heater - direct NC inversion like V1
+                relay_value = 0 if state else 1  # NC inversion: 0=ON, 1=OFF
+            else:  # Other relays - use pump config logic
+                relay_value = pump_config.set_pump_status(state)
+            
             lib4relind.set_relay(stack, relay_id, relay_value)
             logger.info(f"Relay {relay_id} set to {'ON' if state else 'OFF'}")
             return True

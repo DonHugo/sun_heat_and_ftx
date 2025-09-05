@@ -1772,7 +1772,17 @@ class SolarHeatingSystem:
             # Enhanced control logic with proper temperature difference handling
             dT = solar_collector - storage_tank
             
-            # Emergency stop conditions (highest priority)
+            # Manual override check (HIGHEST PRIORITY)
+            if self.system_state.get('primary_pump_manual', False):
+                # Manual control is active - force pump state based on manual setting
+                # The manual control state is already set in _handle_mqtt_command
+                # We just need to ensure the relay matches the system state
+                if self.system_state['primary_pump'] != self.hardware.simulation_relays.get(1, False):
+                    self.hardware.set_relay_state(1, self.system_state['primary_pump'])
+                    logger.info(f"Manual override active: Pump forced to {'ON' if self.system_state['primary_pump'] else 'OFF'}")
+                return  # Skip automatic control when manual override is active
+            
+            # Emergency stop conditions (highest priority after manual override)
             if solar_collector >= self.control_params['temp_kok']:
                 if self.system_state['primary_pump']:
                     self.hardware.set_relay_state(1, False)  # Primary pump relay
