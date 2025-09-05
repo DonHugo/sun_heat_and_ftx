@@ -141,12 +141,8 @@ cards:
     entities:
       - entity: switch.solar_heating_system_v3_primary_pump
         name: "Primary Pump"
-      - entity: switch.solar_heating_system_v3_secondary_pump
-        name: "Secondary Pump"
       - entity: switch.solar_heating_system_v3_cartridge_heater
         name: "Cartridge Heater"
-      - entity: switch.solar_heating_system_v3_test_switch
-        name: "Test Switch"
 
   - type: entities
     title: RTD Sensors (Raw)
