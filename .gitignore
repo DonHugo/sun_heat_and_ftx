@@ -33,3 +33,5 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Runtime state files
+system_operational_state.json
