@@ -629,12 +629,6 @@ class SolarHeatingSystem:
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
-                {
-                    'name': 'Water Heater Top Temperature (Legacy)',
-                    'entity_id': 'water_heater_top',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
                 # FTX air temperatures
                 {
                     'name': 'Outdoor Air Temperature',
@@ -670,37 +664,6 @@ class SolarHeatingSystem:
                 {
                     'name': 'Heat Exchanger Output Temperature',
                     'entity_id': 'heat_exchanger_out',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                # Backward compatibility aliases
-                {
-                    'name': 'Solar Collector Temperature (Legacy)',
-                    'entity_id': 'solar_collector',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Storage Tank Temperature (Legacy)',
-                    'entity_id': 'storage_tank',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Return Line Temperature (Legacy)',
-                    'entity_id': 'return_line',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Storage Tank Top Temperature (Legacy)',
-                    'entity_id': 'storage_tank_top',
-                    'device_class': 'temperature',
-                    'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Storage Tank Bottom Temperature (Legacy)',
-                    'entity_id': 'storage_tank_bottom',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
                 },
@@ -752,24 +715,6 @@ class SolarHeatingSystem:
                     'entity_id': 'solar_collector_dt',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
-                },
-                {
-                    'name': 'Solar Collector Mode',
-                    'entity_id': 'solar_collector_mode',
-                    'device_class': None,
-                    'unit_of_measurement': None
-                },
-                {
-                    'name': 'Solar Collector State',
-                    'entity_id': 'solar_collector_state',
-                    'device_class': None,
-                    'unit_of_measurement': None
-                },
-                {
-                    'name': 'Solar Collector Overheated',
-                    'entity_id': 'solar_collector_overheated',
-                    'device_class': None,
-                    'unit_of_measurement': None
                 },
                 # New calculated values and metrics
                 {
@@ -910,7 +855,7 @@ class SolarHeatingSystem:
                 {
                     'name': 'Temperature Change Rate',
                     'entity_id': 'temperature_change_rate_c_h',
-                    'device_class': 'temperature',
+                    'device_class': None,
                     'unit_of_measurement': '°C/h'
                 }
             ]
@@ -1267,21 +1212,12 @@ class SolarHeatingSystem:
             logger.debug(f"Water heater sensors: bottom={self.temperatures['water_heater_bottom']}, 20cm={self.temperatures['water_heater_20cm']}, 40cm={self.temperatures['water_heater_40cm']}, 60cm={self.temperatures['water_heater_60cm']}, 80cm={self.temperatures['water_heater_80cm']}, 100cm={self.temperatures['water_heater_100cm']}, 120cm={self.temperatures['water_heater_120cm']}, 140cm={self.temperatures['water_heater_140cm']}")
             logger.info("Water heater debug logging completed")
             
-            # Legacy aliases for backward compatibility
-            self.temperatures['water_heater_top'] = self.temperatures['water_heater_100cm']  # Keep top alias
-            logger.info("Legacy aliases mapped successfully")
-            
-            # Keep backward compatibility aliases
+            # Keep backward compatibility aliases for FTX sensors only
             self.temperatures['uteluft'] = self.temperatures['outdoor_air_temp']
             self.temperatures['avluft'] = self.temperatures['exhaust_air_temp']
             self.temperatures['tilluft'] = self.temperatures['supply_air_temp']
             self.temperatures['franluft'] = self.temperatures['return_air_temp']
-            self.temperatures['solar_collector'] = self.temperatures['solar_collector_temp']
-            self.temperatures['storage_tank'] = self.temperatures['storage_tank_temp']
-            self.temperatures['return_line'] = self.temperatures['return_line_temp']
-            self.temperatures['storage_tank_top'] = self.temperatures['water_heater_top']
-            self.temperatures['storage_tank_bottom'] = self.temperatures['water_heater_bottom']
-            logger.info("Backward compatibility aliases mapped successfully")
+            logger.info("FTX backward compatibility aliases mapped successfully")
             
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
             self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
@@ -1317,11 +1253,11 @@ class SolarHeatingSystem:
                 try:
                     # Create a clean temperature data dictionary for TaskMaster
                     taskmaster_temp_data = {
-                        'solar_collector': self.temperatures.get('solar_collector_temp', 0),
-                        'storage_tank': self.temperatures.get('storage_tank_temp', 0),
-                        'return_line': self.temperatures.get('return_line_temp', 0),
+                        'solar_collector_temp': self.temperatures.get('solar_collector_temp', 0),
+                        'storage_tank_temp': self.temperatures.get('storage_tank_temp', 0),
+                        'return_line_temp': self.temperatures.get('return_line_temp', 0),
                         'water_heater_bottom': self.temperatures.get('water_heater_bottom', 0),
-                        'water_heater_top': self.temperatures.get('water_heater_top', 0),
+                        'water_heater_100cm': self.temperatures.get('water_heater_100cm', 0),
                         'outdoor_air': self.temperatures.get('outdoor_air_temp', 0),
                         'heat_exchanger_in': self.temperatures.get('heat_exchanger_in', 0),
                         'heat_exchanger_out': self.temperatures.get('heat_exchanger_out', 0)
@@ -1345,9 +1281,12 @@ class SolarHeatingSystem:
             
             # Calculate overheating risk
             solar_collector_temp = self.temperatures.get('solar_collector_temp', 0)
-            max_safe_temp = 90  # Configurable maximum safe temperature
+            max_safe_temp = 90  # Safe temperature threshold
+            max_risk_temp = 170  # 100% risk temperature threshold
             if solar_collector_temp > max_safe_temp:
-                overheating_risk = round(((solar_collector_temp - max_safe_temp) / max_safe_temp) * 100, 1)
+                overheating_risk = round(((solar_collector_temp - max_safe_temp) / (max_risk_temp - max_safe_temp)) * 100, 1)
+                # Cap at 100% if temperature exceeds max_risk_temp
+                overheating_risk = min(overheating_risk, 100.0)
                 self.temperatures['overheating_risk'] = overheating_risk
                 logger.warning(f"Overheating risk: {overheating_risk}% (collector: {solar_collector_temp}°C)")
             else:
@@ -1397,9 +1336,6 @@ class SolarHeatingSystem:
             logger.info("Solar collector dT calculation started")
             
             self.temperatures['solar_collector_dt'] = dT
-            self.temperatures['solar_collector_mode'] = self.system_state.get('mode', 'unknown')
-            self.temperatures['solar_collector_state'] = self.system_state.get('mode', 'unknown')
-            self.temperatures['solar_collector_overheated'] = "true" if self.system_state.get('overheated', False) else "false"
             logger.info("Solar collector dT values calculated successfully")
             
             # Calculate stored energy values using proper physics for 360L tank

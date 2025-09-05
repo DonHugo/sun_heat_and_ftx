@@ -1,0 +1,256 @@
+title: Solar Heating v3 - Complete Dashboard
+badges: []
+cards:
+  - type: entities
+    title: System Status & Control
+    entities:
+      - entity: sensor.solar_heating_system_v3_system_mode
+        name: "System Mode"
+      - entity: switch.solar_heating_system_v3_primary_pump
+        name: "Primary Pump"
+      - entity: switch.solar_heating_system_v3_primary_pump_manual_control
+        name: "Primary Pump Manual Control"
+      - entity: switch.solar_heating_system_v3_cartridge_heater
+        name: "Cartridge Heater"
+      - entity: sensor.solar_heating_system_v3_sensor_health_score
+        name: "Sensor Health"
+        unit_of_measurement: "%"
+      - entity: binary_sensor.solar_heating_system_v3_system_heating_status
+        name: "System Heating Status"
+
+  - type: entities
+    title: Key Temperatures
+    entities:
+      - entity: sensor.solar_heating_system_v3_solar_collector_outlet_temperature
+        name: "Solar Collector Outlet"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_storage_tank_main_temperature
+        name: "Storage Tank Main"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_solar_return_line_temperature
+        name: "Solar Return Line"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_solar_collector_dt
+        name: "Solar Collector ΔT"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Energy Information
+    entities:
+      - entity: sensor.solar_heating_system_v3_stored_energy_total_2
+        name: "Total Stored Energy"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_stored_energy_top_2
+        name: "Top Section Energy"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_stored_energy_bottom_2
+        name: "Bottom Section Energy"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_solar_energy_today
+        name: "Solar Energy Today"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_solar_energy_this_hour
+        name: "Solar Energy This Hour"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_pellet_furnace_energy_today
+        name: "Pellet Energy Today"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_energy_collected_today
+        name: "Energy Collected Today"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_energy_collected_this_hour
+        name: "Energy Collected This Hour"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_energy_collection_rate
+        name: "Energy Collection Rate"
+        unit_of_measurement: "kWh/hour"
+      - entity: sensor.solar_heating_system_v3_energy_change_rate
+        name: "Energy Change Rate"
+        unit_of_measurement: "kW"
+      - entity: sensor.solar_heating_system_v3_cartridge_heater_energy_today
+        name: "Cartridge Heater Energy Today"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_cartridge_heater_energy_this_hour
+        name: "Cartridge Heater Energy This Hour"
+        unit_of_measurement: "kWh"
+      - entity: sensor.solar_heating_system_v3_pellet_furnace_energy_this_hour
+        name: "Pellet Furnace Energy This Hour"
+        unit_of_measurement: "kWh"
+
+  - type: entities
+    title: System Performance
+    entities:
+      - entity: sensor.solar_heating_system_v3_pump_runtime_hours
+        name: "Pump Runtime Hours"
+        unit_of_measurement: "hours"
+      - entity: sensor.solar_heating_system_v3_pump_runtime_hours_real_time
+        name: "Pump Runtime (Real-time)"
+        unit_of_measurement: "hours"
+      - entity: sensor.solar_heating_system_v3_heating_cycles_count
+        name: "Heating Cycles Count"
+      - entity: sensor.solar_heating_system_v3_average_heating_duration
+        name: "Average Heating Duration"
+        unit_of_measurement: "hours"
+      - entity: sensor.solar_heating_system_v3_system_mode
+        name: "System Mode"
+      - entity: sensor.solar_heating_system_v3_overheating_risk
+        name: "Overheating Risk"
+        unit_of_measurement: "%"
+
+  - type: history-graph
+    title: Water Heater Temperature Profile
+    hours_to_show: 24
+    refresh_interval: 30
+    entities:
+      - entity: sensor.solar_heating_system_v3_water_heater_140cm_temperature
+        name: "140cm (Top)"
+      - entity: sensor.solar_heating_system_v3_water_heater_120cm_temperature
+        name: "120cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_100cm_temperature
+        name: "100cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_80cm_temperature
+        name: "80cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_60cm_temperature
+        name: "60cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_40cm_temperature
+        name: "40cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_20cm_temperature
+        name: "20cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_bottom_temperature
+        name: "Bottom (0cm)"
+
+  - type: entities
+    title: Water Heater Temperature Profile (Current Values)
+    entities:
+      - entity: sensor.solar_heating_system_v3_water_heater_140cm_temperature
+        name: "140cm from bottom (Top)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_120cm_temperature
+        name: "120cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_100cm_temperature
+        name: "100cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_80cm_temperature
+        name: "80cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_60cm_temperature
+        name: "60cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_40cm_temperature
+        name: "40cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_20cm_temperature
+        name: "20cm from bottom"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_water_heater_bottom_temperature
+        name: "Bottom (0cm)"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Water Heater Analysis
+    entities:
+      - entity: sensor.solar_heating_system_v3_water_heater_stratification_quality
+        name: "Stratification Quality"
+        unit_of_measurement: "°C/cm"
+      - entity: sensor.solar_heating_system_v3_water_heater_temperature_gradient
+        name: "Temperature Gradient"
+        unit_of_measurement: "°C/cm"
+
+  - type: entities
+    title: FTX System (Heat Exchanger)
+    entities:
+      - entity: sensor.solar_heating_system_v3_supply_air_temperature_3
+        name: "Supply Air Temperature"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_return_air_temperature_3
+        name: "Return Air Temperature"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_supply_air_temperature_2
+        name: "Supply Air (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_return_air_temperature_2
+        name: "Return Air (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_efficiency
+        name: "Heat Exchanger Efficiency"
+        unit_of_measurement: "%"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_input_temperature
+        name: "Heat Exchanger Input Temperature"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_heat_exchanger_output_temperature
+        name: "Heat Exchanger Output Temperature"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Rate of Change Sensors
+    entities:
+      - entity: sensor.solar_heating_system_v3_temperature_change_rate
+        name: "Temperature Change Rate"
+        unit_of_measurement: "°C/h"
+      - entity: sensor.solar_heating_system_v3_average_temperature_2
+        name: "Average Temperature"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: System Control Settings
+    entities:
+      - entity: number.solar_heating_system_v3_set_tank_temperature_2
+        name: "Set Tank Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_pellet_stove_max_temperature
+        name: "Pellet Stove Max Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_delta_temperature_start_2
+        name: "Delta Temperature Start"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_delta_temperature_stop_2
+        name: "Delta Temperature Stop"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_cooling_collector_temperature_2
+        name: "Cooling Collector Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_boiling_temperature
+        name: "Boiling Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_boiling_temperature_hysteresis
+        name: "Boiling Temperature Hysteresis"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_morning_peak_target_temperature
+        name: "Morning Peak Target Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_evening_peak_target_temperature
+        name: "Evening Peak Target Temperature"
+        unit_of_measurement: "°C"
+      - entity: number.solar_heating_system_v3_heat_distribution_temperature
+        name: "Heat Distribution Temperature"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: RTD Sensors (Raw Temperature Readings)
+    entities:
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_0_2
+        name: "RTD Sensor 0"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_1_2
+        name: "RTD Sensor 1"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_2_2
+        name: "RTD Sensor 2"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_3_2
+        name: "RTD Sensor 3"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_4_2
+        name: "RTD Sensor 4"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_5_2
+        name: "RTD Sensor 5"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_6_2
+        name: "RTD Sensor 6"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_system_v3_rtd_sensor_7_2
+        name: "RTD Sensor 7"
+        unit_of_measurement: "°C"
+
