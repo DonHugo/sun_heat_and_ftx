@@ -25,17 +25,16 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 | `megabas_sensor_7` | `homeassistant/sensor/solar_heating_megabas_sensor_7/state` | `sequentmicrosystems_4_7` | `sequentmicrosystems/sequentmicrosystems_4_7` | `{"name": "sequentmicrosystems_4_7", "temperature": value}` |
 | `megabas_sensor_8` | `homeassistant/sensor/solar_heating_megabas_sensor_8/state` | `sequentmicrosystems_4_8` | `sequentmicrosystems/sequentmicrosystems_4_8` | `{"name": "sequentmicrosystems_4_8", "temperature": value}` |
 
-### **Named Sensors (v3 Aliases)**
+### **Named Sensors (v3 Aliases) - FTX Only**
 
 | v3 Sensor | v3 Topic | Covers Legacy Sensor | Legacy Topic | Legacy Format |
 |-----------|----------|---------------------|--------------|---------------|
-| `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | `sequentmicrosystems_4_6` | `sequentmicrosystems/sequentmicrosystems_4_6` | `{"name": "sequentmicrosystems_4_6", "temperature": value}` |
-| `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | `sequentmicrosystems_4_7` | `sequentmicrosystems/sequentmicrosystems_4_7` | `{"name": "sequentmicrosystems_4_7", "temperature": value}` |
-| `return_line` | `homeassistant/sensor/solar_heating_return_line/state` | `sequentmicrosystems_4_8` | `sequentmicrosystems/sequentmicrosystems_4_8` | `{"name": "sequentmicrosystems_4_8", "temperature": value}` |
 | `uteluft` | `homeassistant/sensor/solar_heating_uteluft/state` | `sequentmicrosystems_4_1` | `sequentmicrosystems/sequentmicrosystems_4_1` | `{"name": "sequentmicrosystems_4_1", "temperature": value}` |
 | `avluft` | `homeassistant/sensor/solar_heating_avluft/state` | `sequentmicrosystems_4_2` | `sequentmicrosystems/sequentmicrosystems_4_2` | `{"name": "sequentmicrosystems_4_2", "temperature": value}` |
 | `tilluft` | `homeassistant/sensor/solar_heating_tilluft/state` | `sequentmicrosystems_4_3` | `sequentmicrosystems/sequentmicrosystems_4_3` | `{"name": "sequentmicrosystems_4_3", "temperature": value}` |
 | `franluft` | `homeassistant/sensor/solar_heating_franluft/state` | `sequentmicrosystems_4_4` | `sequentmicrosystems/sequentmicrosystems_4_4` | `{"name": "sequentmicrosystems_4_4", "temperature": value}` |
+
+**Note:** Legacy aliases `solar_collector`, `storage_tank`, and `return_line` have been removed. Use the modern sensor names `solar_collector_temp`, `storage_tank_temp`, and `return_line_temp` instead.
 
 ### **Energy Sensors**
 
@@ -64,7 +63,8 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 | `solar_collector_dt` | `homeassistant/sensor/solar_heating_solar_collector_dt/state` | `dT` | `sequentmicrosystems/suncollector` | `{"dT_running": value, "dT": value, ...}` |
 | `primary_pump` | `homeassistant/switch/solar_heating_primary_pump/state` | `pump` | `sequentmicrosystems/suncollector` | `{"dT_running": value, "pump": "ON"/"OFF", ...}` |
 | `system_mode` | `homeassistant/sensor/solar_heating_system_mode/state` | `mode` | `sequentmicrosystems/suncollector` | `{"dT_running": value, "mode": value, ...}` |
-| `overheated` | `homeassistant/binary_sensor/solar_heating_overheated/state` | `overheated` | `sequentmicrosystems/suncollector` | `{"dT_running": value, "overheated": "true"/"false", ...}` |
+
+**Note:** Redundant sensors `solar_collector_mode`, `solar_collector_state`, and `solar_collector_overheated` have been removed. Use `system_mode` for all mode information.
 
 ### **Test Mode Sensors**
 
@@ -85,8 +85,10 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 
 | v3 Sensor | v3 Topic | Covers Legacy Sensor | Legacy Topic | Legacy Format |
 |-----------|----------|---------------------|--------------|---------------|
-| `solar_collector` | `homeassistant/sensor/solar_heating_solar_collector/state` | `solar_t1` | `homeassistant/sensor/solar_t1/config` | Discovery config for T1 |
-| `storage_tank` | `homeassistant/sensor/solar_heating_storage_tank/state` | `solar_t2` | `homeassistant/sensor/solar_t2/config` | Discovery config for T2 |
+| `solar_collector_temp` | `homeassistant/sensor/solar_heating_solar_collector_temp/state` | `solar_t1` | `homeassistant/sensor/solar_t1/config` | Discovery config for T1 |
+| `storage_tank_temp` | `homeassistant/sensor/solar_heating_storage_tank_temp/state` | `solar_t2` | `homeassistant/sensor/solar_t2/config` | Discovery config for T2 |
+
+**Note:** Legacy aliases `solar_collector` and `storage_tank` have been removed. Use the modern sensor names `solar_collector_temp` and `storage_tank_temp` instead.
 
 ## 🆕 **New v3 Sensors (No Legacy Coverage)**
 
@@ -117,10 +119,11 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 - **Legacy Sensors Covered**: 16 individual temperature sensors
 - **Status**: ✅ **FULLY COVERED**
 
-### **Named Sensors (7 sensors)**
-- **Coverage**: 100% of legacy named sensors
-- **Legacy Sensors Covered**: 7 named temperature sensors
+### **Named Sensors (4 sensors)**
+- **Coverage**: 100% of legacy named sensors (FTX only)
+- **Legacy Sensors Covered**: 4 FTX named temperature sensors
 - **Status**: ✅ **FULLY COVERED**
+- **Note**: Legacy aliases `solar_collector`, `storage_tank`, and `return_line` removed
 
 ### **Energy Sensors (4 sensors)**
 - **Coverage**: 100% of legacy energy sensors
@@ -132,10 +135,11 @@ This table shows which v3 sensors cover each legacy v1/v2 sensor, organized by v
 - **Legacy Sensors Covered**: 5 heat exchanger sensors
 - **Status**: ✅ **FULLY COVERED**
 
-### **Solar Collector Sensors (5 sensors)**
+### **Solar Collector Sensors (4 sensors)**
 - **Coverage**: 100% of legacy solar collector sensors
-- **Legacy Sensors Covered**: 5 solar collector sensors
+- **Legacy Sensors Covered**: 4 solar collector sensors
 - **Status**: ✅ **FULLY COVERED**
+- **Note**: Redundant sensors `solar_collector_mode`, `solar_collector_state`, and `solar_collector_overheated` removed
 
 ### **Test Mode Sensors (2 sensors)**
 - **Coverage**: 100% of legacy test mode sensors

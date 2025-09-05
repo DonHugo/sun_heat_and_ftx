@@ -4,6 +4,8 @@
 
 **All 32 legacy v1/v2 sensors have been successfully removed from the v3 system.**
 
+**UPDATE (Latest): Additional redundant and legacy sensors removed for cleaner MQTT topics.**
+
 ### **Removed MQTT Topics (32 total)**
 
 #### **Individual Temperature Sensors (16 sensors)**
@@ -101,8 +103,39 @@
 2. **Update any automations** that reference legacy topics
 3. **Clean up dashboards** that show duplicate sensors
 
+## 🆕 **Latest Updates (Additional Cleanup)**
+
+### **Removed Redundant System Mode Sensors (3 sensors):**
+- `solar_collector_mode` (redundant with `system_mode`)
+- `solar_collector_state` (redundant with `system_mode`) 
+- `solar_collector_overheated` (redundant with `system_mode`)
+
+### **Removed Legacy Temperature Sensor Duplications (5 sensors):**
+- `water_heater_top` (duplicate of `water_heater_100cm`)
+- `solar_collector` (duplicate of `solar_collector_temp`)
+- `storage_tank` (duplicate of `storage_tank_temp`)
+- `return_line` (duplicate of `return_line_temp`)
+- `storage_tank_top` (duplicate of `water_heater_100cm`)
+- `storage_tank_bottom` (duplicate of `water_heater_bottom`)
+
+### **Updated Overheating Risk Calculation:**
+- Changed from 90°C to 170°C as 100% risk threshold
+- More realistic risk assessment scale
+
+### **Files Updated in Latest Changes:**
+1. **`python/v3/main_system.py`**
+   - Removed redundant sensor definitions from sensors list
+   - Removed redundant temperature assignments
+   - Updated overheating risk calculation logic
+   - Updated TaskMaster temperature data references
+
+2. **`docs/home_assistant_dashboard_v3_complete.yaml`**
+   - Removed references to deleted sensors
+   - Cleaned up empty sections
+   - Updated to use only modern, non-duplicated sensors
+
 ## 🎯 **Result**
 
 **Zero functionality loss with 100% cleaner system!**
 
-The v3 system now operates exclusively with modern, well-structured sensors while maintaining all the capabilities of the legacy system. All 32 legacy sensors have been successfully removed, and the system is ready for production use.
+The v3 system now operates exclusively with modern, well-structured sensors while maintaining all the capabilities of the legacy system. All 32 legacy sensors plus 8 additional redundant sensors have been successfully removed, and the system is ready for production use with the cleanest possible MQTT topic structure.
