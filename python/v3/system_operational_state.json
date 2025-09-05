@@ -1,0 +1,14 @@
+{
+  "pump_runtime_hours": 2.5,
+  "heating_cycles_count": 42,
+  "total_heating_time": 0.0,
+  "total_heating_time_lifetime": 0.0,
+  "energy_collected_today": 5.5,
+  "solar_energy_today": 0.0,
+  "cartridge_energy_today": 0.0,
+  "pellet_energy_today": 0.0,
+  "last_midnight_reset_date": "",
+  "last_day_reset": 1757050074.844227,
+  "last_save_time": 1757050620.861729,
+  "last_save_date": "2025-09-05T07:37:00.861731"
+}

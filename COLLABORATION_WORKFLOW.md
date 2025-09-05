@@ -53,10 +53,17 @@ We follow a structured approach to ensure we build exactly what you need:
    - Test as we go
    - Keep you updated on progress
 
-7. **Review & Refinement**
+7. **Testing & Validation**
+   - Run simulation tests on development machine
+   - Verify functionality before deployment
+   - Test all affected components
+   - Ensure no regression in existing features
+
+8. **Review & Refinement**
    - Show you what was built
    - Get feedback and make adjustments
    - Ensure it meets your expectations
+   - Run final tests to confirm everything works
 
 ## 🤝 **Communication Guidelines**
 
@@ -116,6 +123,69 @@ When you have a new requirement, please include:
 - Making assumptions about what you want
 - Implementing without your approval
 
+## 🧪 **Testing Standards**
+
+### **Test Suite Overview:**
+The Solar Heating System v3 includes comprehensive test suites for both development and production environments:
+
+- **Simulation Tests**: Run on development machines without hardware
+- **Hardware Tests**: Run on actual Raspberry Pi with real sensors and relays
+- **Environment Detection**: Automatically detects the appropriate test suite
+
+### **Testing Procedures:**
+
+#### **1. Continuous Integration: Run tests after code changes**
+```bash
+# Quick test with environment detection
+python3 test.py
+
+# Force simulation tests (development)
+python3 test.py --simulation
+
+# Force hardware tests (Raspberry Pi)
+python3 test.py --hardware
+```
+
+#### **2. Development Validation: Verify functionality before deployment**
+```bash
+# Run comprehensive simulation test suite
+python3 run_tests.py --simulation
+
+# Run specific test categories
+python3 run_tests.py --simulation --category control
+python3 run_tests.py --simulation --category mqtt
+```
+
+#### **3. Regression Testing: Ensure changes don't break existing features**
+```bash
+# Run all simulation tests with verbose output
+python3 run_tests.py --simulation --verbose
+
+# Run quick system verification
+python3 verify_system.py
+```
+
+#### **4. Hardware Testing: Use the hardware test suite on your Raspberry Pi**
+```bash
+# On Raspberry Pi - run hardware-specific tests
+python3 test.py --hardware
+
+# Run comprehensive hardware test suite
+python3 run_tests.py --hardware
+
+# Test specific hardware components
+python3 run_tests.py --hardware --category hardware
+```
+
+### **Test Categories:**
+- **Hardware Interface**: Sensors, relays, temperature readings
+- **Control Logic**: Pump control, emergency stops, hysteresis
+- **MQTT Integration**: Publishing, subscribing, Home Assistant
+- **State Management**: Persistence, midnight reset, energy tracking
+- **Mode System**: Auto, manual, eco, collector cooling
+- **TaskMaster AI**: Service initialization and integration
+- **Error Handling**: Graceful degradation and recovery
+
 ## 📁 **Documentation Standards**
 
 ### **For Each Feature:**
@@ -155,6 +225,8 @@ A successful collaboration means:
 - ✅ PRD accurately reflects current system state and requirements
 - ✅ Documentation gaps are identified and addressed
 - ✅ New requirements discovered during discussions are captured
+- ✅ All functionality is thoroughly tested (simulation and hardware)
+- ✅ No regression in existing features
 - ✅ Both of us are satisfied with the process
 
 ## 📋 **Ongoing Documentation Maintenance**
