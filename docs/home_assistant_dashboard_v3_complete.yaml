@@ -21,16 +21,16 @@ cards:
   - type: entities
     title: Key Temperatures
     entities:
-      - entity: sensor.solar_heating_system_v3_solar_collector_outlet_temperature
+      - entity: sensor.solar_heating_solar_collector_temp
         name: "Solar Collector Outlet"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_storage_tank_main_temperature
+      - entity: sensor.solar_heating_storage_tank_temp
         name: "Storage Tank Main"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_solar_return_line_temperature
+      - entity: sensor.solar_heating_return_line_temp
         name: "Solar Return Line"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_solar_collector_dt
+      - entity: sensor.solar_heating_solar_collector_dt
         name: "Solar Collector ΔT"
         unit_of_measurement: "°C"
 
@@ -102,48 +102,48 @@ cards:
     hours_to_show: 24
     refresh_interval: 30
     entities:
-      - entity: sensor.solar_heating_system_v3_water_heater_140cm_temperature
+      - entity: sensor.solar_heating_water_heater_140cm
         name: "140cm (Top)"
-      - entity: sensor.solar_heating_system_v3_water_heater_120cm_temperature
+      - entity: sensor.solar_heating_water_heater_120cm
         name: "120cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_100cm_temperature
+      - entity: sensor.solar_heating_water_heater_100cm
         name: "100cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_80cm_temperature
+      - entity: sensor.solar_heating_water_heater_80cm
         name: "80cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_60cm_temperature
+      - entity: sensor.solar_heating_water_heater_60cm
         name: "60cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_40cm_temperature
+      - entity: sensor.solar_heating_water_heater_40cm
         name: "40cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_20cm_temperature
+      - entity: sensor.solar_heating_water_heater_20cm
         name: "20cm"
-      - entity: sensor.solar_heating_system_v3_water_heater_bottom_temperature
+      - entity: sensor.solar_heating_water_heater_bottom
         name: "Bottom (0cm)"
 
   - type: entities
     title: Water Heater Temperature Profile (Current Values)
     entities:
-      - entity: sensor.solar_heating_system_v3_water_heater_140cm_temperature
+      - entity: sensor.solar_heating_water_heater_140cm
         name: "140cm from bottom (Top)"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_120cm_temperature
+      - entity: sensor.solar_heating_water_heater_120cm
         name: "120cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_100cm_temperature
+      - entity: sensor.solar_heating_water_heater_100cm
         name: "100cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_80cm_temperature
+      - entity: sensor.solar_heating_water_heater_80cm
         name: "80cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_60cm_temperature
+      - entity: sensor.solar_heating_water_heater_60cm
         name: "60cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_40cm_temperature
+      - entity: sensor.solar_heating_water_heater_40cm
         name: "40cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_20cm_temperature
+      - entity: sensor.solar_heating_water_heater_20cm
         name: "20cm from bottom"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_water_heater_bottom_temperature
+      - entity: sensor.solar_heating_water_heater_bottom
         name: "Bottom (0cm)"
         unit_of_measurement: "°C"
 
@@ -160,25 +160,25 @@ cards:
   - type: entities
     title: FTX System (Heat Exchanger)
     entities:
-      - entity: sensor.solar_heating_system_v3_supply_air_temperature_3
+      - entity: sensor.solar_heating_supply_air_temp
         name: "Supply Air Temperature"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_return_air_temperature_3
+      - entity: sensor.solar_heating_return_air_temp
         name: "Return Air Temperature"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_supply_air_temperature_2
-        name: "Supply Air (Legacy)"
+      - entity: sensor.solar_heating_outdoor_air_temp
+        name: "Outdoor Air Temperature"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_return_air_temperature_2
-        name: "Return Air (Legacy)"
+      - entity: sensor.solar_heating_exhaust_air_temp
+        name: "Exhaust Air Temperature"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_heat_exchanger_efficiency
+      - entity: sensor.solar_heating_heat_exchanger_efficiency
         name: "Heat Exchanger Efficiency"
         unit_of_measurement: "%"
-      - entity: sensor.solar_heating_system_v3_heat_exchanger_input_temperature
+      - entity: sensor.solar_heating_heat_exchanger_in
         name: "Heat Exchanger Input Temperature"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_heat_exchanger_output_temperature
+      - entity: sensor.solar_heating_heat_exchanger_out
         name: "Heat Exchanger Output Temperature"
         unit_of_measurement: "°C"
 
@@ -229,28 +229,72 @@ cards:
   - type: entities
     title: RTD Sensors (Raw Temperature Readings)
     entities:
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_0_2
+      - entity: sensor.solar_heating_rtd_sensor_0
         name: "RTD Sensor 0"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_1_2
+      - entity: sensor.solar_heating_rtd_sensor_1
         name: "RTD Sensor 1"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_2_2
+      - entity: sensor.solar_heating_rtd_sensor_2
         name: "RTD Sensor 2"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_3_2
+      - entity: sensor.solar_heating_rtd_sensor_3
         name: "RTD Sensor 3"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_4_2
+      - entity: sensor.solar_heating_rtd_sensor_4
         name: "RTD Sensor 4"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_5_2
+      - entity: sensor.solar_heating_rtd_sensor_5
         name: "RTD Sensor 5"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_6_2
+      - entity: sensor.solar_heating_rtd_sensor_6
         name: "RTD Sensor 6"
         unit_of_measurement: "°C"
-      - entity: sensor.solar_heating_system_v3_rtd_sensor_7_2
+      - entity: sensor.solar_heating_rtd_sensor_7
         name: "RTD Sensor 7"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: MegaBAS Temperature Sensors
+    entities:
+      - entity: sensor.solar_heating_megabas_sensor_1
+        name: "MegaBAS Sensor 1"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_2
+        name: "MegaBAS Sensor 2"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_3
+        name: "MegaBAS Sensor 3"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_4
+        name: "MegaBAS Sensor 4"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_5
+        name: "MegaBAS Sensor 5"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_6
+        name: "MegaBAS Sensor 6"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_7
+        name: "MegaBAS Sensor 7"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_megabas_sensor_8
+        name: "MegaBAS Sensor 8"
+        unit_of_measurement: "°C"
+
+  - type: entities
+    title: Legacy Temperature Sensors
+    entities:
+      - entity: sensor.solar_heating_avluft
+        name: "Exhaust Air Temperature (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_uteluft
+        name: "Outside Air Temperature (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_tilluft
+        name: "Supply Air Temperature (Legacy)"
+        unit_of_measurement: "°C"
+      - entity: sensor.solar_heating_franluft
+        name: "Return Air Temperature (Legacy)"
         unit_of_measurement: "°C"
 
