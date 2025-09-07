@@ -1190,9 +1190,13 @@ class SolarHeatingSystem:
             logger.info("FTX sensors mapped successfully")
             
             # Solar collector and storage tank sensors (MegaBAS inputs 6-8) - CORRECTED to match v1
+            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
+            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
+            self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
+            
+            # Also maintain the _temp versions for backward compatibility
             self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
             self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
-            self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
             logger.info("Solar collector sensors mapped successfully")
             
             logger.debug("Starting water heater sensor mapping...")
