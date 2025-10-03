@@ -29,11 +29,15 @@ except ImportError as e:
     sys.exit(1)
 
 # Configure logging
+# Ensure log directory exists
+log_dir = '/tmp/solar_heating/logs'
+os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
     level=getattr(logging, config.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/tmp/solar_heating/logs/solar_heating_v3.log'),
+        logging.FileHandler(f'{log_dir}/solar_heating_v3.log'),
         logging.StreamHandler(sys.stdout)
     ]
 )
