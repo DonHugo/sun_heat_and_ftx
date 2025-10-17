@@ -102,9 +102,34 @@ class MQTTHandler:
             time.sleep(reconnect_delay)
             
             try:
-                self.client.reconnect()
-                logger.info("Reconnected to MQTT broker successfully")
-                return
+                # Properly disconnect and cleanup before reconnecting
+                if self.client:
+                    self.client.loop_stop()
+                    self.client.disconnect()
+                
+                # Create a new client to avoid connection leaks
+                self.client = mqtt_client.Client(client_id=f"{self.client_id}_reconnect_{int(time.time())}")
+                self.client.username_pw_set(self.username, self.password)
+                self.client.on_connect = self._on_connect
+                self.client.on_disconnect = self._on_disconnect
+                self.client.on_message = self._on_message
+                
+                # Connect with new client
+                self.client.connect(self.broker, self.port, keepalive=60)
+                self.client.loop_start()
+                
+                # Wait for connection
+                timeout = 10
+                while not self.connected and timeout > 0:
+                    time.sleep(0.1)
+                    timeout -= 0.1
+                
+                if self.connected:
+                    logger.info("Reconnected to MQTT broker successfully")
+                    return
+                else:
+                    logger.error("Reconnect failed - connection timeout")
+                    
             except Exception as err:
                 logger.error(f"Reconnect failed: {err}")
             
