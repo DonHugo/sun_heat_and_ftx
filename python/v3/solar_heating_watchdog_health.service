@@ -1,0 +1,17 @@
+[Unit]
+Description=Solar Heating System Watchdog Health Monitor
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/home/pi/solar_heating/python/v3/watchdog_health_monitor.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
