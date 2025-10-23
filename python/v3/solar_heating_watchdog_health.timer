@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Solar Heating System Watchdog Health Monitor every 5 minutes
+Requires=solar_heating_watchdog_health.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=solar_heating_watchdog_health.service
+
+[Install]
+WantedBy=timers.target
+
+
+
+
