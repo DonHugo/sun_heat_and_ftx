@@ -1,14 +1,14 @@
 {
-  "pump_runtime_hours": 2.5,
-  "heating_cycles_count": 42,
+  "pump_runtime_hours": 0.0,
+  "heating_cycles_count": 0,
   "total_heating_time": 0.0,
-  "total_heating_time_lifetime": 0.0,
-  "energy_collected_today": 5.5,
+  "total_heating_time_lifetime": 348.3222190206581,
+  "energy_collected_today": 8.52,
   "solar_energy_today": 0.0,
   "cartridge_energy_today": 0.0,
-  "pellet_energy_today": 0.0,
-  "last_midnight_reset_date": "",
-  "last_day_reset": 1757050074.844227,
-  "last_save_time": 1757231637.056393,
-  "last_save_date": "2025-09-07T09:53:57.056395"
+  "pellet_energy_today": 8.52,
+  "last_midnight_reset_date": "2025-10-22",
+  "last_day_reset": 1761170397.6823342,
+  "last_save_time": 1761238689.5453048,
+  "last_save_date": "2025-10-23T18:58:09.545315"
 }
