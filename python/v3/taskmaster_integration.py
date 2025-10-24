@@ -58,7 +58,7 @@ class TaskMasterAI:
         if self.enabled and self.api_key:
             self.client = httpx.AsyncClient(
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=30.0
+                timeout=5.0
             )
             logger.info("TaskMaster AI client initialized")
         else:
