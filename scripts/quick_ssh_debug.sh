@@ -4,7 +4,7 @@
 # Customize the variables below for your setup
 
 # ===== CONFIGURATION - UPDATE THESE =====
-PI_HOST="192.168.1.100"  # Replace with your Pi's IP address
+PI_HOST="192.168.0.18"  # Your Raspberry Pi IP address
 PI_USER="pi"             # Replace with your username
 # ========================================
 

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Enable Dependabot Alerts Script
+# This script helps you enable Dependabot alerts for the repository
+
+echo "🔧 Enabling Dependabot Alerts for Solar Heating System"
+echo "====================================================="
+echo ""
+
+echo "📋 Manual Steps Required:"
+echo "========================="
+echo ""
+echo "1. Go to your repository settings:"
+echo "   https://github.com/DonHugo/sun_heat_and_ftx/settings"
+echo ""
+echo "2. Click 'Security' in the left sidebar"
+echo ""
+echo "3. Click 'Code security and analysis'"
+echo ""
+echo "4. Enable the following features:"
+echo "   ✅ Dependabot alerts"
+echo "   ✅ Dependabot security updates (recommended)"
+echo "   ✅ Code scanning (if available)"
+echo "   ✅ Secret scanning (if available)"
+echo ""
+echo "5. Click 'Save' to apply changes"
+echo ""
+
+echo "🔍 After enabling, you can:"
+echo "=========================="
+echo "• View alerts at: https://github.com/DonHugo/sun_heat_and_ftx/security/dependabot"
+echo "• Check Dependabot status at: https://github.com/DonHugo/sun_heat_and_ftx/network/dependents"
+echo "• View security tab: https://github.com/DonHugo/sun_heat_and_ftx/security"
+echo ""
+
+echo "📊 Expected Results:"
+echo "==================="
+echo "• Dependabot will scan for vulnerabilities"
+echo "• Security alerts will appear in the Security tab"
+echo "• Automated PRs will be created for dependency updates"
+echo "• Weekly dependency updates will be scheduled"
+echo ""
+
+echo "⚠️  Note: Dependabot may take a few minutes to start scanning"
+echo "   after enabling the alerts feature."
+echo ""
+
+echo "🔗 Useful Links:"
+echo "================"
+echo "• Repository Security: https://github.com/DonHugo/sun_heat_and_ftx/security"
+echo "• Dependabot Alerts: https://github.com/DonHugo/sun_heat_and_ftx/security/dependabot"
+echo "• Security Policy: https://github.com/DonHugo/sun_heat_and_ftx/blob/main/SECURITY.md"
+echo ""
+
+echo "✅ Configuration files are already in place:"
+echo "   • .github/dependabot.yml - Dependabot configuration"
+echo "   • SECURITY.md - Security policy"
+echo "   • .github/workflows/security.yml - Security scanning"
+echo "   • requirements.txt - Python dependencies"
+echo ""
+
+echo "🎯 Next Steps:"
+echo "=============="
+echo "1. Enable Dependabot alerts in repository settings (manual step above)"
+echo "2. Wait for initial scan to complete (5-10 minutes)"
+echo "3. Check the Security tab for any alerts"
+echo "4. Review and merge any dependency update PRs"
+echo ""
+
+echo "🔒 Security features will be fully active once alerts are enabled!"

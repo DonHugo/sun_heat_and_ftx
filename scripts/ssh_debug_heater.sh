@@ -4,7 +4,7 @@
 # This script connects to Raspberry Pi and runs debugging commands
 
 # Configuration - UPDATE THESE VALUES
-PI_HOST="your-pi-ip-address"  # Replace with your Raspberry Pi IP
+PI_HOST="192.168.0.18"  # Your Raspberry Pi IP address
 PI_USER="pi"                  # Replace with your username
 PI_PATH="/home/pi/sun_heat_and_ftx"  # Path to project on Pi
 

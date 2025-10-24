@@ -3,7 +3,7 @@
 # One-liner SSH debug commands for cartridge heater issue
 # Replace PI_IP with your Raspberry Pi's IP address
 
-PI_IP="192.168.1.100"  # UPDATE THIS WITH YOUR PI'S IP
+PI_IP="192.168.0.18"  # Your Raspberry Pi IP address
 
 echo "🔍 One-liner SSH Debug Commands"
 echo "==============================="
