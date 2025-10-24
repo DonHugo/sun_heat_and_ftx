@@ -21,6 +21,13 @@ env/
 # IDE/Editor files
 .vscode/
 .idea/
+.cursor/
+
+# API Keys and Secrets
+*api*key*
+*secret*
+*password*
+*token*
 *.swp
 *.swo
 *~
