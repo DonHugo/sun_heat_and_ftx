@@ -12,10 +12,14 @@ __pycache__/
 
 # Backup files
 *.backup
+*.bak
+*.tmp
 
 # Virtual environment
 venv/
 env/
+test_env/
+.venv/
 .env
 
 # IDE/Editor files
