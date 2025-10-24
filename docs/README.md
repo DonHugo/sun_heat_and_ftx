@@ -1,59 +1,90 @@
 # Solar Heating System Documentation
 
-This folder contains comprehensive documentation for the Solar Heating System, including setup guides, sensor mappings, and Home Assistant integration.
+Welcome to the comprehensive documentation for the Solar Heating System project.
 
-## 📁 **Files in this folder**
+## 📚 Documentation Structure
 
-### **🔴 Legacy System Documentation**
-- **`LEGACY_SENSOR_REMOVAL_SUMMARY.md`** (4.8KB) - Summary of legacy sensor removal process
-- **`LEGACY_SENSOR_MAPPING.md`** (12KB) - Detailed mapping from legacy v1/v2 to v3 sensors
-- **`V3_SENSOR_COVERAGE_TABLE.md`** (14KB) - Reverse mapping showing v3 sensor coverage
+### 🚀 [Getting Started](getting-started/)
+Essential documentation for new users and developers
+- [System Overview](getting-started/SYSTEM_OVERVIEW.md)
+- [Development Environment Setup](getting-started/DEVELOPMENT_ENVIRONMENT_SETUP.md)
+- [Product Requirements](getting-started/PRD.md)
 
-### **🟢 Active System Documentation**
-- **`REALTIME_ENERGY_SENSOR_SETUP.md`** (13KB) - Setup guide for real-time energy monitoring
-- **`HOME_ASSISTANT_SETUP.md`** (9.6KB) - Complete Home Assistant integration guide
+### 🎨 [Design](design/)
+Technical design documents and architecture
+- [Solar Heating V3 Design](design/DESIGN_SOLAR_HEATING_V3.md)
+- [Rate of Change Sensors Design](design/DESIGN_RATE_OF_CHANGE_SENSORS.md)
+- [TaskMaster AI Design](design/DESIGN_TASKMASTER_AI.md)
+- [Home Assistant Design](design/DESIGN_HOME_ASSISTANT.md)
+- [Component Map](design/COMPONENT_MAP.md)
 
-### **🏠 Home Assistant Dashboards**
-- **`home_assistant_dashboard_v3.yaml`** (8.7KB) - Main v3 dashboard configuration
-- **`home_assistant_dashboard_v3_simple.yaml`** (12KB) - Simplified v3 dashboard
+### ⚙️ [Implementation](implementation/)
+How-to guides for implementing features
+- [Solar Heating V3 Implementation](implementation/IMPLEMENTATION_SOLAR_HEATING_V3.md)
+- [Rate of Change Sensors Implementation](implementation/IMPLEMENTATION_RATE_OF_CHANGE_SENSORS.md)
+- [TaskMaster AI Implementation](implementation/IMPLEMENTATION_TASKMASTER_AI.md)
+- [Home Assistant Implementation](implementation/IMPLEMENTATION_HOME_ASSISTANT.md)
+- [Collector Cooling Implementation](implementation/COLLECTOR_COOLING_IMPLEMENTATION.md)
 
-## 📊 **Documentation Summary**
+### 👥 [User Guides](user-guides/)
+End-user documentation and setup guides
+- [Solar Heating V3 User Guide](user-guides/USER_GUIDE_SOLAR_HEATING_V3.md)
+- [Rate of Change Sensors User Guide](user-guides/USER_GUIDE_RATE_OF_CHANGE_SENSORS.md)
+- [TaskMaster AI User Guide](user-guides/USER_GUIDE_TASKMASTER_AI.md)
+- [Home Assistant User Guide](user-guides/USER_GUIDE_HOME_ASSISTANT.md)
+- [Home Assistant Setup](user-guides/HOME_ASSISTANT_SETUP.md)
+- [Home Assistant System Mode Control](user-guides/HOME_ASSISTANT_SYSTEM_MODE_CONTROL.md)
 
-- **Total files**: 7 files
-- **Total size**: ~78KB
-- **Status**: ACTIVE - Essential for system operation
+### 🚀 [Deployment](deployment/)
+Deployment guides and hardware setup
+- [Detailed Deployment Guide](deployment/DETAILED_DEPLOYMENT_GUIDE.md)
+- [Hardware Setup](deployment/DETAILED_HARDWARE_SETUP.md)
+- [Energy Sensor Setup](deployment/REALTIME_ENERGY_SENSOR_SETUP.md)
+- [MQTT Monitoring](deployment/UPTIME_KUMA_MQTT_MONITORING.md)
+- [Watchdog System](deployment/WATCHDOG_SYSTEM.md)
+- [Watchdog MQTT Prevention](deployment/WATCHDOG_MQTT_PREVENTION.md)
 
-## 🎯 **Documentation Purpose**
+### 🔧 [Troubleshooting](troubleshooting/)
+Problem solving and error resolution
+- [Troubleshooting Guide](troubleshooting/TROUBLESHOOTING_GUIDE.md)
+- [Comprehensive Error Fixes](troubleshooting/COMPREHENSIVE_ERROR_FIXES.md)
+- [Error Fixes Summary](troubleshooting/ERROR_FIXES_SUMMARY.md)
+- [Warning Fixes Summary](troubleshooting/WARNING_FIXES_SUMMARY.md)
+- [Warning Reduction Summary](troubleshooting/WARNING_REDUCTION_SUMMARY.md)
 
-### **For System Administrators:**
-- `HOME_ASSISTANT_SETUP.md` - Complete setup guide
-- `home_assistant_dashboard_v3.yaml` - Dashboard configuration
+### 👨‍💻 [Development](development/)
+Developer documentation and workflows
+- [Enhanced Collaboration Workflow](development/ENHANCED_COLLABORATION_WORKFLOW.md)
+- [GitHub Project Management](development/GITHUB_PROJECT_MANAGEMENT.md)
+- [GitHub Project Setup](development/GITHUB_PROJECT_SETUP.md)
+- [GitHub Workflow Summary](development/GITHUB_WORKFLOW_SUMMARY.md)
+- [Initial GitHub Issues](development/INITIAL_GITHUB_ISSUES.md)
+- [Changelog](development/CHANGELOG.md)
 
-### **For Developers:**
-- `REALTIME_ENERGY_SENSOR_SETUP.md` - New feature implementation
-- `LEGACY_SENSOR_MAPPING.md` - Understanding system evolution
+### 🐍 [Python Documentation](python/)
+Python-specific documentation
+- [Python V1 Documentation](python/v1/)
+- [Python V3 Documentation](python/v3/)
+- [Deployment Documentation](python/deployment/)
 
-### **For Maintenance:**
-- `LEGACY_SENSOR_REMOVAL_SUMMARY.md` - What was removed and why
-- `V3_SENSOR_COVERAGE_TABLE.md` - Current sensor status
+### 📦 [Archived](archived/)
+Legacy and duplicate documentation
+- Summary files
+- Detailed implementation files
+- Requirements files
+- Legacy sensor documentation
 
-## 🔄 **Documentation Status**
+## 🎯 Quick Start
 
-- **Legacy documentation**: ✅ Complete (for reference)
-- **v3 documentation**: ✅ Complete and up-to-date
-- **Home Assistant**: ✅ Complete with working dashboards
-- **Real-time energy**: ✅ Complete with implementation guide
+1. **New to the project?** Start with [Getting Started](getting-started/)
+2. **Want to understand the system?** Read the [Design](design/) documents
+3. **Ready to implement?** Follow the [Implementation](implementation/) guides
+4. **Need help?** Check the [Troubleshooting](troubleshooting/) section
 
-## 📚 **Reading Order**
+## 📞 Support
 
-1. **`HOME_ASSISTANT_SETUP.md`** - Start here for new setup
-2. **`home_assistant_dashboard_v3.yaml`** - Configure dashboard
-3. **`REALTIME_ENERGY_SENSOR_SETUP.md`** - Add energy monitoring
-4. **Legacy docs** - Reference only if needed
+For questions or issues, please refer to the [Troubleshooting Guide](troubleshooting/TROUBLESHOOTING_GUIDE.md) or create a GitHub issue.
 
-## 🎯 **Current Focus**
+---
 
-- **v3 system**: Primary focus and active development
-- **Home Assistant**: Fully integrated and tested
-- **Real-time energy**: New feature, fully documented
-- **Legacy systems**: Archived for reference only
+*This documentation is organized for easy navigation and maintenance. Each section serves a specific purpose and audience.*
