@@ -2,6 +2,17 @@
 
 A comprehensive solar heating system with intelligent task management and real-time energy monitoring.
 
+## 📋 **Product Requirements Document (PRD)**
+
+**📄 [Complete PRD Documentation](docs/getting-started/PRD.md)** - Comprehensive 741-line Product Requirements Document  
+**🎫 [GitHub Issue #23](https://github.com/DonHugo/sun_heat_and_ftx/issues/23)** - PRD Summary and Overview
+
+### **Project Overview**
+- **Name**: Sun Heat and FTX - Solar Heating System with AI Integration
+- **Version**: 2.0
+- **Status**: Active Development
+- **Architecture**: Raspberry Pi + Sequent Microsystems hardware + TaskMaster AI
+
 ## 🏗️ **Project Structure**
 
 ```
