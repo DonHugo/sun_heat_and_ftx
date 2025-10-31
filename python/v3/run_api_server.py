@@ -102,8 +102,8 @@ def main():
     logger.info("="*60)
     
     try:
-        # Run the API server
-        api_server.run()
+        # Run the Flask app
+        api_server.app.run(host='0.0.0.0', port=5001, debug=False)
     except KeyboardInterrupt:
         logger.info("Received keyboard interrupt, shutting down...")
     except Exception as e:
