@@ -28,7 +28,7 @@ except ImportError as e:
     print("Make sure you're running from the v3 directory")
     sys.exit(1)
 
-# API Server Integration (Issue #43)
+# API Server Integration (Issue #43 - Production Deployment)
 try:
     from api_server import create_api_server
     import threading
@@ -108,17 +108,7 @@ class SolarHeatingSystem:
             'pellet_stove_bags_until_cleaning': 0,  # Bags left until cleaning
             'pellet_stove_status': False,  # ON/OFF status
         }
-        # API Server
-        self.api_server = None
-        self.api_thread = None
-        if API_SERVER_AVAILABLE:
-            try:
-                self.api_server = create_api_server(self, host='0.0.0.0', port=5001)
-                logger.info("API server initialized")
-            except Exception as e:
-                logger.error(f"Failed to initialize API server: {e}")
-                self.api_server = None
-
+        
         # Temperature data
         self.temperatures = {}
         
@@ -441,29 +431,6 @@ class SolarHeatingSystem:
             if mqtt_connected and self.mqtt and self.mqtt.is_connected():
                 await self._publish_hass_discovery()
             
-            # Start API server (Issue #43 - Production Deployment)
-            if API_SERVER_AVAILABLE:
-                try:
-                    logger.info("Starting API server with pydantic validation...")
-                    self.api_server = create_api_server(self, host='0.0.0.0', port=5001)
-                    
-                    # Start API server in background thread
-                    def run_api():
-                        try:
-                            logger.info("API server thread starting on port 5001...")
-                            self.api_server.app.run(host='0.0.0.0', port=5001, debug=False, use_reloader=False)
-                        except Exception as e:
-                            logger.error(f"API server error: {e}")
-                    
-                    self.api_thread = threading.Thread(target=run_api, daemon=True, name="APIServer")
-                    self.api_thread.start()
-                    logger.info("✅ API server started successfully with input validation (Issue #43)")
-                except Exception as e:
-                    logger.error(f"Failed to start API server: {e}")
-                    self.api_server = None
-            else:
-                logger.info("API server module not available - skipping")
-            
             # Initialize system state
             self.system_state = {
                 'mode': 'startup',
@@ -511,9 +478,9 @@ class SolarHeatingSystem:
                 # Midnight reset tracking
                 'last_midnight_reset_date': datetime.now().date().isoformat(),
         }
-        
-        # Initialize control parameters
-        self.control_params = {
+            
+            # Initialize control parameters
+            self.control_params = {
                 'set_temp_tank_1': config.set_temp_tank_1,
                 'dTStart_tank_1': config.dTStart_tank_1,
                 'dTStop_tank_1': config.dTStop_tank_1,
@@ -546,6 +513,27 @@ class SolarHeatingSystem:
                     logger.error(f"Failed to initialize TaskMaster AI service: {str(e)}")
             else:
                 logger.info("TaskMaster AI service disabled in configuration")
+            
+            # Start API server (Issue #43 - Production Deployment)
+            if API_SERVER_AVAILABLE:
+                try:
+                    logger.info("Starting API server with pydantic validation...")
+                    self.api_server = create_api_server(self, host='0.0.0.0', port=5001)
+                    
+                    def run_api():
+                        try:
+                            self.api_server.app.run(host='0.0.0.0', port=5001, debug=False, use_reloader=False)
+                        except Exception as e:
+                            logger.error(f"API server error: {e}")
+                    
+                    self.api_thread = threading.Thread(target=run_api, daemon=True, name="APIServer")
+                    self.api_thread.start()
+                    logger.info("✅ API server started on port 5001 with input validation")
+                except Exception as e:
+                    logger.error(f"Failed to start API server: {e}")
+                    self.api_server = None
+            else:
+                logger.info("API server not available - skipping")
             
             logger.info("Solar Heating System v3 (System-Wide) started successfully")
             logger.info("Starting background tasks...")
@@ -2637,7 +2625,6 @@ class SolarHeatingSystem:
         if self.api_server:
             try:
                 logger.info("Stopping API server...")
-                # API server will stop when daemon thread ends
                 self.api_server = None
                 logger.info("✅ API server stopped")
             except Exception as e:
