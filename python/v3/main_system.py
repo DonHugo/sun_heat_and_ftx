@@ -511,19 +511,9 @@ class SolarHeatingSystem:
                 # Midnight reset tracking
                 'last_midnight_reset_date': datetime.now().date().isoformat(),
         }
-        # API Server
-        self.api_server = None
-        self.api_thread = None
-        if API_SERVER_AVAILABLE:
-            try:
-                self.api_server = create_api_server(self, host='0.0.0.0', port=5001)
-                logger.info("API server initialized")
-            except Exception as e:
-                logger.error(f"Failed to initialize API server: {e}")
-                self.api_server = None
-
-            # Initialize control parameters
-            self.control_params = {
+        
+        # Initialize control parameters
+        self.control_params = {
                 'set_temp_tank_1': config.set_temp_tank_1,
                 'dTStart_tank_1': config.dTStart_tank_1,
                 'dTStop_tank_1': config.dTStop_tank_1,
