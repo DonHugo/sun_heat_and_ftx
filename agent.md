@@ -16,6 +16,7 @@ This document defines the rules, guidelines, and collaboration framework for the
 - **Refactor while keeping tests green** (Refactor phase)
 - Tests serve as executable specifications
 - Tests document system behavior
+- **Test hardware directly on the Raspberry Pi** - All hardware testing must be done on the actual device
 
 ### **3. Documentation-First Mindset**
 - **Always review existing documentation** before starting new work
@@ -53,7 +54,7 @@ This document defines the rules, guidelines, and collaboration framework for the
 - ✅ Documentation creation and updates
 - ✅ Configuration file management
 - ✅ Git version control
-- ❌ Hardware interface testing
+- ❌ Hardware interface testing (must be done on Raspberry Pi)
 - ❌ Systemd service management
 - ❌ MQTT broker access
 - ❌ Real sensor data
@@ -71,10 +72,11 @@ This document defines the rules, guidelines, and collaboration framework for the
 **User Role:**
 - Execute diagnostic commands
 - Run systemd service management
-- Test hardware interfaces
+- **Test hardware interfaces directly on the device**
 - Monitor MQTT connectivity
 - Implement solutions on hardware
 - Provide command output to AI
+- **Execute all TDD tests on the actual hardware**
 
 ### **Home Assistant Environment (Remote)**
 **Collaboration:**
@@ -108,9 +110,9 @@ AI: "Perfect! The solution is working. Let me update the documentation..."
 ```
 AI: "Let's create comprehensive tests for this solution: [test plan]"
 AI: "I'll create the test files locally: [test files created]"
-AI: "Now let's run the tests on the Raspberry Pi: [test commands]"
-User: [executes tests and provides results]
-AI: "Excellent! All tests pass. The solution is validated."
+AI: "Now let's run the tests directly on the Raspberry Pi hardware: [test commands]"
+User: [executes tests on actual hardware and provides results]
+AI: "Excellent! All hardware tests pass. The solution is validated on real hardware."
 ```
 
 ## 🧪 **Testing Standards and Rules**
@@ -120,22 +122,27 @@ AI: "Excellent! All tests pass. The solution is validated."
 2. **Integration Tests** - Test component interactions
 3. **End-to-End Tests** - Test complete workflows
 4. **Realistic Environment Tests** - Test with production-like data
+5. **Hardware Tests** - Test directly on Raspberry Pi hardware (relays, sensors, GPIO)
 
 ### **Test Execution Strategy**
 - **During Development**: Quick TDD cycle with specific tests
 - **Before Integration**: Run all feature tests with coverage
 - **Before Deployment**: Full comprehensive test suite
+- **Hardware Testing**: All hardware tests must be executed directly on the Raspberry Pi
 
 ### **Test Command Examples**
 ```bash
-# TDD cycle
-python3 -m pytest test_new_feature.py -v --tb=short
+# TDD cycle (on Raspberry Pi)
+ssh pi@192.168.0.18 "cd /opt/solar_heating_v3 && python3 -m pytest test_new_feature.py -v --tb=short"
 
-# Integration tests
-python3 test_integration.py --category new_feature
+# Hardware integration tests (on Raspberry Pi)
+ssh pi@192.168.0.18 "cd /opt/solar_heating_v3 && python3 test_integration.py --category new_feature"
 
-# Comprehensive validation
-python3 test_enhanced_comprehensive_suite.py
+# Comprehensive validation (on Raspberry Pi)
+ssh pi@192.168.0.18 "cd /opt/solar_heating_v3 && python3 test_enhanced_comprehensive_suite.py"
+
+# Direct hardware testing (on Raspberry Pi)
+ssh pi@192.168.0.18 "python3 test_hardware_interface.py --test-relays --test-sensors"
 ```
 
 ## 📋 **Documentation Rules**
@@ -187,6 +194,7 @@ A successful collaboration means:
 - **Tests that don't validate requirements** - Tests should be executable specifications
 - **Try to execute commands** on Raspberry Pi directly
 - **Let user analyze complex technical issues** without AI guidance
+- **Test hardware without using the actual Raspberry Pi** - All hardware tests must be done on the real device
 
 ### **Always Do These Things:**
 - Ask clarifying questions before implementing
@@ -199,6 +207,7 @@ A successful collaboration means:
 - **Provide specific commands** for user to execute
 - **Analyze command output** user provides
 - **Guide step-by-step implementation**
+- **Ensure all hardware tests are run on the actual Raspberry Pi**
 
 ## 📞 **Exception Rules**
 
@@ -213,6 +222,7 @@ A successful collaboration means:
 3. **Perform Documentation Review & PRD Update** to ensure accuracy
 4. **Run comprehensive tests** to ensure no regression
 5. **Follow command-based collaboration** (AI provides commands, User executes)
+6. **Test hardware changes on the actual Raspberry Pi** (for hardware-related fixes)
 
 ## 🔄 **Template for New Requirements**
 
@@ -262,6 +272,7 @@ When user has a new requirement, ensure they include:
 - **Faster development** - Tests provide immediate feedback
 - **Clear collaboration** - Defined roles and responsibilities
 - **Efficient troubleshooting** - Structured diagnostic approach
+- **Hardware validation** - All hardware functionality tested on real device
 
 ## 🔄 **Continuous Improvement**
 
@@ -281,4 +292,4 @@ When user has a new requirement, ensure they include:
 
 **Remember:** This enhanced workflow combines the best of requirements-first development with test-driven development and clear role definitions. Tests become our shared language for defining and validating requirements, while command-based collaboration ensures efficient execution across different environments.
 
-**Core Rule:** **NEVER code without tests, NEVER code without approval, ALWAYS update documentation, ALWAYS follow the three-phase workflow.**
+**Core Rule:** **NEVER code without tests, NEVER code without approval, ALWAYS update documentation, ALWAYS follow the three-phase workflow, ALWAYS test hardware on the actual Raspberry Pi.**

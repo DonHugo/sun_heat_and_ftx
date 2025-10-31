@@ -1,25 +1,47 @@
 ---
 name: Enhancement
-about: Föreslå en förbättring av befintlig funktion
+about: Suggest an improvement to existing functionality
 title: '[ENHANCEMENT] '
 labels: enhancement
 assignees: ''
 ---
 
-## Enhancement Description
-[Beskriv förbättringen tydligt och kortfattat]
+## 🔧 Enhancement Description
+<!-- A clear description of what you want to improve -->
 
-## Current Behavior
-[Beskriv hur det fungerar nu]
+## 📊 Current Behavior
+<!-- How does the system currently work? -->
 
-## Proposed Improvement
-[Beskriv hur du vill att det ska fungera]
+## ✨ Proposed Improvement
+<!-- How should it work instead? -->
 
-## Benefits
-[Vilka fördelar ger denna förbättring?]
+## 💡 Rationale
+<!-- Why is this improvement valuable? -->
 
-## Implementation Ideas
-[Hur tror du detta kan implementeras?]
+## 📋 Acceptance Criteria
+<!-- What defines success for this enhancement? -->
+- [ ] 
+- [ ] 
+- [ ] 
 
-## Additional Context
-[Lägg till annan kontext om förbättringen här]
+## 🎯 Expected Impact
+<!-- What will improve as a result? -->
+- **Performance**: 
+- **Usability**: 
+- **Reliability**: 
+- **Maintainability**: 
+
+## 🔍 Technical Details
+<!-- Any technical considerations or implementation notes -->
+
+## 📚 Additional Context
+<!-- Add any other context or screenshots -->
+
+## 🎯 Priority
+<!-- How urgent is this enhancement? -->
+- [ ] High - Significantly improves core functionality
+- [ ] Medium - Notable improvement
+- [ ] Low - Nice to have
+
+## 📝 Related Issues
+<!-- Link to any related issues -->

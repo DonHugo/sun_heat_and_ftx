@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/DonHugo/sun_heat_and_ftx/tree/main/docs
+    about: Check the documentation for guides and troubleshooting
+  - name: 💬 Discussions
+    url: https://github.com/DonHugo/sun_heat_and_ftx/discussions
+    about: Ask questions and discuss ideas with the community
+
+

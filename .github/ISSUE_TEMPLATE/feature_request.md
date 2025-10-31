@@ -1,22 +1,47 @@
 ---
 name: Feature Request
-about: Föreslå en idé för detta projekt
+about: Suggest a new feature for the solar heating system
 title: '[FEATURE] '
 labels: feature
 assignees: ''
 ---
 
-## Feature Description
-[Beskriv funktionen tydligt och kortfattat]
+## 🎯 Feature Description
+<!-- A clear and concise description of the feature you want -->
 
-## Problem/Use Case
-[Vilket problem löser detta? Varför behöver vi denna funktion?]
+## 💡 Problem/Use Case
+<!-- What problem does this solve? Why do we need this feature? -->
 
-## Proposed Solution
-[Hur föreslår du att lösa det? Beskriv lösningen tydligt]
+## 📋 Proposed Solution
+<!-- How do you propose to solve it? Describe the solution clearly -->
 
-## Alternatives Considered
-[Beskriv alternativ du har övervägt]
+## 🔄 Alternatives Considered
+<!-- Describe alternatives you've considered -->
 
-## Additional Context
-[Lägg till annan kontext eller skärmdumpar om funktionsförslaget här]
+## 📊 Expected Benefits
+<!-- What benefits will this feature provide? -->
+- 
+- 
+- 
+
+## 🧪 Acceptance Criteria
+<!-- How will we know when this feature is complete? -->
+- [ ] 
+- [ ] 
+- [ ] 
+
+## 🎨 Technical Considerations
+<!-- Any technical considerations or constraints? -->
+
+## 📚 Additional Context
+<!-- Add any other context, screenshots, or examples -->
+
+## 🎯 Priority Justification
+<!-- Why should this be prioritized? -->
+- [ ] Critical for system operation
+- [ ] Improves efficiency significantly
+- [ ] Requested by multiple users
+- [ ] Aligns with roadmap
+
+## 📝 Related Issues
+<!-- Link to any related issues or pull requests -->
