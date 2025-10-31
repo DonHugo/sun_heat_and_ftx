@@ -406,7 +406,8 @@ class ControlAPI(Resource):
         
         # validated_data is a ControlRequest pydantic model
         # action is already validated to be one of the enum values
-        return api_server.control_system(validated_data.action.value)
+        # In pydantic v2, enum fields return the string value directly
+        return api_server.control_system(validated_data.action)
 
 
 class ModeAPI(Resource):
@@ -424,7 +425,8 @@ class ModeAPI(Resource):
         
         # validated_data is a ModeRequest pydantic model
         # mode is already validated to be one of the enum values
-        return api_server.set_system_mode(validated_data.mode.value)
+        # In pydantic v2, enum fields return the string value directly
+        return api_server.set_system_mode(validated_data.mode)
 
 
 class TemperaturesAPI(Resource):
