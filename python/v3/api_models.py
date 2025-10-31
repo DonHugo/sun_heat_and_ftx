@@ -264,7 +264,7 @@ def validate_request(model_class):
         Decorated function that validates input
     """
     from functools import wraps
-    from flask import request, jsonify
+    from flask import request
     
     def decorator(func):
         @wraps(func)
@@ -289,16 +289,16 @@ def validate_request(model_class):
             except ValidationError as e:
                 # Return formatted validation error
                 error_response = ValidationErrorResponse.from_pydantic_error(e)
-                return jsonify(error_response.dict()), 400
+                return error_response.dict(), 400
             
             except Exception as e:
                 # Unexpected error during validation
-                return jsonify({
+                return {
                     "success": False,
                     "error": "Validation failed",
                     "error_code": "VALIDATION_ERROR",
                     "timestamp": datetime.now().isoformat() + "Z"
-                }), 400
+                }, 400
         
         return wrapper
     return decorator
