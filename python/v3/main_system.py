@@ -153,9 +153,19 @@ class SolarHeatingSystem:
         """Calculate rate of change for energy and temperature"""
         logger.debug("Starting rate of change calculation...")
         try:
+            import math
             current_time = time.time()
             current_energy = self.temperatures.get('stored_energy_kwh', 0)
             current_temp = self.temperatures.get('average_temperature', 0)
+            
+            # Validate values before adding (skip nan, None, or invalid values)
+            if current_energy is None or (isinstance(current_energy, float) and math.isnan(current_energy)):
+                current_energy = 0
+            if current_temp is None or (isinstance(current_temp, float) and math.isnan(current_temp)):
+                logger.warning(f"Invalid average_temperature: {current_temp}, skipping rate calculation")
+                self.temperatures['energy_change_rate_kw'] = 0.0
+                self.temperatures['temperature_change_rate_c_h'] = 0.0
+                return
             
             # Add current values to rate data
             self.rate_data['timestamps'].append(current_time)
@@ -167,6 +177,23 @@ class SolarHeatingSystem:
                 self.rate_data['timestamps'].pop(0)
                 self.rate_data['energy_values'].pop(0)
                 self.rate_data['temp_values'].pop(0)
+            
+            # Clean up any nan values that might have been stored previously
+            import math
+            valid_data_indices = []
+            for i in range(len(self.rate_data['temp_values'])):
+                temp_val = self.rate_data['temp_values'][i]
+                energy_val = self.rate_data['energy_values'][i]
+                if not (isinstance(temp_val, float) and math.isnan(temp_val)) and \
+                   not (isinstance(energy_val, float) and math.isnan(energy_val)):
+                    valid_data_indices.append(i)
+            
+            # Filter out invalid data
+            if len(valid_data_indices) < len(self.rate_data['timestamps']):
+                logger.warning(f"Removing {len(self.rate_data['timestamps']) - len(valid_data_indices)} invalid rate samples (nan values)")
+                self.rate_data['timestamps'] = [self.rate_data['timestamps'][i] for i in valid_data_indices]
+                self.rate_data['energy_values'] = [self.rate_data['energy_values'][i] for i in valid_data_indices]
+                self.rate_data['temp_values'] = [self.rate_data['temp_values'][i] for i in valid_data_indices]
             
             # Need at least 2 samples to calculate rate
             if len(self.rate_data['timestamps']) < 2:
@@ -223,11 +250,14 @@ class SolarHeatingSystem:
                         if i + 1 < len(valid_indices):
                             t1, t2 = valid_indices[i], valid_indices[i + 1]
                             e_rate = (self.rate_data['energy_values'][t2] - self.rate_data['energy_values'][t1]) / ((self.rate_data['timestamps'][t2] - self.rate_data['timestamps'][t1]) / 3600)
-                            temp_rate = (self.rate_data['temp_values'][t2] - self.rate_data['temp_values'][t1]) / ((self.rate_data['timestamps'][t2] - self.rate_data['timestamps'][t1]) / 3600)
-                            recent_energy_rates.append(e_rate)
-                            recent_temp_rates.append(temp_rate)
+                            t_rate = (self.rate_data['temp_values'][t2] - self.rate_data['temp_values'][t1]) / ((self.rate_data['timestamps'][t2] - self.rate_data['timestamps'][t1]) / 3600)
+                            # Only add if not NaN
+                            if not math.isnan(e_rate):
+                                recent_energy_rates.append(e_rate)
+                            if not math.isnan(t_rate):
+                                recent_temp_rates.append(t_rate)
                     
-                    if recent_energy_rates:
+                    if recent_energy_rates and recent_temp_rates:
                         energy_rate = sum(recent_energy_rates) / len(recent_energy_rates)
                         temp_rate = sum(recent_temp_rates) / len(recent_temp_rates)
                     else:
@@ -253,7 +283,14 @@ class SolarHeatingSystem:
                 energy_rate = raw_energy_rate
                 temp_rate = raw_temp_rate
             
-            # Store calculated rates
+            # Store calculated rates (validate not NaN before storing)
+            if math.isnan(energy_rate):
+                logger.warning(f"energy_rate is NaN, setting to 0.0")
+                energy_rate = 0.0
+            if math.isnan(temp_rate):
+                logger.warning(f"temp_rate is NaN, setting to 0.0")
+                temp_rate = 0.0
+            
             self.temperatures['energy_change_rate_kw'] = round(energy_rate, 3)
             self.temperatures['temperature_change_rate_c_h'] = round(temp_rate, 2)
             
@@ -430,6 +467,15 @@ class SolarHeatingSystem:
             # Publish Home Assistant discovery configuration
             if mqtt_connected and self.mqtt and self.mqtt.is_connected():
                 await self._publish_hass_discovery()
+                
+                # Publish hourly energy sensors on startup to avoid "Unknown" status
+                # (these are normally only published at hour boundaries, but on initial
+                # startup we need them immediately so Home Assistant shows values)
+                try:
+                    await self._publish_hourly_sensors_only()
+                    logger.info("Hourly energy sensors published on startup")
+                except Exception as e:
+                    logger.error(f"Error publishing hourly sensors on startup: {e}")
             
             # Initialize system state
             self.system_state = {
@@ -664,6 +710,34 @@ class SolarHeatingSystem:
                     'entity_id': 'water_heater_140cm',
                     'device_class': 'temperature',
                     'unit_of_measurement': '°C'
+                },
+                # Water heater safety sensors
+                {
+                    'name': 'Water Heater Peak Temperature',
+                    'entity_id': 'water_heater_peak_temp',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C',
+                    'icon': 'mdi:thermometer-alert'
+                },
+                {
+                    'name': 'Water Heater Thermal Mass (Top 4 Layers)',
+                    'entity_id': 'water_heater_thermal_mass_top4',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C',
+                    'icon': 'mdi:fire'
+                },
+                {
+                    'name': 'Water Heater Thermal Mass (All 8 Layers)',
+                    'entity_id': 'water_heater_thermal_mass_all8',
+                    'device_class': 'temperature',
+                    'unit_of_measurement': '°C',
+                    'icon': 'mdi:water-thermometer'
+                },
+                {
+                    'name': 'Water Heater Layers Above 70°C',
+                    'entity_id': 'water_heater_layers_above_70c',
+                    'unit_of_measurement': 'layers',
+                    'icon': 'mdi:counter'
                 },
                 # FTX air temperatures
                 {
@@ -934,6 +1008,10 @@ class SolarHeatingSystem:
                 if sensor['device_class']:
                     config["device_class"] = sensor['device_class']
                 
+                # Add icon if specified
+                if 'icon' in sensor and sensor['icon']:
+                    config["icon"] = sensor['icon']
+                
                 # Add state_class for different sensor types
                 if sensor['device_class'] == 'energy':
                     config["state_class"] = "total"
@@ -962,6 +1040,41 @@ class SolarHeatingSystem:
                     logger.error(f"Failed to publish HA discovery for {sensor['name']} to {topic}")
             
             logger.info(f"Published discovery for {discovery_count} regular sensors successfully")
+            
+            # Binary sensor for overheating risk
+            logger.info("Publishing binary sensor discovery for overheating risk...")
+            device_info = {
+                "name": "Solar Heating System v3",
+                "identifiers": ["solar_heating_v3"],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3"
+            }
+            overheating_binary_sensors = [
+                {
+                    'name': 'Water Heater Overheating Risk',
+                    'entity_id': 'water_heater_overheating_risk',
+                    'device_class': 'heat',
+                    'payload_on': 'ON',
+                    'payload_off': 'OFF'
+                }
+            ]
+
+            for binary_sensor in overheating_binary_sensors:
+                topic = f"homeassistant/binary_sensor/solar_heating_{binary_sensor['entity_id']}/config"
+                config = {
+                    "name": binary_sensor['name'],
+                    "state_topic": f"homeassistant/binary_sensor/solar_heating_{binary_sensor['entity_id']}/state",
+                    "unique_id": f"solar_heating_{binary_sensor['entity_id']}",
+                    "device_class": binary_sensor.get('device_class', None),
+                    "payload_on": binary_sensor.get('payload_on', 'ON'),
+                    "payload_off": binary_sensor.get('payload_off', 'OFF'),
+                    "device": device_info
+                }
+                success = self.mqtt.publish(topic, config, retain=True)
+                if success:
+                    logger.info(f"Published binary sensor discovery: {binary_sensor['name']}")
+                else:
+                    logger.error(f"Failed to publish binary sensor discovery: {binary_sensor['name']}")
             
             # Publish binary sensor discovery configurations
             logger.info(f"Publishing discovery for {len(binary_sensors)} binary sensors...")
@@ -1284,6 +1397,9 @@ class SolarHeatingSystem:
                 logger.debug(f"Stratification quality: {stratification_quality}, Gradient: {gradient_per_cm}°C/cm")
             logger.info("Water heater stratification calculated successfully")
             
+            # ===== NEW: Calculate water heater safety metrics =====
+            self._calculate_water_heater_safety_metrics()
+            
             # Calculate sensor health score
             valid_sensors = 0
             total_sensors = 0
@@ -1601,6 +1717,89 @@ class SolarHeatingSystem:
             # Update system mode after temperature reading and control logic
             self._update_system_mode()
             logger.debug("Completed _read_temperatures method")
+    
+    def _calculate_water_heater_safety_metrics(self):
+        """Calculate water heater safety metrics for overheating prevention"""
+        try:
+            # Configuration (could be moved to config.py later)
+            DANGER_THRESHOLD = 70.0  # °C
+            CRITICAL_PEAK_THRESHOLD = 70.0  # °C
+            HIGH_AVG_THRESHOLD = 68.0  # °C
+            MIN_LAYERS_HIGH = 2  # Minimum layers above threshold for risk
+            
+            # Collect all 8 layer temperatures
+            layer_temps = [
+                self.temperatures.get('water_heater_bottom', 0),   # 0cm
+                self.temperatures.get('water_heater_20cm', 0),
+                self.temperatures.get('water_heater_40cm', 0),
+                self.temperatures.get('water_heater_60cm', 0),
+                self.temperatures.get('water_heater_80cm', 0),     # Top 4 starts here
+                self.temperatures.get('water_heater_100cm', 0),
+                self.temperatures.get('water_heater_120cm', 0),
+                self.temperatures.get('water_heater_140cm', 0),    # Top layer
+            ]
+            
+            # Filter valid temperatures (> 0)
+            valid_temps = [t for t in layer_temps if t > 0]
+            
+            # Safety check: need at least 4 valid sensors
+            if len(valid_temps) < 4:
+                logger.warning(f"Insufficient valid sensors for safety metrics: {len(valid_temps)}/8")
+                self.temperatures['water_heater_peak_temp'] = 0
+                self.temperatures['water_heater_thermal_mass_top4'] = 0
+                self.temperatures['water_heater_thermal_mass_all8'] = 0
+                self.temperatures['water_heater_layers_above_70c'] = 0
+                self.temperatures['water_heater_overheating_risk'] = False
+                return
+            
+            # ===== Sensor 1: Peak Temperature =====
+            peak_temp = round(max(valid_temps), 1)
+            self.temperatures['water_heater_peak_temp'] = peak_temp
+            logger.debug(f"Peak temperature: {peak_temp}°C")
+            
+            # ===== Sensor 2: Thermal Mass (Top 4 Layers) =====
+            # Top 4: 80cm, 100cm, 120cm, 140cm (indices 4-7)
+            top4_temps = [t for t in layer_temps[4:8] if t > 0]
+            if len(top4_temps) >= 2:  # Need at least 2 valid readings
+                thermal_mass_top4 = round(sum(top4_temps) / len(top4_temps), 1)
+            else:
+                thermal_mass_top4 = 0
+            self.temperatures['water_heater_thermal_mass_top4'] = thermal_mass_top4
+            logger.debug(f"Thermal mass (top 4): {thermal_mass_top4}°C")
+            
+            # ===== Sensor 3: Thermal Mass (All 8 Layers) =====
+            thermal_mass_all8 = round(sum(valid_temps) / len(valid_temps), 1)
+            self.temperatures['water_heater_thermal_mass_all8'] = thermal_mass_all8
+            logger.debug(f"Thermal mass (all 8): {thermal_mass_all8}°C")
+            
+            # ===== Sensor 4: Layers Above 70°C =====
+            layers_above_threshold = sum(1 for t in valid_temps if t >= DANGER_THRESHOLD)
+            self.temperatures['water_heater_layers_above_70c'] = layers_above_threshold
+            logger.debug(f"Layers above {DANGER_THRESHOLD}°C: {layers_above_threshold}")
+            
+            # ===== Sensor 5: Overheating Risk Indicator =====
+            # High risk if: Peak ≥70°C OR (Top4 avg ≥68°C AND layers≥70°C ≥2)
+            risk_condition_1 = peak_temp >= CRITICAL_PEAK_THRESHOLD
+            risk_condition_2 = (thermal_mass_top4 >= HIGH_AVG_THRESHOLD and 
+                               layers_above_threshold >= MIN_LAYERS_HIGH)
+            
+            overheating_risk = risk_condition_1 or risk_condition_2
+            self.temperatures['water_heater_overheating_risk'] = overheating_risk
+            
+            if overheating_risk:
+                logger.warning(f"⚠️  OVERHEATING RISK DETECTED! Peak: {peak_temp}°C, "
+                              f"Top4 avg: {thermal_mass_top4}°C, "
+                              f"Layers ≥{DANGER_THRESHOLD}°C: {layers_above_threshold}")
+            else:
+                logger.debug(f"No overheating risk. Peak: {peak_temp}°C, "
+                            f"Top4 avg: {thermal_mass_top4}°C")
+            
+            logger.info("Water heater safety metrics calculated successfully")
+            
+        except Exception as e:
+            logger.error(f"Error calculating water heater safety metrics: {e}")
+            # Fail-safe: assume risk on error
+            self.temperatures['water_heater_overheating_risk'] = True
     
     def _calculate_realtime_energy_sensor(self):
         """Calculate real-time energy rate sensor with comparison metrics"""
@@ -2099,6 +2298,13 @@ class SolarHeatingSystem:
                         binary_message = "ON" if value else "OFF"
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
+                    elif sensor_name == 'water_heater_overheating_risk':
+                        # For overheating risk, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published overheating risk: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
@@ -2187,6 +2393,30 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error publishing status: {e}")
     
+    async def _publish_hourly_sensors_only(self):
+        """Publish only hourly energy sensors (for reconnection scenarios)"""
+        try:
+            logger.info("📊 Publishing hourly energy sensors after reconnection...")
+            
+            hourly_sensors = [
+                'energy_collected_hour_kwh',
+                'solar_energy_hour_kwh', 
+                'cartridge_energy_hour_kwh',
+                'pellet_energy_hour_kwh'
+            ]
+            
+            if self.mqtt and self.mqtt.is_connected():
+                for sensor_name in hourly_sensors:
+                    value = self.temperatures.get(sensor_name, 0)
+                    topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    message = str(value) if value is not None else "0"
+                    self.mqtt.publish_raw(topic, message)
+                    logger.info(f"Published hourly sensor after reconnection: {sensor_name} = {value} kWh")
+                
+                logger.info("✅ All hourly energy sensors published after reconnection")
+        except Exception as e:
+            logger.error(f"Error publishing hourly sensors: {e}")
+    
     async def _publish_hourly_aggregation(self):
         """Publish complete hourly energy aggregation at end of hour"""
         try:
@@ -2227,6 +2457,13 @@ class SolarHeatingSystem:
                         binary_message = "ON" if value else "OFF"
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
+                    elif sensor_name == 'water_heater_overheating_risk':
+                        # For overheating risk, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published overheating risk: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
@@ -2370,6 +2607,13 @@ class SolarHeatingSystem:
                         binary_message = "ON" if value else "OFF"
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published binary sensor {sensor_name} = {binary_message} to {binary_topic}")
+                    elif sensor_name == 'water_heater_overheating_risk':
+                        # For overheating risk, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published overheating risk: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in ['stored_energy_kwh', 'stored_energy_top_kwh', 'stored_energy_bottom_kwh']:
                         # For energy sensors, send the raw number
                         message = str(value) if value is not None else "0"
@@ -2771,6 +3015,15 @@ class SolarHeatingSystem:
                             logger.info("System status published successfully")
                         except Exception as e:
                             logger.error(f"Error publishing status: {e}")
+                        
+                        # Publish hourly energy sensors immediately after reconnection
+                        # (normally these are only published at hour boundaries, but after
+                        # MQTT reconnection we need to publish them to avoid "Unknown" status)
+                        try:
+                            await self._publish_hourly_sensors_only()
+                            logger.info("Hourly energy sensors published after reconnection")
+                        except Exception as e:
+                            logger.error(f"Error publishing hourly sensors after reconnection: {e}")
                             
                     else:
                         if consecutive_failures == 1:

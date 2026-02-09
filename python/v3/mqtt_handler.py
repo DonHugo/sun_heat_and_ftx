@@ -2,6 +2,12 @@
 """
 Fixed MQTT Handler for Solar Heating System v3
 Resolves "Invalid subscription filter" errors by correcting MQTT topic patterns
+
+Issue #44 - MQTT Authentication Security:
+- Credentials loaded from environment variables
+- Comprehensive connection logging
+- Authentication failure handling
+- No hardcoded credentials
 """
 
 import json
@@ -9,21 +15,47 @@ import logging
 import time
 from typing import Dict, Any, Optional, Callable
 from paho.mqtt import client as mqtt_client
-from config import mqtt_topics
+from config import mqtt_topics, SystemConfig
+from mqtt_authenticator import MQTTAuthenticator
 
 logger = logging.getLogger(__name__)
 
 class MQTTHandler:
     """MQTT handler for system communication"""
     
-    def __init__(self):
+    def __init__(self, config: SystemConfig):
+        """
+        Initialize MQTT handler with secure configuration
+        
+        Args:
+            config: SystemConfig instance with MQTT credentials
+        
+        Raises:
+            ValueError: If MQTT credentials are invalid
+        
+        Security Note:
+            Validates credentials immediately at initialization.
+            System will fail to start if credentials are missing/invalid.
+        """
         self.client = None
         self.connected = False
-        self.broker = "192.168.0.110"
-        self.port = 1883
-        self.username = "mqtt_beaches"
-        self.password = "uQX6NiZ.7R"
-        self.client_id = f"solar_heating_v3_{int(time.time())}"
+        
+        # Create authenticator (validates credentials)
+        self.authenticator = MQTTAuthenticator(config)
+        
+        # Validate credentials at initialization (fail fast)
+        if not self.authenticator.validate_credentials():
+            raise ValueError(
+                "Invalid MQTT credentials. Set MQTT_USERNAME and MQTT_PASSWORD "
+                "environment variables."
+            )
+        
+        # Store connection parameters from validated config
+        self.broker = config.mqtt_broker
+        self.port = config.mqtt_port
+        self.username = config.mqtt_username
+        self.password = config.mqtt_password
+        self.client_id = f"{config.mqtt_client_id}_{int(time.time())}"
         
         # Reconnection settings
         self.first_reconnect_delay = 1
@@ -73,16 +105,71 @@ class MQTTHandler:
             logger.info("Disconnected from MQTT broker")
     
     def _on_connect(self, client, userdata, flags, rc):
-        """MQTT connection callback"""
+        """
+        MQTT connection callback with enhanced security logging
+        
+        Issue #44: Enhanced authentication logging and return code interpretation
+        """
+        # Interpret return code using authenticator
+        status, reason, severity = self.authenticator.interpret_return_code(rc)
+        
+        # Log connection attempt with security context
+        self.authenticator.log_connection_attempt(
+            rc=rc,
+            client_id=self.client_id,
+            success=(rc == 0)
+        )
+        
         if rc == 0 and client.is_connected():
             self.connected = True
-            logger.info("Connected to MQTT broker successfully")
+            logger.info(
+                f"✅ MQTT Connection Successful - "
+                f"ClientID: {self.client_id}, "
+                f"Broker: {self.broker}:{self.port}, "
+                f"User: {self.username}"
+            )
             
             # Subscribe to topics
             self._subscribe_to_topics()
+            
+            # Optional: Verify broker security
+            try:
+                if not self.authenticator.verify_broker_security(client):
+                    logger.warning(
+                        "⚠️  SECURITY WARNING: Broker may allow anonymous connections. "
+                        "Verify broker configuration (allow_anonymous false)"
+                    )
+            except Exception as e:
+                logger.debug(f"Broker security check failed: {e}")
+                
         else:
             self.connected = False
-            logger.error(f"Failed to connect to MQTT broker, return code: {rc}")
+            
+            # Enhanced error logging based on return code
+            if rc == 4:  # Bad username/password
+                logger.error(
+                    f"❌ MQTT Authentication Failed - "
+                    f"ClientID: {self.client_id}, "
+                    f"RC: {rc}, "
+                    f"Reason: {reason}. "
+                    f"Check MQTT_USERNAME and MQTT_PASSWORD environment variables."
+                )
+            elif rc == 5:  # Not authorized
+                logger.error(
+                    f"❌ MQTT Authorization Failed - "
+                    f"ClientID: {self.client_id}, "
+                    f"RC: {rc}, "
+                    f"Reason: {reason}. "
+                    f"User '{self.username}' not authorized for this broker. "
+                    f"Check broker ACL configuration."
+                )
+            else:
+                logger.error(
+                    f"❌ MQTT Connection Failed - "
+                    f"ClientID: {self.client_id}, "
+                    f"RC: {rc}, "
+                    f"Reason: {reason}"
+                )
     
     def _on_disconnect(self, client, userdata, rc):
         """MQTT disconnection callback"""
@@ -93,15 +180,27 @@ class MQTTHandler:
         self._reconnect()
     
     def _reconnect(self):
-        """Reconnect to MQTT broker with exponential backoff"""
+        """
+        Reconnect to MQTT broker with exponential backoff
+        
+        Issue #44: Re-validates credentials before each reconnection attempt
+        """
         reconnect_count = 0
         reconnect_delay = self.first_reconnect_delay
         
         while reconnect_count < self.max_reconnect_count:
-            logger.info(f"Reconnecting to MQTT broker in {reconnect_delay} seconds...")
+            logger.info(
+                f"MQTT Reconnection Attempt {reconnect_count + 1}/{self.max_reconnect_count} "
+                f"in {reconnect_delay} seconds..."
+            )
             time.sleep(reconnect_delay)
             
             try:
+                # Re-validate credentials before reconnecting (security check)
+                if not self.authenticator.validate_credentials():
+                    logger.error("Cannot reconnect: Invalid credentials")
+                    return
+                
                 # Properly disconnect and cleanup before reconnecting
                 if self.client:
                     self.client.loop_stop()
@@ -125,7 +224,9 @@ class MQTTHandler:
                     timeout -= 0.1
                 
                 if self.connected:
-                    logger.info("Reconnected to MQTT broker successfully")
+                    logger.info(
+                        f"✅ MQTT Reconnection Successful after {reconnect_count + 1} attempts"
+                    )
                     return
                 else:
                     logger.error("Reconnect failed - connection timeout")
@@ -137,7 +238,10 @@ class MQTTHandler:
             reconnect_delay = min(reconnect_delay, self.max_reconnect_delay)
             reconnect_count += 1
         
-        logger.error(f"Failed to reconnect after {self.max_reconnect_count} attempts")
+        logger.error(
+            f"❌ MQTT Reconnection Failed after {self.max_reconnect_count} attempts. "
+            f"Manual intervention required."
+        )
     
     def _subscribe_to_topics(self):
         """Subscribe to MQTT topics with corrected patterns"""

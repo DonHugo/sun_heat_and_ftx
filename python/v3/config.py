@@ -6,7 +6,7 @@ Based on PRD requirements and existing system parameters
 import os
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -37,10 +37,12 @@ class SystemConfig(BaseModel):
     temp_kok_hysteres: float = Field(default=10.0, description="Boiling temperature hysteresis")
     
     # MQTT Configuration
+    # SECURITY: Credentials must be provided via environment variables
+    # No default values for sensitive credentials
     mqtt_broker: str = Field(default="192.168.0.110", description="MQTT broker address")
     mqtt_port: int = Field(default=1883, description="MQTT broker port")
-    mqtt_username: str = Field(default="mqtt_beaches", description="MQTT username")
-    mqtt_password: str = Field(default="uQX6NiZ.7R", description="MQTT password")
+    mqtt_username: Optional[str] = Field(default=None, description="MQTT username (REQUIRED - set via MQTT_USERNAME env var)")
+    mqtt_password: Optional[str] = Field(default=None, description="MQTT password (REQUIRED - set via MQTT_PASSWORD env var)")
     mqtt_client_id: str = Field(default="solar_heating_v3", description="MQTT client ID")
     
     # Home Assistant Integration
@@ -84,6 +86,32 @@ class SystemConfig(BaseModel):
         env_file = ".env"
         env_prefix = "SOLAR_"
     
+    @model_validator(mode='after')
+    def validate_mqtt_credentials(self) -> 'SystemConfig':
+        """
+        Validate MQTT credentials are provided
+        
+        Security: Fail at startup if credentials are missing.
+        This prevents the system from attempting anonymous MQTT connections.
+        
+        Raises:
+            ValueError: If MQTT_USERNAME or MQTT_PASSWORD are not set
+        """
+        if not self.mqtt_username or not self.mqtt_password:
+            raise ValueError(
+                "MQTT credentials required. Set MQTT_USERNAME and MQTT_PASSWORD "
+                "environment variables. See .env.example for template."
+            )
+        
+        # Check for non-empty strings (strip whitespace)
+        if not self.mqtt_username.strip() or not self.mqtt_password.strip():
+            raise ValueError(
+                "MQTT credentials cannot be empty or whitespace-only. "
+                "Set valid MQTT_USERNAME and MQTT_PASSWORD environment variables."
+            )
+        
+        return self
+    
     def __init__(self, **data):
         # Load environment variables manually for compatibility
         env_data = {}
@@ -91,6 +119,19 @@ class SystemConfig(BaseModel):
             env_key = f"SOLAR_{field_name.upper()}"
             if env_key in os.environ:
                 env_data[field_name] = os.environ[env_key]
+        
+        # MQTT credentials can use MQTT_* prefix (without SOLAR_) for clarity
+        # This allows .env to use: MQTT_USERNAME= instead of SOLAR_MQTT_USERNAME=
+        if 'mqtt_username' not in env_data and 'MQTT_USERNAME' in os.environ:
+            env_data['mqtt_username'] = os.environ['MQTT_USERNAME']
+        if 'mqtt_password' not in env_data and 'MQTT_PASSWORD' in os.environ:
+            env_data['mqtt_password'] = os.environ['MQTT_PASSWORD']
+        if 'mqtt_broker' not in env_data and 'MQTT_BROKER' in os.environ:
+            env_data['mqtt_broker'] = os.environ['MQTT_BROKER']
+        if 'mqtt_port' not in env_data and 'MQTT_PORT' in os.environ:
+            env_data['mqtt_port'] = int(os.environ['MQTT_PORT'])
+        if 'mqtt_client_id' not in env_data and 'MQTT_CLIENT_ID' in os.environ:
+            env_data['mqtt_client_id'] = os.environ['MQTT_CLIENT_ID']
         
         # Update with any passed data
         env_data.update(data)
