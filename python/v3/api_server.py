@@ -266,6 +266,14 @@ class SolarHeatingAPI:
         with self.lock:
             try:
                 if action == "pump_start":
+                    # Require manual mode for pump control
+                    if not self.solar_system.system_state.get('manual_control', False):
+                        return {
+                            "success": False,
+                            "error": "Manual control not enabled",
+                            "error_code": "MANUAL_CONTROL_REQUIRED"
+                        }
+                    
                     # Control pump hardware
                     if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
                         self.solar_system.hardware.set_relay_state(1, False)  # Relay 1 for pump
@@ -286,6 +294,14 @@ class SolarHeatingAPI:
                     }
                 
                 elif action == "pump_stop":
+                    # Require manual mode for pump control
+                    if not self.solar_system.system_state.get('manual_control', False):
+                        return {
+                            "success": False,
+                            "error": "Manual control not enabled",
+                            "error_code": "MANUAL_CONTROL_REQUIRED"
+                        }
+                    
                     # Control pump hardware
                     if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
                         self.solar_system.hardware.set_relay_state(1, True)  # Relay 1 for pump
