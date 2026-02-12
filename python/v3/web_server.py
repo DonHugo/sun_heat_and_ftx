@@ -31,7 +31,6 @@ STATIC_DIR = FRONTEND_DIR / 'static'
 
 # Check if running on Raspberry Pi (production) or development
 def is_raspberry_pi():
-def is_raspberry_pi():
     """Check if running on Raspberry Pi"""
     try:
         # Check /proc/device-tree/model first (most reliable)
