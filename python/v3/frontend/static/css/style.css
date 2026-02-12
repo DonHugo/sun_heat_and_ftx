@@ -622,3 +622,460 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* UX Fix #1: Status Detail View Styles */
+.tab-description {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(52, 152, 219, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #3498db;
+}
+
+.status-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.status-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    background: rgba(52, 152, 219, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(52, 152, 219, 0.1);
+}
+
+.status-detail-item .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-detail-item .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+}
+
+.status-badge[data-status="on"],
+.value.status-badge:contains("ON") {
+    background: #27ae60;
+    color: white;
+}
+
+.status-badge[data-status="off"],
+.value.status-badge:contains("OFF") {
+    background: #95a5a6;
+    color: white;
+}
+
+.info-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(155, 89, 182, 0.1) 100%);
+    border-radius: 12px;
+    border-left: 4px solid #3498db;
+}
+
+.info-box p {
+    margin: 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.info-box strong {
+    color: #2c3e50;
+}
+
+
+/* UX Fix #2: Temperature Context with Color Coding */
+.temp-value {
+    font-weight: 700;
+    font-size: 1.3rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* Temperature color ranges */
+.temp-value.temp-cold {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.temp-value.temp-cool {
+    background: linear-gradient(135deg, #52c0fd 0%, #3498db 100%);
+    color: white;
+}
+
+.temp-value.temp-normal {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+}
+
+.temp-value.temp-warm {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: white;
+}
+
+.temp-value.temp-hot {
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    color: white;
+}
+
+.temp-value.temp-critical {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.temp-item {
+    position: relative;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.temp-context {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.temp-range-indicator {
+    height: 4px;
+    background: linear-gradient(90deg, 
+        #667eea 0%, 
+        #3498db 20%, 
+        #27ae60 40%, 
+        #f39c12 60%, 
+        #e67e22 80%, 
+        #e74c3c 100%
+    );
+    border-radius: 2px;
+    margin-top: 8px;
+    position: relative;
+}
+
+.temp-range-marker {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border: 2px solid #2c3e50;
+    border-radius: 50%;
+    top: -2px;
+    transform: translateX(-50%);
+    transition: left 0.3s ease;
+}
+
+/* UX Fix #3: Animated Status Dots */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    position: relative;
+}
+
+.status-dot::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.status-dot.status-active {
+    background: #27ae60;
+}
+
+.status-dot.status-active::before {
+    background: rgba(39, 174, 96, 0.5);
+}
+
+.status-dot.status-inactive {
+    background: #95a5a6;
+}
+
+.status-dot.status-inactive::before {
+    background: rgba(149, 165, 166, 0.3);
+}
+
+.status-dot.status-warning {
+    background: #f39c12;
+}
+
+.status-dot.status-warning::before {
+    background: rgba(243, 156, 18, 0.5);
+}
+
+.status-dot.status-error {
+    background: #e74c3c;
+    animation: blink-error 1s ease-in-out infinite;
+}
+
+.status-dot.status-error::before {
+    background: rgba(231, 76, 60, 0.5);
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes blink-error {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Enhanced status indicators with dots */
+.status-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hardware-item .value,
+.service-item .value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Status text colors */
+.value.status-connected {
+    color: #27ae60;
+    font-weight: 700;
+}
+
+.value.status-disconnected {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+.value.status-unknown {
+    color: #95a5a6;
+    font-weight: 700;
+}
+
+
+/* UX Fix #4: Hero Card for At-a-Glance Status */
+.hero-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.hero-main {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.hero-status-section {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(52, 152, 219, 0.2);
+}
+
+.hero-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.hero-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 30px;
+    border: 2px solid rgba(39, 174, 96, 0.3);
+}
+
+.hero-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.hero-dot::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: pulse-hero 2s ease-in-out infinite;
+}
+
+.hero-dot.status-active {
+    background: #27ae60;
+}
+
+.hero-dot.status-active::before {
+    background: rgba(39, 174, 96, 0.5);
+}
+
+.hero-dot.status-warning {
+    background: #f39c12;
+}
+
+.hero-dot.status-warning::before {
+    background: rgba(243, 156, 18, 0.5);
+}
+
+.hero-dot.status-error {
+    background: #e74c3c;
+    animation: blink-hero 1s ease-in-out infinite;
+}
+
+.hero-dot.status-error::before {
+    background: rgba(231, 76, 60, 0.5);
+}
+
+@keyframes pulse-hero {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+@keyframes blink-hero {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.hero-status-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #27ae60;
+}
+
+.hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.hero-metric {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.08) 0%, rgba(155, 89, 182, 0.08) 100%);
+    border-radius: 15px;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    transition: all 0.3s ease;
+}
+
+.hero-metric:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
+}
+
+.metric-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.metric-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+}
+
+.metric-status {
+    font-size: 0.85rem;
+    color: #95a5a6;
+    font-style: italic;
+}
+
+/* Responsive hero card */
+@media (max-width: 768px) {
+    .hero-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .hero-title {
+        font-size: 1.5rem;
+    }
+    
+    .hero-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+    }
+}
+

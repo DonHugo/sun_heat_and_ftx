@@ -32,12 +32,65 @@
         <nav class="tab-navigation">
             <button class="tab-button active" data-tab="dashboard">Dashboard</button>
             <button class="tab-button" data-tab="temperatures">Temperatures</button>
-            <button class="tab-button" data-tab="control">Control</button>
+            <button class="tab-button" data-tab="control">Status</button>
             <button class="tab-button" data-tab="diagnostics">Diagnostics</button>
         </nav>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
+            <!-- UX Fix #4: Hero Card for At-a-Glance Status -->
+            <div class="hero-card">
+                <div class="hero-content">
+                    <div class="hero-main">
+                        <div class="hero-status-section">
+                            <h2 class="hero-title">System Status</h2>
+                            <div class="hero-status-indicator" id="hero-status-indicator">
+                                <span class="hero-dot status-active"></span>
+                                <span class="hero-status-text" id="hero-status-text">Operating Normally</span>
+                            </div>
+                        </div>
+                        
+                        <div class="hero-metrics">
+                            <div class="hero-metric">
+                                <div class="metric-icon">🌡️</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Tank Temperature</div>
+                                    <div class="metric-value" id="hero-temp-tank">--°C</div>
+                                    <div class="metric-status" id="hero-temp-tank-status">--</div>
+                                </div>
+                            </div>
+                            
+                            <div class="hero-metric">
+                                <div class="metric-icon">☀️</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Collector</div>
+                                    <div class="metric-value" id="hero-temp-collector">--°C</div>
+                                    <div class="metric-status" id="hero-temp-collector-status">--</div>
+                                </div>
+                            </div>
+                            
+                            <div class="hero-metric">
+                                <div class="metric-icon">💧</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Pump</div>
+                                    <div class="metric-value" id="hero-pump-status">OFF</div>
+                                    <div class="metric-status" id="hero-pump-mode">Auto Mode</div>
+                                </div>
+                            </div>
+                            
+                            <div class="hero-metric">
+                                <div class="metric-icon">⚡</div>
+                                <div class="metric-content">
+                                    <div class="metric-label">Energy Status</div>
+                                    <div class="metric-value" id="hero-energy-status">Collecting</div>
+                                    <div class="metric-status" id="hero-energy-detail">Solar heating active</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="dashboard-grid">
                 <!-- System Overview -->
                 <div class="card">
@@ -131,40 +184,80 @@
             </div>
         </div>
 
-        <!-- Control Tab -->
+        <!-- Control Tab - REDESIGNED as Status Monitoring View -->
         <div id="control" class="tab-content">
             <div class="card">
-                <h3>🎮 System Control</h3>
+                <h3>📊 System Status & Details</h3>
+                <p class="tab-description">Detailed system state and control history. Use Dashboard tab for controls.</p>
+                
                 <div class="control-section">
-                    <h4>Pump Control</h4>
-                    <div class="control-buttons">
-                        <button class="btn btn-primary" id="control-pump-start">Start Pump</button>
-                        <button class="btn btn-secondary" id="control-pump-stop">Stop Pump</button>
-                    </div>
-                    <div class="control-status">
-                        <span class="label">Pump Status:</span>
-                        <span class="value" id="control-pump-status">OFF</span>
+                    <h4>💧 Pump Status</h4>
+                    <div class="status-detail-grid">
+                        <div class="status-detail-item">
+                            <span class="label">Current State:</span>
+                            <span class="value status-badge" id="control-pump-status">OFF</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Control Mode:</span>
+                            <span class="value" id="control-pump-mode">Automatic</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Runtime Today:</span>
+                            <span class="value" id="pump-runtime">-- hours</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Last Changed:</span>
+                            <span class="value" id="pump-last-change">--</span>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="control-section">
-                    <h4>System Mode</h4>
-                    <div class="mode-buttons">
-                        <button class="btn btn-mode" data-mode="auto" id="control-mode-auto">Auto</button>
-                        <button class="btn btn-mode" data-mode="manual" id="control-mode-manual">Manual</button>
-                    </div>
-                    <div class="control-status">
-                        <span class="label">Current Mode:</span>
-                        <span class="value" id="control-current-mode">Auto</span>
+                    <h4>⚙️ System Mode Details</h4>
+                    <div class="status-detail-grid">
+                        <div class="status-detail-item">
+                            <span class="label">Current Mode:</span>
+                            <span class="value status-badge" id="control-current-mode">Auto</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Manual Control:</span>
+                            <span class="value" id="control-manual-status">Disabled</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Auto Control Active:</span>
+                            <span class="value" id="auto-control-active">Yes</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Mode Changed:</span>
+                            <span class="value" id="mode-last-change">--</span>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="control-section">
-                    <h4>Emergency Controls</h4>
-                    <button class="btn btn-danger" id="control-emergency-stop">Emergency Stop</button>
-                    <div class="warning-text">
-                        ⚠️ Emergency stop will turn off all systems and reset to auto mode
+                    <h4>🔥 Heater Status</h4>
+                    <div class="status-detail-grid">
+                        <div class="status-detail-item">
+                            <span class="label">Current State:</span>
+                            <span class="value status-badge" id="control-heater-status">OFF</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Runtime Today:</span>
+                            <span class="value" id="heater-runtime">-- hours</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Energy Used:</span>
+                            <span class="value" id="heater-energy">-- kWh</span>
+                        </div>
+                        <div class="status-detail-item">
+                            <span class="label">Last Activated:</span>
+                            <span class="value" id="heater-last-active">--</span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>💡 Tip:</strong> To control the system, switch to the Dashboard tab where all controls are centrally located.</p>
                 </div>
             </div>
         </div>

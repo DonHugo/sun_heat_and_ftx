@@ -188,14 +188,17 @@ class SolarHeatingDashboard {
         document.getElementById('current-mode').textContent = modeDisplay;
         document.getElementById('control-current-mode').textContent = modeDisplay;
         
-        // Update pump status
+        // Update pump status with status dots
         const pumpStatus = data.system_state?.primary_pump ? 'ON' : 'OFF';
-        document.getElementById('pump-status').textContent = pumpStatus;
-        document.getElementById('control-pump-status').textContent = pumpStatus;
+        const pumpStatusClass = data.system_state?.primary_pump ? 'status-active' : 'status-inactive';
+        this.updateStatusWithDot('pump-status', pumpStatus, pumpStatusClass);
+        this.updateStatusWithDot('control-pump-status', pumpStatus, pumpStatusClass);
         
-        // Update heater status
+        // Update heater status with status dots
         const heaterStatus = data.system_state?.cartridge_heater ? 'ON' : 'OFF';
-        document.getElementById('heater-status').textContent = heaterStatus;
+        const heaterStatusClass = data.system_state?.cartridge_heater ? 'status-active' : 'status-inactive';
+        this.updateStatusWithDot('heater-status', heaterStatus, heaterStatusClass);
+        this.updateStatusWithDot('control-heater-status', heaterStatus, heaterStatusClass);
         
         // Update mode buttons
         document.querySelectorAll('[data-mode]').forEach(button => {
@@ -223,16 +226,116 @@ class SolarHeatingDashboard {
         
         // Update last update time
         document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        
+        // Update hero card
+        this.updateHeroCard(data);
+    }
+    
+    // UX Fix #4: Update hero card with system status
+    updateHeroCard(data) {
+        // Update hero status indicator
+        const pumpOn = data.system_state?.primary_pump;
+        const mode = data.system_state?.mode || 'auto';
+        const temperatures = data.temperatures || {};
+        
+        // Determine overall system status
+        let statusClass = 'status-active';
+        let statusText = 'Operating Normally';
+        
+        // Check for warnings or errors
+        if (temperatures.tank > 85) {
+            statusClass = 'status-warning';
+            statusText = 'Tank Temperature High';
+        } else if (temperatures.solar_collector > 110) {
+            statusClass = 'status-warning';
+            statusText = 'Collector Temperature High';
+        } else if (pumpOn && mode === 'auto') {
+            statusText = 'Actively Heating';
+        } else if (!pumpOn && mode === 'manual') {
+            statusText = 'Manual Control';
+        }
+        
+        const heroDot = document.querySelector('.hero-dot');
+        if (heroDot) {
+            heroDot.className = `hero-dot ${statusClass}`;
+        }
+        
+        const heroStatusText = document.getElementById('hero-status-text');
+        if (heroStatusText) {
+            heroStatusText.textContent = statusText;
+            heroStatusText.style.color = statusClass === 'status-active' ? '#27ae60' : 
+                                          statusClass === 'status-warning' ? '#f39c12' : '#e74c3c';
+        }
+        
+        // Update tank temperature in hero
+        const heroTempTank = document.getElementById('hero-temp-tank');
+        if (heroTempTank && temperatures.tank) {
+            heroTempTank.textContent = `${temperatures.tank.toFixed(1)}°C`;
+        }
+        
+        const heroTempTankStatus = document.getElementById('hero-temp-tank-status');
+        if (heroTempTankStatus && temperatures.tank) {
+            if (temperatures.tank < 40) heroTempTankStatus.textContent = 'Cold - needs heating';
+            else if (temperatures.tank < 60) heroTempTankStatus.textContent = 'Normal operating range';
+            else if (temperatures.tank < 75) heroTempTankStatus.textContent = 'Good temperature';
+            else heroTempTankStatus.textContent = 'Hot - caution';
+        }
+        
+        // Update collector temperature in hero
+        const heroTempCollector = document.getElementById('hero-temp-collector');
+        if (heroTempCollector && temperatures.solar_collector) {
+            heroTempCollector.textContent = `${temperatures.solar_collector.toFixed(1)}°C`;
+        }
+        
+        const heroTempCollectorStatus = document.getElementById('hero-temp-collector-status');
+        if (heroTempCollectorStatus && temperatures.solar_collector) {
+            const diff = temperatures.solar_collector - temperatures.tank;
+            if (diff > 10) heroTempCollectorStatus.textContent = `+${diff.toFixed(1)}°C vs tank`;
+            else if (diff > 0) heroTempCollectorStatus.textContent = `Slightly warmer than tank`;
+            else heroTempCollectorStatus.textContent = 'Cooler than tank';
+        }
+        
+        // Update pump status in hero
+        const heroPumpStatus = document.getElementById('hero-pump-status');
+        if (heroPumpStatus) {
+            heroPumpStatus.textContent = pumpOn ? 'RUNNING' : 'STOPPED';
+            heroPumpStatus.style.color = pumpOn ? '#27ae60' : '#95a5a6';
+        }
+        
+        const heroPumpMode = document.getElementById('hero-pump-mode');
+        if (heroPumpMode) {
+            heroPumpMode.textContent = mode === 'auto' ? 'Auto Mode' : 'Manual Mode';
+        }
+        
+        // Update energy status in hero
+        const heroEnergyStatus = document.getElementById('hero-energy-status');
+        const heroEnergyDetail = document.getElementById('hero-energy-detail');
+        
+        if (heroEnergyStatus && heroEnergyDetail) {
+            if (pumpOn && temperatures.solar_collector > temperatures.tank) {
+                heroEnergyStatus.textContent = 'Collecting';
+                heroEnergyDetail.textContent = 'Solar heating active';
+                heroEnergyStatus.style.color = '#27ae60';
+            } else if (pumpOn) {
+                heroEnergyStatus.textContent = 'Circulating';
+                heroEnergyDetail.textContent = 'Pump running';
+                heroEnergyStatus.style.color = '#3498db';
+            } else {
+                heroEnergyStatus.textContent = 'Idle';
+                heroEnergyDetail.textContent = 'Waiting for conditions';
+                heroEnergyStatus.style.color = '#95a5a6';
+            }
+        }
     }
     
     updateTemperatures(data) {
         const temperatures = data.temperatures || {};
         
-        // Update dashboard temperatures
-        document.getElementById('temp-tank').textContent = `${temperatures.tank?.toFixed(1) || '--'}°C`;
-        document.getElementById('temp-collector').textContent = `${temperatures.solar_collector?.toFixed(1) || '--'}°C`;
-        document.getElementById('temp-ambient').textContent = `${temperatures.ambient?.toFixed(1) || '--'}°C`;
-        document.getElementById('temp-heat-exchanger').textContent = `${temperatures.heat_exchanger_in?.toFixed(1) || '--'}°C`;
+        // Update dashboard temperatures with color coding
+        this.updateTempElement('temp-tank', temperatures.tank, 'tank');
+        this.updateTempElement('temp-collector', temperatures.solar_collector, 'collector');
+        this.updateTempElement('temp-ambient', temperatures.ambient, 'ambient');
+        this.updateTempElement('temp-heat-exchanger', temperatures.heat_exchanger_in, 'heat_exchanger');
         
         // Update temperature tab details
         document.getElementById('temp-tank-detail').textContent = `${temperatures.tank?.toFixed(1) || '--'}°C`;
@@ -245,6 +348,54 @@ class SolarHeatingDashboard {
         this.updateTemperatureStatus('collector', temperatures.solar_collector);
         this.updateTemperatureStatus('ambient', temperatures.ambient);
         this.updateTemperatureStatus('heat-exchanger', temperatures.heat_exchanger_in);
+    }
+    
+    // UX Fix #2: Temperature color coding helper function
+    updateTempElement(elementId, temperature, sensorType) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const tempText = `${temperature?.toFixed(1) || '--'}°C`;
+        element.textContent = tempText;
+        
+        // Remove all temp classes
+        element.className = element.className.replace(/temp-\w+/g, '').trim() + ' temp-value';
+        
+        if (temperature === null || temperature === undefined) return;
+        
+        // Apply color class based on temperature ranges
+        let tempClass = '';
+        
+        if (sensorType === 'tank') {
+            if (temperature < 20) tempClass = 'temp-cold';
+            else if (temperature < 40) tempClass = 'temp-cool';
+            else if (temperature < 60) tempClass = 'temp-normal';
+            else if (temperature < 75) tempClass = 'temp-warm';
+            else if (temperature < 85) tempClass = 'temp-hot';
+            else tempClass = 'temp-critical';
+        } else if (sensorType === 'collector') {
+            if (temperature < 30) tempClass = 'temp-cold';
+            else if (temperature < 50) tempClass = 'temp-cool';
+            else if (temperature < 70) tempClass = 'temp-normal';
+            else if (temperature < 90) tempClass = 'temp-warm';
+            else if (temperature < 110) tempClass = 'temp-hot';
+            else tempClass = 'temp-critical';
+        } else if (sensorType === 'ambient') {
+            if (temperature < 0) tempClass = 'temp-cold';
+            else if (temperature < 15) tempClass = 'temp-cool';
+            else if (temperature < 25) tempClass = 'temp-normal';
+            else if (temperature < 30) tempClass = 'temp-warm';
+            else tempClass = 'temp-hot';
+        } else {
+            // Default for heat exchanger and others
+            if (temperature < 20) tempClass = 'temp-cold';
+            else if (temperature < 40) tempClass = 'temp-cool';
+            else if (temperature < 60) tempClass = 'temp-normal';
+            else if (temperature < 75) tempClass = 'temp-warm';
+            else tempClass = 'temp-hot';
+        }
+        
+        element.classList.add(tempClass);
     }
     
     updateTemperatureStatus(sensor, temperature) {
@@ -458,5 +609,31 @@ document.addEventListener('visibilitychange', () => {
             window.dashboard.startAutoUpdate();
             window.dashboard.loadSystemData();
         }
-    }
+
+    
+    // UX Fix #3: Add status dots to status indicators
+    updateStatusWithDot(elementId, statusText, dotClass) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        // Create status dot if it doesn't exist
+        let dotSpan = element.querySelector('.status-dot');
+        if (!dotSpan) {
+            dotSpan = document.createElement('span');
+            dotSpan.className = 'status-dot';
+            element.textContent = ''; // Clear existing text
+            element.appendChild(dotSpan);
+            const textSpan = document.createElement('span');
+            element.appendChild(textSpan);
+        }
+        
+        // Update dot class
+        dotSpan.className = `status-dot ${dotClass}`;
+        
+        // Update text
+        const textSpan = element.querySelector('span:not(.status-dot)');
+        if (textSpan) {
+            textSpan.textContent = statusText;
+        }
+    }    }
 });
