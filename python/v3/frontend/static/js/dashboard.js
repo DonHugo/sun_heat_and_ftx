@@ -335,19 +335,19 @@ class SolarHeatingDashboard {
         this.updateTempElement('temp-tank', temperatures.tank, 'tank');
         this.updateTempElement('temp-collector', temperatures.solar_collector, 'collector');
         this.updateTempElement('temp-ambient', temperatures.ambient, 'ambient');
-        this.updateTempElement('temp-heat-exchanger', temperatures.heat_exchanger_in, 'heat_exchanger');
+        this.updateEfficiencyElement('temp-heat-exchanger', temperatures.heat_exchanger_efficiency);
         
         // Update temperature tab details
         document.getElementById('temp-tank-detail').textContent = `${temperatures.tank?.toFixed(1) || '--'}°C`;
         document.getElementById('temp-collector-detail').textContent = `${temperatures.solar_collector?.toFixed(1) || '--'}°C`;
         document.getElementById('temp-ambient-detail').textContent = `${temperatures.ambient?.toFixed(1) || '--'}°C`;
-        document.getElementById('temp-heat-exchanger-detail').textContent = `${temperatures.heat_exchanger_in?.toFixed(1) || '--'}°C`;
+        this.updateEfficiencyDetail('temp-heat-exchanger-detail', temperatures);
         
         // Update temperature status indicators
         this.updateTemperatureStatus('tank', temperatures.tank);
         this.updateTemperatureStatus('collector', temperatures.solar_collector);
         this.updateTemperatureStatus('ambient', temperatures.ambient);
-        this.updateTemperatureStatus('heat-exchanger', temperatures.heat_exchanger_in);
+        this.updateEfficiencyStatus('heat-exchanger', temperatures.heat_exchanger_efficiency);
     }
     
     // UX Fix #2: Temperature color coding helper function
@@ -637,3 +637,87 @@ document.addEventListener('visibilitychange', () => {
         }
     }
 });
+    // Heat Exchanger Efficiency Display (replaces temperature)
+    updateEfficiencyElement(elementId, efficiency) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const effText = efficiency !== null && efficiency !== undefined ? `${efficiency.toFixed(1)}%` : '--%';
+        element.textContent = effText;
+        
+        // Remove all temp/efficiency classes
+        element.className = element.className.replace(/temp-\w+|eff-\w+/g, '').trim() + ' temp-value';
+        
+        if (efficiency === null || efficiency === undefined) return;
+        
+        // Apply color class based on efficiency ranges
+        let effClass = '';
+        if (efficiency < 30) effClass = 'eff-poor';          // 🔴 Poor
+        else if (efficiency < 60) effClass = 'eff-fair';     // 🟡 Fair
+        else if (efficiency < 80) effClass = 'eff-good';     // 🟢 Good
+        else effClass = 'eff-excellent';                     // 💚 Excellent
+        
+        element.classList.add(effClass);
+    }
+    
+    // Heat Exchanger Efficiency Detail with tooltip
+    updateEfficiencyDetail(elementId, temperatures) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const eff = temperatures.heat_exchanger_efficiency;
+        const outdoor = temperatures.outdoor_air_temp;
+        const exhaust = temperatures.exhaust_air_temp;
+        const supply = temperatures.supply_air_temp;
+        const returnAir = temperatures.return_air_temp;
+        
+        if (eff !== null && eff !== undefined) {
+            let emoji = '';
+            let status = '';
+            if (eff < 30) { emoji = '🔴'; status = 'Poor'; }
+            else if (eff < 60) { emoji = '🟡'; status = 'Fair'; }
+            else if (eff < 80) { emoji = '🟢'; status = 'Good'; }
+            else { emoji = '💚'; status = 'Excellent'; }
+            
+            element.textContent = `${eff.toFixed(1)}% ${emoji}`;
+            
+            // Add tooltip with air temperatures if available
+            if (outdoor !== null && returnAir !== null) {
+                const heatGain = supply !== null ? (supply - outdoor).toFixed(1) : '--';
+                const heatLoss = returnAir !== null && exhaust !== null ? (returnAir - exhaust).toFixed(1) : '--';
+                
+                element.title = `Heat Exchanger Efficiency: ${status}\n` +
+                               `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                               `Outdoor Air: ${outdoor.toFixed(1)}°C\n` +
+                               `Supply Air: ${supply?.toFixed(1) || '--'}°C (+${heatGain}°C)\n` +
+                               `Return Air: ${returnAir.toFixed(1)}°C\n` +
+                               `Exhaust Air: ${exhaust?.toFixed(1) || '--'}°C (-${heatLoss}°C)`;
+            }
+        } else {
+            element.textContent = '-- %';
+            element.title = '';
+        }
+    }
+    
+    // Heat Exchanger Efficiency Status
+    updateEfficiencyStatus(sensorId, efficiency) {
+        const statusElement = document.getElementById(`${sensorId}-status`);
+        if (!statusElement) return;
+        
+        if (efficiency === null || efficiency === undefined) {
+            statusElement.textContent = 'Unknown';
+            return;
+        }
+        
+        if (efficiency < 30) {
+            statusElement.textContent = '🔴 Poor - Low heat recovery';
+        } else if (efficiency < 60) {
+            statusElement.textContent = '🟡 Fair - Moderate efficiency';
+        } else if (efficiency < 80) {
+            statusElement.textContent = '🟢 Good - Efficient operation';
+        } else {
+            statusElement.textContent = '💚 Excellent - Maximum efficiency';
+        }
+    }
+    
+

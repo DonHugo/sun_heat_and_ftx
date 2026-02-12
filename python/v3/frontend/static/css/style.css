@@ -754,6 +754,47 @@ body {
     50% { opacity: 0.7; }
 }
 
+/* Heat Exchanger Efficiency color ranges */
+.temp-value.eff-poor, .efficiency-display.eff-poor {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.temp-value.eff-fair, .efficiency-display.eff-fair {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.temp-value.eff-good, .efficiency-display.eff-good {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.temp-value.eff-excellent, .efficiency-display.eff-excellent {
+    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    color: white;
+    font-weight: bold;
+    animation: pulse-success 3s ease-in-out infinite;
+}
+
+@keyframes pulse-success {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+.efficiency-display {
+    font-size: 2em;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+
 .temp-item {
     position: relative;
     padding: 10px;
