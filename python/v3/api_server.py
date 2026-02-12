@@ -7,6 +7,7 @@ Issue #43: Added pydantic validation for input security
 """
 
 import json
+import logging
 import threading
 import time
 from datetime import datetime
@@ -24,6 +25,7 @@ from api_models import (
     ValidationErrorResponse
 )
 
+logger = logging.getLogger(__name__)
 class SolarHeatingAPI:
     """REST API server for Solar Heating System"""
     
