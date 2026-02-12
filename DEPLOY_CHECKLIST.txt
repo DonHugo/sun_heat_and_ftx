@@ -1,0 +1,76 @@
+╔════════════════════════════════════════════════════════════════╗
+║    Web GUI Deployment Checklist for Raspberry Pi              ║
+╚════════════════════════════════════════════════════════════════╝
+
+□ Step 1: SSH to Raspberry Pi
+  Command: ssh pi@raspberrypi.local
+
+□ Step 2: Navigate to project
+  Command: cd ~/sun_heat_and_ftx
+
+□ Step 3: Pull latest changes
+  Command: git pull
+  
+□ Step 4: Run setup script
+  Command: ./scripts/setup_web_gui.sh
+  Select: Option 1 (Start now + enable auto-start)
+
+□ Step 5: Verify services started
+  Command: sudo systemctl status solar_heating_web_gui
+  Expected: "active (running)" in green
+
+□ Step 6: Check API service
+  Command: sudo systemctl status solar_heating_api
+  Expected: "active (running)" in green
+
+□ Step 7: Test access from browser
+  URL: http://raspberrypi.local:8080
+  Expected: Dashboard loads with temperature data
+
+□ Step 8: Test dashboard features
+  - [ ] Temperature readings visible
+  - [ ] Switch to Manual mode
+  - [ ] Test pump start/stop buttons
+  - [ ] Test Emergency Stop
+  - [ ] Check Diagnostics tab
+
+□ Step 9: Verify auto-refresh
+  - [ ] Watch "Last Update" time in footer
+  - [ ] Should update every 5 seconds
+
+□ Step 10: Test from mobile phone
+  URL: http://raspberrypi.local:8080
+  Expected: Mobile-responsive layout
+
+════════════════════════════════════════════════════════════════
+
+🔍 QUICK TROUBLESHOOTING
+
+If web GUI doesn't load:
+  1. sudo systemctl status solar_heating_web_gui
+  2. journalctl -u solar_heating_web_gui -n 50
+  3. sudo systemctl restart solar_heating_web_gui
+
+If API not responding:
+  1. sudo systemctl status solar_heating_api
+  2. journalctl -u solar_heating_api -n 50
+  3. curl http://localhost:5001/api/status
+
+If buttons don't work:
+  1. Switch to Manual mode first
+  2. Check browser console (F12)
+  3. View API logs: journalctl -u solar_heating_api -n 50
+
+════════════════════════════════════════════════════════════════
+
+✅ DEPLOYMENT COMPLETE!
+
+Access: http://raspberrypi.local:8080
+
+Useful commands:
+  View logs:    journalctl -u solar_heating_web_gui -f
+  Restart GUI:  sudo systemctl restart solar_heating_web_gui
+  Restart API:  sudo systemctl restart solar_heating_api
+  Stop all:     sudo systemctl stop solar_heating_web_gui solar_heating_api
+
+════════════════════════════════════════════════════════════════
