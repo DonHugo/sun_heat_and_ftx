@@ -462,14 +462,34 @@ class TemperaturesAPI(Resource):
             temperatures = {}
             if hasattr(api_server.solar_system, 'get_temperatures'):
                 temperatures = api_server.solar_system.get_temperatures()
+                logger.info("TemperaturesAPI: Using get_temperatures() method")
+            elif hasattr(api_server.solar_system, 'temperatures'):
+                # Read from system's temperatures dictionary
+                temps = api_server.solar_system.temperatures
+                logger.info(f"TemperaturesAPI: Reading from temperatures dict. Sample keys: {list(temps.keys())[:5]}")
+                logger.info(f"TemperaturesAPI: storage_tank_temp={temps.get('storage_tank_temp')}, solar_collector_temp={temps.get('solar_collector_temp')}")
+                
+                temperatures = {
+                    "tank": round(temps.get('storage_tank_temp') or 0, 1),
+                    "solar_collector": round(temps.get('solar_collector_temp') or 0, 1),
+                    "ambient": round(temps.get('ambient_temp') or 0, 1),
+                    "heat_exchanger_in": round(temps.get('megabas_sensor_0') or 0, 1),
+                    "collector_in": round(temps.get('megabas_sensor_5') or 0, 1),
+                    "collector_out": round(temps.get('megabas_sensor_6') or 0, 1),
+                    "tank_top": round(temps.get('megabas_sensor_7') or 0, 1),
+                    "tank_middle": round(temps.get('megabas_sensor_8') or 0, 1),
+                    "tank_bottom": round(temps.get('megabas_sensor_9') or 0, 1)
+                }
             else:
                 # Fallback temperature data
+                logger.info("TemperaturesAPI: No temperature source available, using fallback data")
                 temperatures = {
                     "tank": 65.5,
                     "solar_collector": 72.1,
                     "ambient": 15.0,
                     "heat_exchanger_in": 68.9
                 }
+
             
             return {
                 "temperatures": temperatures,
