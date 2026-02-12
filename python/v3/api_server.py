@@ -78,9 +78,13 @@ class SolarHeatingAPI:
                 temperatures = {}
                 if hasattr(self.solar_system, 'get_temperatures'):
                     temperatures = self.solar_system.get_temperatures()
+                    logger.debug("Using get_temperatures() method")
                 elif hasattr(self.solar_system, 'temperatures'):
                     # Read from system's temperatures dictionary
                     temps = self.solar_system.temperatures
+                    logger.debug(f"Reading from temperatures dict. Keys: {list(temps.keys())[:10]}")
+                    logger.debug(f"storage_tank_temp={temps.get('storage_tank_temp')}, solar_collector_temp={temps.get('solar_collector_temp')}")
+                    
                     temperatures = {
                         "tank": round(temps.get('storage_tank_temp') or 0, 1),
                         "solar_collector": round(temps.get('solar_collector_temp') or 0, 1),
@@ -94,6 +98,7 @@ class SolarHeatingAPI:
                     }
                 else:
                     # Fallback temperature data
+                    logger.warning("No temperature source available, using fallback data")
                     temperatures = {
                         "tank": 65.5,
                         "solar_collector": 72.1,
