@@ -619,24 +619,7 @@ class SolarHeatingDashboard {
             textSpan.textContent = statusText;
         }
     }
-}
 
-// Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.dashboard = new SolarHeatingDashboard();
-});
-
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    if (window.dashboard) {
-        if (document.hidden) {
-            window.dashboard.stopAutoUpdate();
-        } else {
-            window.dashboard.startAutoUpdate();
-            window.dashboard.loadSystemData();
-        }
-    }
-});
     // Heat Exchanger Efficiency Display (replaces temperature)
     updateEfficiencyElement(elementId, efficiency) {
         const element = document.getElementById(elementId);
@@ -659,7 +642,7 @@ document.addEventListener('visibilitychange', () => {
         
         element.classList.add(effClass);
     }
-    
+
     // Heat Exchanger Efficiency Detail with tooltip
     updateEfficiencyDetail(elementId, temperatures) {
         const element = document.getElementById(elementId);
@@ -698,7 +681,7 @@ document.addEventListener('visibilitychange', () => {
             element.title = '';
         }
     }
-    
+
     // Heat Exchanger Efficiency Status
     updateEfficiencyStatus(sensorId, efficiency) {
         const statusElement = document.getElementById(`${sensorId}-status`);
@@ -719,5 +702,21 @@ document.addEventListener('visibilitychange', () => {
             statusElement.textContent = '💚 Excellent - Maximum efficiency';
         }
     }
-    
+}
 
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.dashboard = new SolarHeatingDashboard();
+});
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (window.dashboard) {
+        if (document.hidden) {
+            window.dashboard.stopAutoUpdate();
+        } else {
+            window.dashboard.startAutoUpdate();
+            window.dashboard.loadSystemData();
+        }
+    }
+});

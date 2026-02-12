@@ -99,8 +99,6 @@ class SolarHeatingAPI:
                         "tank_bottom": round(temps.get('megabas_sensor_9') or 0, 1),
                         # Heat exchanger efficiency and air temperatures
                         "heat_exchanger_efficiency": round(temps.get('heat_exchanger_efficiency') or 0, 1),
-                        # DEBUG: Log available heat exchanger keys
-                        **({'_debug_heat_ex_eff': temps.get('heat_exchanger_efficiency'), '_debug_outdoor': temps.get('outdoor_air_temp'), '_debug_avluft': temps.get('avluft'), '_debug_franluft': temps.get('franluft')} if False else {}),
                         "outdoor_air_temp": round(temps.get('outdoor_air_temp') or 0, 1),
                         "exhaust_air_temp": round(temps.get('exhaust_air_temp') or 0, 1),
                         "supply_air_temp": round(temps.get('supply_air_temp') or 0, 1),
