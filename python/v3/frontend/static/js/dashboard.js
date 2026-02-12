@@ -593,23 +593,6 @@ class SolarHeatingDashboard {
             }, 3000);
         }
     }
-}
-
-// Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.dashboard = new SolarHeatingDashboard();
-});
-
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    if (window.dashboard) {
-        if (document.hidden) {
-            window.dashboard.stopAutoUpdate();
-        } else {
-            window.dashboard.startAutoUpdate();
-            window.dashboard.loadSystemData();
-        }
-
     
     // UX Fix #3: Add status dots to status indicators
     updateStatusWithDot(elementId, statusText, dotClass) {
@@ -635,5 +618,21 @@ document.addEventListener('visibilitychange', () => {
         if (textSpan) {
             textSpan.textContent = statusText;
         }
-    }    }
+    }
+}
+
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.dashboard = new SolarHeatingDashboard();
 });
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (window.dashboard) {
+        if (document.hidden) {
+            window.dashboard.stopAutoUpdate();
+        } else {
+            window.dashboard.startAutoUpdate();
+            window.dashboard.loadSystemData();
+        }
+    }
