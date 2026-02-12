@@ -546,11 +546,6 @@ class SolarHeatingDashboard {
             return;
         }
 
-        if (!this.manualControlEnabled) {
-            this.showNotification('Switch to Manual mode to control the heater', 'warning');
-            this.updateHeaterToggle();
-            return;
-        }
 
         if (this.heaterPending || this.isHeaterLockedOut()) {
             const waitSeconds = this.getHeaterLockoutRemaining();
@@ -614,17 +609,14 @@ class SolarHeatingDashboard {
 
         toggle.checked = this.heaterState;
         const lockout = this.isHeaterLockedOut();
-        toggle.disabled = !this.manualControlEnabled || this.heaterPending || lockout;
+        toggle.disabled = this.heaterPending || lockout;
 
         const hintElement = document.getElementById('heater-toggle-hint');
         if (!hintElement) {
             return;
         }
 
-        if (!this.manualControlEnabled) {
-            hintElement.textContent = 'Switch to Manual mode to enable heater control.';
-            hintElement.className = 'heater-toggle-hint disabled';
-        } else if (this.heaterPending) {
+        if (this.heaterPending) {
             hintElement.textContent = 'Sending heater command...';
             hintElement.className = 'heater-toggle-hint info';
         } else if (lockout) {
