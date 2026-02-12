@@ -74,9 +74,24 @@ class SolarHeatingAPI:
                 system_state = self.solar_system.system_state.copy()
                 
                 # Get temperatures from main system
+                # Get temperatures from main system
                 temperatures = {}
                 if hasattr(self.solar_system, 'get_temperatures'):
                     temperatures = self.solar_system.get_temperatures()
+                elif hasattr(self.solar_system, 'temperatures'):
+                    # Read from system's temperatures dictionary
+                    temps = self.solar_system.temperatures
+                    temperatures = {
+                        "tank": round(temps.get('storage_tank_temp', 0), 1),
+                        "solar_collector": round(temps.get('solar_collector_temp', 0), 1),
+                        "ambient": round(temps.get('ambient_temp', 0), 1),
+                        "heat_exchanger_in": round(temps.get('megabas_sensor_0', 0), 1),
+                        "collector_in": round(temps.get('megabas_sensor_5', 0), 1),
+                        "collector_out": round(temps.get('megabas_sensor_6', 0), 1),
+                        "tank_top": round(temps.get('megabas_sensor_7', 0), 1),
+                        "tank_middle": round(temps.get('megabas_sensor_8', 0), 1),
+                        "tank_bottom": round(temps.get('megabas_sensor_9', 0), 1)
+                    }
                 else:
                     # Fallback temperature data
                     temperatures = {
@@ -85,7 +100,7 @@ class SolarHeatingAPI:
                         "ambient": 15.0,
                         "heat_exchanger_in": 68.9
                     }
-                
+
                 # Get MQTT status
                 mqtt_status = self._get_mqtt_status()
                 
