@@ -320,28 +320,115 @@ class SolarHeatingAPI:
                             "error_code": "MANUAL_CONTROL_REQUIRED"
                         }
                 
-                elif action == "emergency_stop":
-                    # Emergency stop should always work
+                elif action in ("heater_start", "heater_stop"):
+                    # Manual mode requirement
+                    if not self.solar_system.system_state.get('manual_control', False):
+                        return {
+                            "success": False,
+                            "error": "Manual control not enabled",
+                            "error_code": "MANUAL_CONTROL_REQUIRED"
+                        }
+                    
+                    # Read tank temperature for safety
+                    tank_temp = 0.0
+                    temps = getattr(self.solar_system, 'temperatures', {}) or {}
+                    if isinstance(temps, dict):
+                        tank_temp = temps.get('storage_tank_temp') or temps.get('tank') or temps.get('water_heater_peak_temp') or 0.0
+                    
+                    # Ensure float
+                    try:
+                        tank_temp = float(tank_temp)
+                    except (TypeError, ValueError):
+                        tank_temp = 0.0
+                    
+                    temp_limit = 80.0
+                    high_limit = getattr(self.solar_system, 'config', None)
+                    if high_limit and hasattr(high_limit, 'temperature_threshold_high'):
+                        temp_limit = high_limit.temperature_threshold_high
+                    else:
+                        try:
+                            from config import config as global_config
+                            temp_limit = getattr(global_config, 'temperature_threshold_high', 80.0)
+                        except ImportError:
+                            temp_limit = 80.0
+                    
+                    if tank_temp >= temp_limit:
+                        return {
+                            "success": False,
+                            "error": f"Tank temperature too high ({tank_temp:.1f}°C) - heater disabled for safety",
+                            "error_code": "HEATER_TEMP_LIMIT"
+                        }
+                    
+                    # Initialize anti-cycling timer
+                    if not hasattr(self, 'last_heater_command'):
+                        self.last_heater_command = 0
+                    
+                    current_time = time.time()
+                    lockout_seconds = 5
+                    elapsed = current_time - getattr(self, 'last_heater_command', 0)
+                    if elapsed < lockout_seconds:
+                        wait_seconds = int(round(lockout_seconds - elapsed)) or 1
+                        return {
+                            "success": False,
+                            "error": f"Please wait {wait_seconds} seconds before controlling heater again",
+                            "error_code": "HEATER_LOCKOUT"
+                        }
+                    
+                    heater_on_requested = action == "heater_start"
+                    current_state = self.solar_system.system_state.get('cartridge_heater', False)
+                    if heater_on_requested and current_state:
+                        return {
+                            "success": True,
+                            "message": "Heater already running",
+                            "system_state": {
+                                "cartridge_heater": True
+                            }
+                        }
+                    if not heater_on_requested and not current_state:
+                        return {
+                            "success": True,
+                            "message": "Heater already stopped",
+                            "system_state": {
+                                "cartridge_heater": False
+                            }
+                        }
+                    
+                    # Control hardware relay with NC logic
+                    relay_channel = 2
+                    config_obj = getattr(self.solar_system, 'config', None)
+                    if config_obj and hasattr(config_obj, 'pump_config'):
+                        relay_channel = getattr(config_obj.pump_config, 'cartridge_heater_relay', relay_channel)
+                    elif config_obj and hasattr(config_obj, 'cartridge_heater_relay'):
+                        relay_channel = config_obj.cartridge_heater_relay
+                    else:
+                        try:
+                            from config import config as global_config
+                            relay_channel = getattr(global_config, 'cartridge_heater_relay', 2)
+                        except ImportError:
+                            relay_channel = 2
+                    
+                    relay_state = not heater_on_requested  # NC relay: False energizes (ON)
                     if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
-                        self.solar_system.hardware.set_relay_state(1, True)  # Turn off pump
+                        self.solar_system.hardware.set_relay_state(relay_channel, relay_state)
                     
-                    # Update system state
-                    self.solar_system.system_state['primary_pump'] = False
-                    self.solar_system.system_state['cartridge_heater'] = False
-                    self.solar_system.system_state['mode'] = 'auto'
-                    self.solar_system.system_state['manual_control'] = False
+                    # Update state
+                    self.solar_system.system_state['cartridge_heater'] = heater_on_requested
+                    self.solar_system.system_state['cartridge_heater_manual'] = heater_on_requested
+                    self.last_heater_command = current_time
                     
-                    # Publish to MQTT
-                    self._publish_mqtt("homeassistant/switch/solar_heating_pump/state", "OFF")
-                    self._publish_mqtt("homeassistant/select/solar_heating_mode/state", "Auto")
+                    # Publish MQTT command to HA
+                    heater_topic = "homeassistant/switch/solar_heating_cartridge_heater/state"
+                    mqtt_payload = "ON" if heater_on_requested else "OFF"
+                    self._publish_mqtt(heater_topic, mqtt_payload)
+                    control_topic = "homeassistant/switch/solar_heating_cartridge_heater/set"
+                    self._publish_mqtt(control_topic, mqtt_payload)
                     
+                    message = "Cartridge heater started" if heater_on_requested else "Cartridge heater stopped"
                     return {
                         "success": True,
-                        "message": "Emergency stop activated",
+                        "message": message,
                         "system_state": {
-                            "primary_pump": False,
-                            "cartridge_heater": False,
-                            "mode": "auto"
+                            "cartridge_heater": heater_on_requested
                         }
                     }
                 
@@ -354,6 +441,12 @@ class SolarHeatingAPI:
                     "error": f"Control failed: {str(e)}",
                     "error_code": "SYSTEM_ERROR"
                 }
+        # Fallback response (should not be reached)
+        return {
+            "success": False,
+            "error": "Invalid control action",
+            "error_code": "INVALID_ACTION"
+        }
     
     def set_system_mode(self, mode: str) -> Dict[str, Any]:
         """
@@ -410,6 +503,8 @@ class SolarHeatingAPI:
 
 # API Resource Classes
 class SystemStatusAPI(Resource):
+    _api_server = None
+
     def get(self):
         """GET /api/status"""
         api_server = getattr(SystemStatusAPI, '_api_server', None)
@@ -420,6 +515,8 @@ class SystemStatusAPI(Resource):
 
 
 class ControlAPI(Resource):
+    _api_server = None
+
     @validate_request(ControlRequest)
     def post(self, validated_data):
         """
@@ -439,6 +536,8 @@ class ControlAPI(Resource):
 
 
 class ModeAPI(Resource):
+    _api_server = None
+
     @validate_request(ModeRequest)
     def post(self, validated_data):
         """
@@ -458,6 +557,8 @@ class ModeAPI(Resource):
 
 
 class TemperaturesAPI(Resource):
+    _api_server = None
+
     def get(self):
         """GET /api/temperatures"""
         api_server = getattr(TemperaturesAPI, '_api_server', None)
@@ -512,6 +613,8 @@ class TemperaturesAPI(Resource):
 
 
 class MQTTAPI(Resource):
+    _api_server = None
+
     def get(self):
         """GET /api/mqtt"""
         api_server = getattr(MQTTAPI, '_api_server', None)

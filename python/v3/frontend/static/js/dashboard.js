@@ -12,6 +12,12 @@ class SolarHeatingDashboard {
         this.isLoading = false;
         this.configLoaded = false;
         
+        this.heaterToggle = null;
+        this.manualControlEnabled = false;
+        this.heaterState = false;
+        this.heaterPending = false;
+        this.heaterLockoutUntil = 0;
+        this.heaterLockoutTimer = null;
         this.init();
     }
     
@@ -70,9 +76,15 @@ class SolarHeatingDashboard {
             this.controlPump('stop');
         });
         
-        document.getElementById('emergency-stop-btn')?.addEventListener('click', () => {
-            this.emergencyStop();
-        });
+        // Heater toggle control
+        this.heaterToggle = document.getElementById('heater-toggle');
+        if (this.heaterToggle) {
+            this.heaterToggle.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                const action = checked ? 'heater_start' : 'heater_stop';
+                this.controlHeater(action, checked);
+            });
+        }
         
         // Control tab buttons
         document.getElementById('control-pump-start')?.addEventListener('click', () => {
@@ -83,9 +95,7 @@ class SolarHeatingDashboard {
             this.controlPump('stop');
         });
         
-        document.getElementById('control-emergency-stop')?.addEventListener('click', () => {
-            this.emergencyStop();
-        });
+
         
         // Mode buttons
         document.querySelectorAll('[data-mode]').forEach(button => {
@@ -209,6 +219,14 @@ class SolarHeatingDashboard {
                 button.classList.remove('active');
             }
         });
+
+        // Update manual mode UI + heater toggle state
+        this.manualControlEnabled = Boolean(data.system_state?.manual_control ?? (mode === 'manual'));
+        const actualHeaterState = Boolean(data.system_state?.cartridge_heater);
+        if (!this.heaterPending) {
+            this.heaterState = actualHeaterState;
+        }
+        this.updateHeaterToggle();
         
         // Update hardware status from diagnostics
         if (data.hardware_status) {
@@ -506,33 +524,137 @@ class SolarHeatingDashboard {
             this.hideLoading();
         }
     }
-    
-    async emergencyStop() {
-        if (!confirm('Are you sure you want to perform an emergency stop? This will turn off all systems and reset to auto mode.')) {
+
+    async controlHeater(action, optimisticState) {
+        if (!this.heaterToggle) {
             return;
         }
-        
-        try {
-            this.showLoading();
-            
-            const response = await this.apiRequest('POST', '/control', {
-                action: 'emergency_stop'
-            });
-            
-            if (response.success) {
-                this.showNotification('Emergency stop activated', 'warning');
-                // Refresh system data
-                setTimeout(() => this.loadSystemData(), 1000);
-            } else {
-                this.showNotification(`Emergency stop failed: ${response.error}`, 'error');
-            }
-            
-        } catch (error) {
-            console.error(`Error performing emergency stop:`, error);
-            this.showNotification(`Emergency stop failed: ${error.message}`, 'error');
-        } finally {
-            this.hideLoading();
+
+        if (!this.manualControlEnabled) {
+            this.showNotification('Switch to Manual mode to control the heater', 'warning');
+            this.updateHeaterToggle();
+            return;
         }
+
+        if (this.heaterPending || this.isHeaterLockedOut()) {
+            const waitSeconds = this.getHeaterLockoutRemaining();
+            if (waitSeconds > 0) {
+                this.showNotification(`Please wait ${waitSeconds}s before toggling the heater`, 'warning');
+            }
+            this.updateHeaterToggle();
+            return;
+        }
+
+        const friendlyAction = action === 'heater_start' ? 'start' : 'stop';
+        this.heaterPending = true;
+        this.heaterState = optimisticState;
+        this.updateHeaterToggle();
+
+        try {
+            const response = await this.apiRequest('POST', '/control', { action });
+
+            if (response.success) {
+                const message = action === 'heater_start' ? 'Cartridge heater started' : 'Cartridge heater stopped';
+                this.showNotification(message, 'success');
+                this.startHeaterLockout(5);
+                setTimeout(() => this.loadSystemData(), 1000);
+            } else if (response.error_code) {
+                throw response;
+            } else {
+                throw new Error(response.error || 'Heater control failed');
+            }
+        } catch (error) {
+            console.error('Error controlling heater:', error);
+            this.heaterState = !optimisticState;
+
+            let message = `Failed to ${friendlyAction} heater`;
+            const errorCode = error?.error_code;
+            if (errorCode === 'MANUAL_CONTROL_REQUIRED') {
+                message = 'Switch to Manual mode to control the heater';
+                this.manualControlEnabled = false;
+            } else if (errorCode === 'HEATER_TEMP_LIMIT') {
+                message = error.error;
+            } else if (errorCode === 'HEATER_LOCKOUT') {
+                message = error.error;
+                const waitSeconds = this.extractSeconds(error.error) || 5;
+                this.startHeaterLockout(waitSeconds);
+            } else if (error?.error) {
+                message = error.error;
+            } else if (error instanceof Error) {
+                message = error.message;
+            }
+            this.showNotification(message, errorCode ? 'warning' : 'error');
+        } finally {
+            this.heaterPending = false;
+            this.updateHeaterToggle();
+        }
+    }
+
+    updateHeaterToggle() {
+        const toggle = this.heaterToggle;
+        if (!toggle) {
+            return;
+        }
+
+        toggle.checked = this.heaterState;
+        const lockout = this.isHeaterLockedOut();
+        toggle.disabled = !this.manualControlEnabled || this.heaterPending || lockout;
+
+        const hintElement = document.getElementById('heater-toggle-hint');
+        if (!hintElement) {
+            return;
+        }
+
+        if (!this.manualControlEnabled) {
+            hintElement.textContent = 'Switch to Manual mode to enable heater control.';
+            hintElement.className = 'heater-toggle-hint disabled';
+        } else if (this.heaterPending) {
+            hintElement.textContent = 'Sending heater command...';
+            hintElement.className = 'heater-toggle-hint info';
+        } else if (lockout) {
+            const seconds = this.getHeaterLockoutRemaining();
+            hintElement.textContent = `Cooldown in effect. Please wait ${seconds}s.`;
+            hintElement.className = 'heater-toggle-hint warning';
+        } else {
+            const stateText = toggle.checked ? 'Heater is ON. Toggle to stop heating.' : 'Heater is OFF. Toggle to start heating.';
+            hintElement.textContent = stateText;
+            hintElement.className = 'heater-toggle-hint active';
+        }
+    }
+
+    startHeaterLockout(seconds = 5) {
+        this.heaterLockoutUntil = Date.now() + seconds * 1000;
+        if (this.heaterLockoutTimer) {
+            clearInterval(this.heaterLockoutTimer);
+        }
+
+        this.heaterLockoutTimer = setInterval(() => {
+            if (!this.isHeaterLockedOut()) {
+                clearInterval(this.heaterLockoutTimer);
+                this.heaterLockoutTimer = null;
+                this.updateHeaterToggle();
+            } else {
+                this.updateHeaterToggle();
+            }
+        }, 1000);
+        this.updateHeaterToggle();
+    }
+
+    isHeaterLockedOut() {
+        return Date.now() < this.heaterLockoutUntil;
+    }
+
+    getHeaterLockoutRemaining() {
+        if (!this.isHeaterLockedOut()) {
+            return 0;
+        }
+        return Math.max(0, Math.ceil((this.heaterLockoutUntil - Date.now()) / 1000));
+    }
+
+    extractSeconds(message) {
+        if (!message) return null;
+        const match = message.match(/(\d+)/);
+        return match ? Number(match[1]) : null;
     }
     
     startAutoUpdate() {

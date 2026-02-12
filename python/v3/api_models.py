@@ -13,16 +13,18 @@ from datetime import datetime
 # ============================================================
 class ControlAction(str, Enum):
     """
-    Valid control actions for pump control
+    Valid control actions for manual controls
     
     Values:
         PUMP_START: Start the solar heating pump
         PUMP_STOP: Stop the solar heating pump
-        EMERGENCY_STOP: Emergency stop all systems
+        HEATER_START: Energize cartridge heater relay (NC logic)
+        HEATER_STOP: De-energize cartridge heater relay
     """
     PUMP_START = "pump_start"
     PUMP_STOP = "pump_stop"
-    EMERGENCY_STOP = "emergency_stop"
+    HEATER_START = "heater_start"
+    HEATER_STOP = "heater_stop"
 class SystemMode(str, Enum):
     """
     Valid system operating modes

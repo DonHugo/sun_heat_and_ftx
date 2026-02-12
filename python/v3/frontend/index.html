@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/style.css?v=5">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -140,7 +140,18 @@
                     <div class="control-buttons">
                         <button class="btn btn-primary" id="pump-start-btn">Start Pump</button>
                         <button class="btn btn-secondary" id="pump-stop-btn">Stop Pump</button>
-                        <button class="btn btn-danger" id="emergency-stop-btn">Emergency Stop</button>
+                    </div>
+
+                    <!-- Heater Toggle Switch -->
+                    <div class="heater-control-container">
+                        <div class="heater-toggle-label">
+                            <span class="heater-label-text" id="heater-toggle-text">🔥 Cartridge Heater</span>
+                            <label class="toggle-switch" for="heater-toggle">
+                                <input type="checkbox" id="heater-toggle" disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="heater-toggle-hint" id="heater-toggle-hint">Switch to Manual mode to enable heater control.</p>
                     </div>
                 </div>
 
@@ -347,7 +358,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=4"></script>
+    <script src="static/js/dashboard.js?v=5"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->

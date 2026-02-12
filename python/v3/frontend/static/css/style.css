@@ -267,6 +267,117 @@ body {
     box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
+/* Heater toggle styles */
+.heater-control-container {
+    margin-top: 25px;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(231, 76, 60, 0.15);
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(241, 196, 15, 0.05) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.heater-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.heater-label-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #c0392b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.heater-toggle-hint {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 58px;
+    height: 32px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #bdc3c7;
+    transition: 0.3s;
+    border-radius: 34px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-slider::before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #e67e22, #e74c3c);
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 1px rgba(231, 76, 60, 0.6);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(26px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.heater-toggle-hint {
+    padding-left: 4px;
+}
+
+.heater-toggle-hint.disabled {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.heater-toggle-hint.warning {
+    color: #e67e22;
+}
+
+.heater-toggle-hint.info {
+    color: #2980b9;
+}
+
+.heater-toggle-hint.active {
+    color: #27ae60;
+    font-weight: 600;
+}
+
 /* Mode Buttons */
 .mode-buttons {
     display: flex;
@@ -1119,4 +1230,3 @@ body {
         font-size: 1.5rem;
     }
 }
-
