@@ -31,12 +31,23 @@ STATIC_DIR = FRONTEND_DIR / 'static'
 
 # Check if running on Raspberry Pi (production) or development
 def is_raspberry_pi():
+def is_raspberry_pi():
     """Check if running on Raspberry Pi"""
     try:
+        # Check /proc/device-tree/model first (most reliable)
+        try:
+            with open('/proc/device-tree/model', 'r') as f:
+                return 'Raspberry Pi' in f.read()
+        except:
+            pass
+        
+        # Fallback to /proc/cpuinfo (older method)
         with open('/proc/cpuinfo', 'r') as f:
-            return 'BCM' in f.read()  # BCM = Broadcom chip (Raspberry Pi)
+            content = f.read()
+            return 'BCM' in content or 'Raspberry Pi' in content
     except:
         return False
+
 
 IS_PRODUCTION = is_raspberry_pi()
 
