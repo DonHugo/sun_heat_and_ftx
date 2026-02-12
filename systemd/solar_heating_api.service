@@ -1,0 +1,28 @@
+[Unit]
+Description=Solar Heating System v3 - API Server
+After=network.target solar_heating_v3.service
+Wants=solar_heating_v3.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/sun_heat_and_ftx/python/v3
+ExecStart=/usr/bin/python3 /home/pi/sun_heat_and_ftx/python/v3/run_api_server.py
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=solar_heating_api
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/tmp/solar_heating
+
+[Install]
+WantedBy=multi-user.target

@@ -5,16 +5,21 @@
 
 class SolarHeatingDashboard {
     constructor() {
-        this.apiBaseUrl = 'http://localhost:5001/api';
-        this.updateInterval = 5000; // 5 seconds
+        // API configuration will be loaded dynamically
+        this.apiBaseUrl = null;
+        this.updateInterval = 5000; // 5 seconds (default)
         this.updateTimer = null;
         this.isLoading = false;
+        this.configLoaded = false;
         
         this.init();
     }
     
-    init() {
+    async init() {
         console.log('🌞 Solar Heating Dashboard v3 - Initializing...');
+        
+        // Load configuration first
+        await this.loadConfig();
         
         // Setup event listeners
         this.setupEventListeners();
@@ -23,12 +28,33 @@ class SolarHeatingDashboard {
         this.setupTabNavigation();
         
         // Initial data load
-        this.loadSystemData();
+        await this.loadSystemData();
         
         // Start auto-update
         this.startAutoUpdate();
         
         console.log('✅ Dashboard initialized successfully');
+    }
+    
+    async loadConfig() {
+        try {
+            // Fetch configuration from web server
+            const response = await fetch('/api/config');
+            const config = await response.json();
+            
+            this.apiBaseUrl = config.api_base_url;
+            this.updateInterval = config.update_interval || 5000;
+            
+            console.log('Configuration loaded:', config);
+            console.log('API Base URL:', this.apiBaseUrl);
+            
+            this.configLoaded = true;
+        } catch (error) {
+            console.error('Failed to load configuration, using defaults:', error);
+            // Fallback to localhost if config fails
+            this.apiBaseUrl = 'http://localhost:5001/api';
+            this.configLoaded = true;
+        }
     }
     
     setupEventListeners() {
@@ -87,37 +113,48 @@ class SolarHeatingDashboard {
     }
     
     async loadSystemData() {
-        if (this.isLoading) return;
+        if (this.isLoading || !this.configLoaded) return;
         
         this.isLoading = true;
-        this.showLoading();
         
         try {
             // Load system status
             const statusResponse = await this.apiRequest('GET', '/status');
-            this.updateSystemStatus(statusResponse);
+            if (statusResponse) {
+                this.updateSystemStatus(statusResponse);
+            }
             
             // Load temperatures
             const tempResponse = await this.apiRequest('GET', '/temperatures');
-            this.updateTemperatures(tempResponse);
+            if (tempResponse) {
+                this.updateTemperatures(tempResponse);
+            }
             
             // Load MQTT status
             const mqttResponse = await this.apiRequest('GET', '/mqtt');
-            this.updateMQTTStatus(mqttResponse);
+            if (mqttResponse) {
+                this.updateMQTTStatus(mqttResponse);
+            }
             
-            this.hideLoading();
-            this.showNotification('System data updated successfully', 'success');
+            // Update API status indicator
+            document.getElementById('api-status').textContent = 'Connected';
+            document.getElementById('api-status').className = 'value connected';
             
         } catch (error) {
             console.error('Error loading system data:', error);
-            this.hideLoading();
-            this.showNotification('Failed to load system data', 'error');
+            document.getElementById('api-status').textContent = 'Disconnected';
+            document.getElementById('api-status').className = 'value disconnected';
+            this.showNotification('Failed to connect to API server', 'error');
         } finally {
             this.isLoading = false;
         }
     }
     
     async apiRequest(method, endpoint, data = null) {
+        if (!this.configLoaded) {
+            throw new Error('Configuration not loaded yet');
+        }
+        
         const url = `${this.apiBaseUrl}${endpoint}`;
         const options = {
             method: method,
@@ -142,9 +179,11 @@ class SolarHeatingDashboard {
     updateSystemStatus(data) {
         // Update system mode
         const mode = data.system_state?.mode || 'unknown';
-        document.getElementById('system-mode').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
-        document.getElementById('current-mode').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
-        document.getElementById('control-current-mode').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+        const modeDisplay = mode.charAt(0).toUpperCase() + mode.slice(1);
+        
+        document.getElementById('system-mode').textContent = modeDisplay;
+        document.getElementById('current-mode').textContent = modeDisplay;
+        document.getElementById('control-current-mode').textContent = modeDisplay;
         
         // Update pump status
         const pumpStatus = data.system_state?.primary_pump ? 'ON' : 'OFF';
@@ -165,6 +204,20 @@ class SolarHeatingDashboard {
             }
         });
         
+        // Update hardware status from diagnostics
+        if (data.hardware_status) {
+            document.getElementById('rtd-status').textContent = data.hardware_status.rtd_boards || 'Unknown';
+            document.getElementById('relay-status').textContent = data.hardware_status.relays || 'Unknown';
+            document.getElementById('sensor-status').textContent = data.hardware_status.sensors || 'Unknown';
+        }
+        
+        // Update service status
+        if (data.service_status) {
+            document.getElementById('solar-service-status').textContent = data.service_status.solar_heating_v3 || 'unknown';
+            document.getElementById('mqtt-service-status').textContent = data.service_status.mqtt || 'unknown';
+            document.getElementById('watchdog-service-status').textContent = data.service_status.solar_heating_watchdog || 'unknown';
+        }
+        
         // Update last update time
         document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
     }
@@ -173,16 +226,16 @@ class SolarHeatingDashboard {
         const temperatures = data.temperatures || {};
         
         // Update dashboard temperatures
-        document.getElementById('temp-tank').textContent = `${temperatures.tank || '--'}°C`;
-        document.getElementById('temp-collector').textContent = `${temperatures.solar_collector || '--'}°C`;
-        document.getElementById('temp-ambient').textContent = `${temperatures.ambient || '--'}°C`;
-        document.getElementById('temp-heat-exchanger').textContent = `${temperatures.heat_exchanger_in || '--'}°C`;
+        document.getElementById('temp-tank').textContent = `${temperatures.tank?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-collector').textContent = `${temperatures.solar_collector?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-ambient').textContent = `${temperatures.ambient?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-heat-exchanger').textContent = `${temperatures.heat_exchanger_in?.toFixed(1) || '--'}°C`;
         
         // Update temperature tab details
-        document.getElementById('temp-tank-detail').textContent = `${temperatures.tank || '--'}°C`;
-        document.getElementById('temp-collector-detail').textContent = `${temperatures.solar_collector || '--'}°C`;
-        document.getElementById('temp-ambient-detail').textContent = `${temperatures.ambient || '--'}°C`;
-        document.getElementById('temp-heat-exchanger-detail').textContent = `${temperatures.heat_exchanger_in || '--'}°C`;
+        document.getElementById('temp-tank-detail').textContent = `${temperatures.tank?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-collector-detail').textContent = `${temperatures.solar_collector?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-ambient-detail').textContent = `${temperatures.ambient?.toFixed(1) || '--'}°C`;
+        document.getElementById('temp-heat-exchanger-detail').textContent = `${temperatures.heat_exchanger_in?.toFixed(1) || '--'}°C`;
         
         // Update temperature status indicators
         this.updateTemperatureStatus('tank', temperatures.tank);
@@ -362,15 +415,19 @@ class SolarHeatingDashboard {
                 switch (type) {
                     case 'success':
                         icon.textContent = '✅';
+                        toast.style.background = 'rgba(39, 174, 96, 0.95)';
                         break;
                     case 'error':
                         icon.textContent = '❌';
+                        toast.style.background = 'rgba(231, 76, 60, 0.95)';
                         break;
                     case 'warning':
                         icon.textContent = '⚠️';
+                        toast.style.background = 'rgba(243, 156, 18, 0.95)';
                         break;
                     default:
                         icon.textContent = 'ℹ️';
+                        toast.style.background = 'rgba(52, 152, 219, 0.95)';
                 }
             }
             
