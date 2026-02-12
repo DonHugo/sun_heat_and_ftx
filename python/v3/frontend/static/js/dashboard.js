@@ -34,6 +34,9 @@ class SolarHeatingDashboard {
         this.startAutoUpdate();
         
         console.log('✅ Dashboard initialized successfully');
+        
+        // Hide loading overlay after initial load
+        this.hideLoading();
     }
     
     async loadConfig() {
