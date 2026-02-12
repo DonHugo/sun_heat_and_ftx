@@ -137,21 +137,27 @@
                 <!-- Quick Controls -->
                 <div class="card">
                     <h3>⚡ Quick Controls</h3>
-                    <div class="control-buttons">
-                        <button class="btn btn-primary" id="pump-start-btn">Start Pump</button>
-                        <button class="btn btn-secondary" id="pump-stop-btn">Stop Pump</button>
-                    </div>
-
-                    <!-- Heater Toggle Switch -->
-                    <div class="heater-control-container">
-                        <div class="heater-toggle-label">
-                            <span class="heater-label-text" id="heater-toggle-text">🔥 Cartridge Heater</span>
-                            <label class="toggle-switch" for="heater-toggle">
-                                <input type="checkbox" id="heater-toggle" disabled>
+                    
+                    <!-- Pump Toggle Switch -->
+                    <div class="toggle-control-container">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">💧 Primary Pump</span>
+                            <label class="toggle-switch" for="pump-toggle">
+                                <input type="checkbox" id="pump-toggle">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                        <p class="heater-toggle-hint" id="heater-toggle-hint">Switch to Manual mode to enable heater control.</p>
+                    </div>
+
+                    <!-- Heater Toggle Switch -->
+                    <div class="toggle-control-container">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">🔥 Cartridge Heater</span>
+                            <label class="toggle-switch" for="heater-toggle">
+                                <input type="checkbox" id="heater-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -358,7 +364,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=5"></script>
+    <script src="static/js/dashboard.js?v=6"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->

@@ -266,69 +266,46 @@ class SolarHeatingAPI:
         with self.lock:
             try:
                 if action == "pump_start":
-                    if self.solar_system.system_state.get('manual_control', False):
-                        # Control pump hardware
-                        if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
-                            self.solar_system.hardware.set_relay_state(1, False)  # Assuming relay 1 for pump
-                        
-                        # Update system state
-                        self.solar_system.system_state['primary_pump'] = True
-                        self.solar_system.system_state['primary_pump_manual'] = True
-                        
-                        # Publish to MQTT
-                        self._publish_mqtt("homeassistant/switch/solar_heating_pump/state", "ON")
-                        
-                        return {
-                            "success": True,
-                            "message": "Pump started successfully",
-                            "system_state": {
-                                "primary_pump": True,
-                                "mode": "manual"
-                            }
+                    # Control pump hardware
+                    if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
+                        self.solar_system.hardware.set_relay_state(1, False)  # Relay 1 for pump
+                    
+                    # Update system state
+                    self.solar_system.system_state['primary_pump'] = True
+                    self.solar_system.system_state['primary_pump_manual'] = True
+                    
+                    # Publish to MQTT
+                    self._publish_mqtt("homeassistant/switch/solar_heating_pump/state", "ON")
+                    
+                    return {
+                        "success": True,
+                        "message": "Pump started successfully",
+                        "system_state": {
+                            "primary_pump": True
                         }
-                    else:
-                        return {
-                            "success": False,
-                            "error": "Manual control not enabled",
-                            "error_code": "MANUAL_CONTROL_REQUIRED"
-                        }
+                    }
                 
                 elif action == "pump_stop":
-                    if self.solar_system.system_state.get('manual_control', False):
-                        # Control pump hardware
-                        if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
-                            self.solar_system.hardware.set_relay_state(1, True)  # Assuming relay 1 for pump
-                        
-                        # Update system state
-                        self.solar_system.system_state['primary_pump'] = False
-                        self.solar_system.system_state['primary_pump_manual'] = False
-                        
-                        # Publish to MQTT
-                        self._publish_mqtt("homeassistant/switch/solar_heating_pump/state", "OFF")
-                        
-                        return {
-                            "success": True,
-                            "message": "Pump stopped successfully",
-                            "system_state": {
-                                "primary_pump": False
-                            }
+                    # Control pump hardware
+                    if hasattr(self.solar_system, 'hardware') and self.solar_system.hardware:
+                        self.solar_system.hardware.set_relay_state(1, True)  # Relay 1 for pump
+                    
+                    # Update system state
+                    self.solar_system.system_state['primary_pump'] = False
+                    self.solar_system.system_state['primary_pump_manual'] = False
+                    
+                    # Publish to MQTT
+                    self._publish_mqtt("homeassistant/switch/solar_heating_pump/state", "OFF")
+                    
+                    return {
+                        "success": True,
+                        "message": "Pump stopped successfully",
+                        "system_state": {
+                            "primary_pump": False
                         }
-                    else:
-                        return {
-                            "success": False,
-                            "error": "Manual control not enabled",
-                            "error_code": "MANUAL_CONTROL_REQUIRED"
-                        }
+                    }
                 
                 elif action in ("heater_start", "heater_stop"):
-                    # Manual mode requirement
-                    if not self.solar_system.system_state.get('manual_control', False):
-                        return {
-                            "success": False,
-                            "error": "Manual control not enabled",
-                            "error_code": "MANUAL_CONTROL_REQUIRED"
-                        }
-                    
                     # Read tank temperature for safety
                     tank_temp = 0.0
                     temps = getattr(self.solar_system, 'temperatures', {}) or {}

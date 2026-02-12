@@ -340,7 +340,7 @@ body {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background: linear-gradient(135deg, #e67e22, #e74c3c);
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
 }
 
 .toggle-switch input:focus + .toggle-slider {

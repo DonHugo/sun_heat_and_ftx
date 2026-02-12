@@ -67,14 +67,15 @@ class SolarHeatingDashboard {
     }
     
     setupEventListeners() {
-        // Pump control buttons
-        document.getElementById('pump-start-btn')?.addEventListener('click', () => {
-            this.controlPump('start');
-        });
-        
-        document.getElementById('pump-stop-btn')?.addEventListener('click', () => {
-            this.controlPump('stop');
-        });
+        // Pump toggle control
+        this.pumpToggle = document.getElementById('pump-toggle');
+        if (this.pumpToggle) {
+            this.pumpToggle.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                const action = checked ? 'start' : 'stop';
+                this.controlPump(action, checked);
+            });
+        }
         
         // Heater toggle control
         this.heaterToggle = document.getElementById('heater-toggle');
@@ -479,27 +480,42 @@ class SolarHeatingDashboard {
         document.getElementById('ha-connection').className = `status-value ${connected ? 'connected' : 'disconnected'}`;
     }
     
-    async controlPump(action) {
+    async controlPump(action, optimisticState = null) {
+        // Optimistically update toggle if state provided
+        const pumpToggle = document.getElementById('pump-toggle');
+        const prevToggleState = pumpToggle ? pumpToggle.checked : null;
+        
+        if (optimisticState !== null && pumpToggle) {
+            pumpToggle.checked = optimisticState;
+        }
+        
         try {
-            this.showLoading();
-            
+            const apiAction = action === 'start' ? 'pump_start' : 'pump_stop';
             const response = await this.apiRequest('POST', '/control', {
-                action: action === 'start' ? 'pump_start' : 'pump_stop'
+                action: apiAction
             });
             
-            if (response.success) {
-                this.showNotification(`Pump ${action} successful`, 'success');
-                // Refresh system data
-                setTimeout(() => this.loadSystemData(), 1000);
+            if (response && response.success) {
+                this.showNotification(response.message || `Pump ${action}ed successfully`, 'success');
+                
+                // Update toggle to match actual state
+                if (pumpToggle && response.system_state) {
+                    pumpToggle.checked = response.system_state.primary_pump || false;
+                }
+                
+                // Refresh system state
+                this.loadSystemData();
             } else {
-                this.showNotification(`Pump ${action} failed: ${response.error}`, 'error');
+                throw new Error(response?.error || 'Control failed');
             }
-            
         } catch (error) {
             console.error(`Error controlling pump:`, error);
-            this.showNotification(`Pump ${action} failed: ${error.message}`, 'error');
-        } finally {
-            this.hideLoading();
+            this.showNotification(error.message || `Failed to ${action} pump`, 'error');
+            
+            // Revert toggle on error
+            if (prevToggleState !== null && pumpToggle) {
+                pumpToggle.checked = prevToggleState;
+            }
         }
     }
     
