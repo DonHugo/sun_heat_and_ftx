@@ -636,3 +636,4 @@ document.addEventListener('visibilitychange', () => {
             window.dashboard.loadSystemData();
         }
     }
+});
