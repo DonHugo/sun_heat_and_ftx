@@ -90,8 +90,8 @@ class SolarHeatingAPI:
                     temperatures = {
                         "tank": round(temps.get('storage_tank_temp') or 0, 1),
                         "solar_collector": round(temps.get('solar_collector_temp') or 0, 1),
-                        "ambient": round(temps.get('ambient_temp') or 0, 1),
-                        "heat_exchanger_in": round(temps.get('megabas_sensor_0') or 0, 1),
+                        "ambient": round(temps.get('megabas_sensor_1') or 0, 1),
+                        "heat_exchanger_in": round(temps.get('megabas_sensor_1') or 0, 1),
                         "collector_in": round(temps.get('megabas_sensor_5') or 0, 1),
                         "collector_out": round(temps.get('megabas_sensor_6') or 0, 1),
                         "tank_top": round(temps.get('megabas_sensor_7') or 0, 1),
@@ -472,8 +472,8 @@ class TemperaturesAPI(Resource):
                 temperatures = {
                     "tank": round(temps.get('storage_tank_temp') or 0, 1),
                     "solar_collector": round(temps.get('solar_collector_temp') or 0, 1),
-                    "ambient": round(temps.get('ambient_temp') or 0, 1),
-                    "heat_exchanger_in": round(temps.get('megabas_sensor_0') or 0, 1),
+                    "ambient": round(temps.get('megabas_sensor_1') or 0, 1),
+                    "heat_exchanger_in": round(temps.get('megabas_sensor_1') or 0, 1),
                     "collector_in": round(temps.get('megabas_sensor_5') or 0, 1),
                     "collector_out": round(temps.get('megabas_sensor_6') or 0, 1),
                     "tank_top": round(temps.get('megabas_sensor_7') or 0, 1),
