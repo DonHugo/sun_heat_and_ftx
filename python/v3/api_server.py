@@ -354,7 +354,7 @@ class SolarHeatingAPI:
         Set system mode
         
         Note: mode parameter is pre-validated by pydantic (Issue #43)
-        Only valid modes (auto, manual, eco) can reach this method
+        Only valid modes (auto, manual) can reach this method
         """
         with self.lock:
             try:
@@ -439,7 +439,7 @@ class ModeAPI(Resource):
         POST /api/mode
         
         Validates mode changes using pydantic (Issue #43)
-        Only valid modes (auto, manual, eco) are accepted
+        Only valid modes (auto, manual) are accepted
         """
         api_server = getattr(ModeAPI, '_api_server', None)
         if not api_server:

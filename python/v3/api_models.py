@@ -1,21 +1,16 @@
 """
 Pydantic Models for API Request/Response Validation
 Issue #43 - API Input Validation Missing
-
 Provides type-safe, validated data models for all API endpoints
 Prevents injection attacks and ensures data integrity
 """
-
 from pydantic import BaseModel, Field, validator, ValidationError
 from enum import Enum
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-
-
 # ============================================================
 # ENUMS - Fixed value sets for parameters
 # ============================================================
-
 class ControlAction(str, Enum):
     """
     Valid control actions for pump control
@@ -28,8 +23,6 @@ class ControlAction(str, Enum):
     PUMP_START = "pump_start"
     PUMP_STOP = "pump_stop"
     EMERGENCY_STOP = "emergency_stop"
-
-
 class SystemMode(str, Enum):
     """
     Valid system operating modes
@@ -37,17 +30,12 @@ class SystemMode(str, Enum):
     Values:
         AUTO: Automatic mode - system controls pump based on temperature
         MANUAL: Manual mode - user has full control
-        ECO: Eco mode - optimized for energy efficiency
     """
     AUTO = "auto"
     MANUAL = "manual"
-    ECO = "eco"
-
-
 # ============================================================
 # REQUEST MODELS - Validate incoming data
 # ============================================================
-
 class ControlRequest(BaseModel):
     """
     Request model for POST /api/control
@@ -74,8 +62,6 @@ class ControlRequest(BaseModel):
         if not isinstance(v, (str, ControlAction)):
             raise ValueError('action must be a string')
         return v
-
-
 class ModeRequest(BaseModel):
     """
     Request model for POST /api/mode
@@ -99,12 +85,9 @@ class ModeRequest(BaseModel):
         if not isinstance(v, (str, SystemMode)):
             raise ValueError('mode must be a string')
         return v
-
-
 # ============================================================
 # RESPONSE MODELS - Validate outgoing data
 # ============================================================
-
 class SystemState(BaseModel):
     """System state information"""
     primary_pump: Optional[bool] = None
@@ -114,8 +97,6 @@ class SystemState(BaseModel):
     
     class Config:
         extra = "allow"  # Allow additional state fields
-
-
 class APIResponse(BaseModel):
     """
     Standard successful API response
@@ -134,15 +115,11 @@ class APIResponse(BaseModel):
     class Config:
         # Allow extra fields in response (for flexibility)
         extra = "allow"
-
-
 class ValidationErrorDetail(BaseModel):
     """Detailed validation error information"""
     field: str = Field(..., description="Field that failed validation")
     message: str = Field(..., description="Error message")
     type: str = Field(..., description="Error type")
-
-
 class ValidationErrorResponse(BaseModel):
     """
     Validation error response (400 Bad Request)
@@ -191,8 +168,6 @@ class ValidationErrorResponse(BaseModel):
             details=details,
             timestamp=datetime.now().isoformat() + "Z"
         )
-
-
 class ServerErrorResponse(BaseModel):
     """
     Server error response (500 Internal Server Error)
@@ -204,12 +179,9 @@ class ServerErrorResponse(BaseModel):
     error: str = Field(..., description="Error message")
     error_code: str = "SERVER_ERROR"
     timestamp: Optional[str] = None
-
-
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
-
 def create_error_response(
     error_message: str,
     error_code: str = "ERROR",
@@ -240,12 +212,9 @@ def create_error_response(
         )
     
     return response.dict(), status_code
-
-
 # ============================================================
 # VALIDATION DECORATOR
 # ============================================================
-
 def validate_request(model_class):
     """
     Decorator to validate request body against pydantic model
@@ -302,8 +271,6 @@ def validate_request(model_class):
         
         return wrapper
     return decorator
-
-
 # Export main classes and functions
 __all__ = [
     'ControlAction',
@@ -318,4 +285,3 @@ __all__ = [
     'create_error_response',
     'validate_request',
 ]
-
