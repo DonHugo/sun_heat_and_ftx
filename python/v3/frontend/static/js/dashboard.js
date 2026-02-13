@@ -13,9 +13,11 @@ class SolarHeatingDashboard {
         this.configLoaded = false;
         
         this.heaterToggle = null;
+        this.pumpToggle = null;
         this.manualControlEnabled = false;
         this.heaterState = false;
         this.heaterPending = false;
+        this.pumpState = false;
         this.heaterLockoutUntil = 0;
         this.heaterLockoutTimer = null;
         this.init();
@@ -228,6 +230,11 @@ class SolarHeatingDashboard {
             this.heaterState = actualHeaterState;
         }
         this.updateHeaterToggle();
+        
+        // Update pump toggle state
+        const actualPumpState = Boolean(data.system_state?.primary_pump);
+        this.pumpState = actualPumpState;
+        this.updatePumpToggle();
         
         // Update hardware status from diagnostics
         if (data.hardware_status) {
@@ -628,6 +635,19 @@ class SolarHeatingDashboard {
             hintElement.textContent = stateText;
             hintElement.className = 'heater-toggle-hint active';
         }
+    }
+
+    updatePumpToggle() {
+        const toggle = this.pumpToggle;
+        if (!toggle) {
+            return;
+        }
+
+        // Always update toggle to match actual pump state
+        toggle.checked = this.pumpState;
+        
+        // Disable toggle in auto mode (not manual)
+        toggle.disabled = !this.manualControlEnabled;
     }
 
     startHeaterLockout(seconds = 5) {
