@@ -1246,7 +1246,7 @@ body {
 
 /* Toggle switches - increase size */
 .toggle-switch {
-    width: 70px;   /* Increased from 58px */
+    width: 90px;   /* Increased from 70px to fit labels */
     height: 40px;  /* Increased from 32px */
 }
 
@@ -1258,7 +1258,7 @@ body {
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
-    transform: translateX(30px);  /* Adjusted for new size */
+    transform: translateX(47px);  /* Adjusted for new size */
 }
 
 /* Standard buttons - ensure minimum size */
@@ -1298,6 +1298,7 @@ body {
     font-size: 0.7rem;
     font-weight: 700;
     transition: opacity 0.3s;
+    z-index: 0;  /* Behind thumb (thumb is z-index 1) */
 }
 
 .toggle-switch input:checked + .toggle-slider::after {
