@@ -655,8 +655,10 @@ class SolarHeatingDashboard {
         const pelletDaily = data.system_state?.pellet_energy_today ?? 0;
         
         const solarRate = data.system_state?.solar_energy_hour ?? 0;
-        const heaterRate = data.system_state?.cartridge_energy_hour ?? 0;
-        const pelletRate = data.system_state?.pellet_energy_hour ?? 0;
+        const heaterOn = data.system_state?.cartridge_heater ?? false;
+        const heaterRate = heaterOn ? (data.system_state?.cartridge_energy_hour ?? 0) : 0;
+        const pelletStoveOn = data.system_state?.pellet_stove_status ?? false;
+        const pelletRate = pelletStoveOn ? (data.system_state?.pellet_energy_hour ?? 0) : 0;
         
         // Calculate total energy
         const totalEnergy = solarDaily + heaterDaily + pelletDaily;
