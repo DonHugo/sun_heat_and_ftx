@@ -860,26 +860,6 @@ class SolarHeatingDashboard {
             statusElement.textContent = '💚 Excellent - Maximum efficiency';
         }
     }
-}
-
-// Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.dashboard = new SolarHeatingDashboard();
-});
-
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    if (window.dashboard) {
-        if (document.hidden) {
-            window.dashboard.stopAutoUpdate();
-        } else {
-            window.dashboard.startAutoUpdate();
-            window.dashboard.loadSystemData();
-        }
-    }
-});
-
-    // PHASE A: UX Improvement - Enhanced updateHeaterToggle with lockout timer display
     updateHeaterToggleWithTimer() {
         const toggle = this.heaterToggle;
         if (!toggle) {
@@ -925,3 +905,21 @@ document.addEventListener('visibilitychange', () => {
             hintElement.className = 'heater-toggle-hint active';
         }
     }
+}
+
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.dashboard = new SolarHeatingDashboard();
+});
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (window.dashboard) {
+        if (document.hidden) {
+            window.dashboard.stopAutoUpdate();
+        } else {
+            window.dashboard.startAutoUpdate();
+            window.dashboard.loadSystemData();
+        }
+    }
+});
