@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=5">
+    <link rel="stylesheet" href="static/css/style.css?v=10">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -150,13 +150,23 @@
                     </div>
 
                     <!-- Heater Toggle Switch -->
-                    <div class="toggle-control-container">
-                        <div class="toggle-label">
-                            <span class="toggle-label-text">🔥 Cartridge Heater</span>
+                    <div class="heater-control-container">
+                        <div class="heater-toggle-label">
+                            <span class="heater-label-text">🔥 Cartridge Heater</span>
                             <label class="toggle-switch" for="heater-toggle">
                                 <input type="checkbox" id="heater-toggle">
                                 <span class="toggle-slider"></span>
                             </label>
+                        </div>
+                        <p class="heater-toggle-hint" id="heater-toggle-hint">Toggle to control heater</p>
+                        
+                        <!-- Lockout Timer Display -->
+                        <div class="heater-lockout-timer" id="heater-lockout-timer">
+                            <div class="lockout-timer-label">
+                                <span class="lockout-timer-icon">⏱️</span>
+                                Cooldown Active
+                            </div>
+                            <div class="lockout-timer-value" id="lockout-timer-countdown">0:05</div>
                         </div>
                     </div>
                 </div>
@@ -364,7 +374,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=9"></script>
+    <script src="static/js/dashboard.js?v=10"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->

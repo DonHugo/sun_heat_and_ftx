@@ -237,7 +237,7 @@ class SolarHeatingDashboard {
         if (!this.heaterPending) {
             this.heaterState = actualHeaterState;
         }
-        this.updateHeaterToggle();
+        this.updateHeaterToggleWithTimer();
         
         // Update pump toggle state
         const actualPumpState = Boolean(data.system_state?.primary_pump);
@@ -567,14 +567,14 @@ class SolarHeatingDashboard {
             if (waitSeconds > 0) {
                 this.showNotification(`Please wait ${waitSeconds}s before toggling the heater`, 'warning');
             }
-            this.updateHeaterToggle();
+            this.updateHeaterToggleWithTimer();
             return;
         }
 
         const friendlyAction = action === 'heater_start' ? 'start' : 'stop';
         this.heaterPending = true;
         this.heaterState = optimisticState;
-        this.updateHeaterToggle();
+        this.updateHeaterToggleWithTimer();
 
         try {
             const response = await this.apiRequest('POST', '/control', { action });
@@ -612,7 +612,7 @@ class SolarHeatingDashboard {
             this.showNotification(message, errorCode ? 'warning' : 'error');
         } finally {
             this.heaterPending = false;
-            this.updateHeaterToggle();
+            this.updateHeaterToggleWithTimer();
         }
     }
 
@@ -668,12 +668,12 @@ class SolarHeatingDashboard {
             if (!this.isHeaterLockedOut()) {
                 clearInterval(this.heaterLockoutTimer);
                 this.heaterLockoutTimer = null;
-                this.updateHeaterToggle();
+                this.updateHeaterToggleWithTimer();
             } else {
-                this.updateHeaterToggle();
+                this.updateHeaterToggleWithTimer();
             }
         }, 1000);
-        this.updateHeaterToggle();
+        this.updateHeaterToggleWithTimer();
     }
 
     isHeaterLockedOut() {
@@ -878,3 +878,50 @@ document.addEventListener('visibilitychange', () => {
         }
     }
 });
+
+    // PHASE A: UX Improvement - Enhanced updateHeaterToggle with lockout timer display
+    updateHeaterToggleWithTimer() {
+        const toggle = this.heaterToggle;
+        if (!toggle) {
+            return;
+        }
+
+        toggle.checked = this.heaterState;
+        const lockout = this.isHeaterLockedOut();
+        toggle.disabled = this.heaterPending || lockout;
+
+        const hintElement = document.getElementById('heater-toggle-hint');
+        const timerElement = document.getElementById('heater-lockout-timer');
+        const countdownElement = document.getElementById('lockout-timer-countdown');
+        
+        if (!hintElement) {
+            return;
+        }
+
+        // Show/hide lockout timer
+        if (lockout && timerElement) {
+            timerElement.classList.add('active');
+            const seconds = this.getHeaterLockoutRemaining();
+            if (countdownElement) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                countdownElement.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        } else if (timerElement) {
+            timerElement.classList.remove('active');
+        }
+
+        // Update hint text
+        if (this.heaterPending) {
+            hintElement.textContent = 'Sending heater command...';
+            hintElement.className = 'heater-toggle-hint info';
+        } else if (lockout) {
+            const seconds = this.getHeaterLockoutRemaining();
+            hintElement.textContent = `Please wait for cooldown to complete`;
+            hintElement.className = 'heater-toggle-hint warning';
+        } else {
+            const stateText = toggle.checked ? 'Heater is ON. Toggle to stop heating.' : 'Heater is OFF. Toggle to start heating.';
+            hintElement.textContent = stateText;
+            hintElement.className = 'heater-toggle-hint active';
+        }
+    }
