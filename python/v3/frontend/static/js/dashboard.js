@@ -24,6 +24,7 @@ class SolarHeatingDashboard {
     }
     
     async init() {
+        try {
         console.log('🌞 Solar Heating Dashboard v3 - Initializing...');
         
         // Load configuration first
@@ -44,7 +45,12 @@ class SolarHeatingDashboard {
         console.log('✅ Dashboard initialized successfully');
         
         // Hide loading overlay after initial load
+        } catch (error) {
+            console.error("❌ Dashboard initialization failed:", error);
+            this.showNotification("Failed to initialize dashboard. Please refresh the page.", "error");
+        } finally {
         this.hideLoading();
+        }
     }
     
     async loadConfig() {
@@ -180,6 +186,7 @@ class SolarHeatingDashboard {
         
         // Production mode - use real API
         const url = `${this.apiBaseUrl}${endpoint}`;
+        console.log(`📡 API Request: ${method} ${url}`);
         const options = {
             method: method,
             headers: {
@@ -192,6 +199,7 @@ class SolarHeatingDashboard {
         }
         
         const response = await fetch(url, options);
+        console.log(`📡 API Response: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
