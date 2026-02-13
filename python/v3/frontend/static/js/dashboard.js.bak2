@@ -341,7 +341,7 @@ class SolarHeatingDashboard {
         }
         
         // Update pump last change (use last_pump_start timestamp)
-        const pumpLastChange = state.last_pump_start ? formatTimestamp(state.last_pump_start) : "Never";
+        const pumpLastChange = formatTimestamp(state.last_pump_start);
         const pumpLastChangeEl = document.getElementById("pump-last-change");
         if (pumpLastChangeEl) {
             pumpLastChangeEl.textContent = pumpLastChange;
@@ -368,16 +368,16 @@ class SolarHeatingDashboard {
             heaterEnergyEl.textContent = fmt(heaterEnergy, 2, " kWh");
         }
         
-        // Update heater last active (we don't have this timestamp in API yet, show "Never")
+        // Update heater last active (we don't have this timestamp in API yet, show "N/A")
         const heaterLastActiveEl = document.getElementById("heater-last-active");
         if (heaterLastActiveEl) {
-            heaterLastActiveEl.textContent = "Never";
+            heaterLastActiveEl.textContent = "N/A";
         }
         
-        // Update mode last change (we don't have this timestamp in API yet, show "Never")
+        // Update mode last change (we don't have this timestamp in API yet, show "N/A")
         const modeLastChangeEl = document.getElementById("mode-last-change");
         if (modeLastChangeEl) {
-            modeLastChangeEl.textContent = "Never";
+            modeLastChangeEl.textContent = "N/A";
         }
         
         // Update manual control status
