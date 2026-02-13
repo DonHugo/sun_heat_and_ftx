@@ -1036,10 +1036,10 @@ class SolarHeatingDashboard {
         
         // Apply color class based on efficiency ranges
         let effClass = '';
-        if (efficiency < 30) effClass = 'eff-poor';          // 🔴 Poor
-        else if (efficiency < 60) effClass = 'eff-fair';     // 🟡 Fair
-        else if (efficiency < 80) effClass = 'eff-good';     // 🟢 Good
-        else effClass = 'eff-excellent';                     // 💚 Excellent
+        if (efficiency < 30) effClass = 'eff-poor';          // Poor
+        else if (efficiency < 60) effClass = 'eff-fair';     // Fair
+        else if (efficiency < 80) effClass = 'eff-good';     // Good
+        else effClass = 'eff-excellent';                     // Excellent
         
         element.classList.add(effClass);
     }
@@ -1056,14 +1056,14 @@ class SolarHeatingDashboard {
         const returnAir = temperatures.return_air_temp;
         
         if (eff !== null && eff !== undefined) {
-            let emoji = '';
+            let statusIndicator = '';
             let status = '';
-            if (eff < 30) { emoji = '🔴'; status = 'Poor'; }
-            else if (eff < 60) { emoji = '🟡'; status = 'Fair'; }
-            else if (eff < 80) { emoji = '🟢'; status = 'Good'; }
-            else { emoji = '💚'; status = 'Excellent'; }
+            if (eff < 30) { statusIndicator = '<span class="status-dot status-poor"></span>'; status = 'Poor'; }
+            else if (eff < 60) { statusIndicator = '<span class="status-dot status-fair"></span>'; status = 'Fair'; }
+            else if (eff < 80) { statusIndicator = '<span class="status-dot status-good"></span>'; status = 'Good'; }
+            else { statusIndicator = '<span class="status-dot status-excellent"></span>'; status = 'Excellent'; }
             
-            element.textContent = `${eff.toFixed(1)}% ${emoji}`;
+            element.innerHTML = `${eff.toFixed(1)}% ${statusIndicator}`;
             
             // Add tooltip with air temperatures if available
             if (outdoor !== null && returnAir !== null) {
@@ -1094,13 +1094,13 @@ class SolarHeatingDashboard {
         }
         
         if (efficiency < 30) {
-            statusElement.textContent = '🔴 Poor - Low heat recovery';
+            statusElement.innerHTML = '<span class="status-dot status-poor"></span> Poor - Low heat recovery';
         } else if (efficiency < 60) {
-            statusElement.textContent = '🟡 Fair - Moderate efficiency';
+            statusElement.innerHTML = '<span class="status-dot status-fair"></span> Fair - Moderate efficiency';
         } else if (efficiency < 80) {
-            statusElement.textContent = '🟢 Good - Efficient operation';
+            statusElement.innerHTML = '<span class="status-dot status-good"></span> Good - Efficient operation';
         } else {
-            statusElement.textContent = '💚 Excellent - Maximum efficiency';
+            statusElement.innerHTML = '<span class="status-dot status-excellent"></span> Excellent - Maximum efficiency';
         }
     }
     updateHeaterToggleWithTimer() {
