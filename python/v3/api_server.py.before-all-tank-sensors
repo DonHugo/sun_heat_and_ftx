@@ -579,15 +579,6 @@ class TemperaturesAPI(Resource):
                     "tank_top": round(temps.get('megabas_sensor_7') or 0, 1),
                     "tank_middle": round(temps.get('megabas_sensor_8') or 0, 1),
                     "tank_bottom": round(temps.get('megabas_sensor_9') or 0, 1),
-                    # All 8 water heater tank sensors (from bottom to top)
-                    "water_heater_bottom": round(temps.get("water_heater_bottom") or 0, 1),  # 0cm
-                    "water_heater_20cm": round(temps.get("water_heater_20cm") or 0, 1),
-                    "water_heater_40cm": round(temps.get("water_heater_40cm") or 0, 1),
-                    "water_heater_60cm": round(temps.get("water_heater_60cm") or 0, 1),
-                    "water_heater_80cm": round(temps.get("water_heater_80cm") or 0, 1),
-                    "water_heater_100cm": round(temps.get("water_heater_100cm") or 0, 1),
-                    "water_heater_120cm": round(temps.get("water_heater_120cm") or 0, 1),
-                    "water_heater_140cm": round(temps.get("water_heater_140cm") or 0, 1),  # 140cm (top)
                     # Heat exchanger efficiency and air temperatures
                     "heat_exchanger_efficiency": round(temps.get('heat_exchanger_efficiency') or 0, 1),
                     "outdoor_air_temp": round(temps.get('outdoor_air_temp') or 0, 1),
