@@ -23,6 +23,8 @@ try:
     from hardware_interface import HardwareInterface
     from mqtt_handler import MQTTHandler
     from taskmaster_service import taskmaster_service
+    from sensor_health_monitor import SensorHealthMonitor
+    from sensor_reader_robust import RobustSensorReader
 except ImportError as e:
     print(f"Error importing modules: {e}")
     print("Make sure you're running from the v3 directory")
@@ -111,6 +113,10 @@ class SolarHeatingSystem:
         
         # Temperature data
         self.temperatures = {}
+
+        # Issue #50 Fix: Sensor health monitoring and robust reading
+        self.sensor_health_monitor = None  # Initialized in _initialize_hardware
+        self.robust_sensor_reader = None   # Initialized in _initialize_hardware
         
         # Rate of Change Sensor Data Structure
         self.rate_data = {
@@ -440,6 +446,15 @@ class SolarHeatingSystem:
             if not HARDWARE_AVAILABLE:
                 logger.warning("Hardware libraries not available - forcing simulation mode")
             self.hardware = HardwareInterface(simulation_mode=simulation_mode)
+
+            # Issue #50 Fix: Initialize sensor health monitoring
+            self.sensor_health_monitor = SensorHealthMonitor(stale_threshold_seconds=300)
+            self.robust_sensor_reader = RobustSensorReader(
+                self.hardware,
+                max_retries=3,
+                initial_backoff_ms=50
+            )
+            logger.info("Sensor health monitoring initialized")
             
             # Initialize MQTT handler with persistent retry logic
             self.mqtt = MQTTHandler()
@@ -1310,55 +1325,124 @@ class SolarHeatingSystem:
         """Read all temperature sensors"""
         logger.debug("Starting _read_temperatures method")
         try:
-            # Read ALL RTD sensors (0-7, 8 total sensors)
+            # Issue #50 Fix: Read ALL RTD sensors (0-7, 8 total sensors) with retry logic
+            rtd_temps, rtd_attempts = self.robust_sensor_reader.read_all_rtd_sensors()
+            
+            # Process RTD readings through health monitor
             for sensor_id in range(8):
                 sensor_name = f'rtd_sensor_{sensor_id}'
-                temp = self.hardware.read_rtd_temperature(sensor_id)
-                self.temperatures[sensor_name] = temp
-                logger.debug(f"{sensor_name}: {temp}°C")
+                raw_value = rtd_temps.get(sensor_name)
+                attempt_count = rtd_attempts.get(sensor_name, 0)
+                
+                # Record reading and get value to use (with fallback to last known good)
+                value_to_use, status = self.sensor_health_monitor.record_reading(sensor_name, raw_value)
+                self.temperatures[sensor_name] = value_to_use
+                
+                # Log based on status
+                if status == self.sensor_health_monitor.STATUS_HEALTHY:
+                    logger.debug(f"{sensor_name}: {value_to_use}°C (attempts: {attempt_count})")
+                elif status == self.sensor_health_monitor.STATUS_DEGRADED:
+                    logger.warning(f"{sensor_name}: {value_to_use}°C (DEGRADED - using last known good)")
+                elif status == self.sensor_health_monitor.STATUS_FAILED:
+                    logger.error(f"{sensor_name}: FAILED - no valid data available")
+                    
+                    # Send MQTT alert for failed sensors (only on threshold)
+                    if self.sensor_health_monitor.should_alert(sensor_name, alert_threshold=5):
+                        if self.mqtt and self.mqtt.is_connected():
+                            alert_topic = f"{config.mqtt_root_topic}/sensor_alerts/{sensor_name}"
+                            alert_payload = {
+                                'sensor_id': sensor_name,
+                                'status': 'failed',
+                                'consecutive_errors': self.sensor_health_monitor._error_counts.get(sensor_name, 0),
+                                'timestamp': time.time()
+                            }
+                            self.mqtt.publish(alert_topic, alert_payload)
             
             logger.info(f"RTD sensors read: {[self.temperatures.get(f'rtd_sensor_{i}', 'None') for i in range(8)]}")
             
-            # Read ALL MegaBAS sensors (1-8, 8 total sensors)
+            # Issue #50 Fix: Read ALL MegaBAS sensors (1-8, 8 total sensors) with retry logic
+            megabas_temps, megabas_attempts = self.robust_sensor_reader.read_all_megabas_sensors()
+            
+            # Process MegaBAS readings through health monitor
             for sensor_id in range(1, 9):
                 sensor_name = f'megabas_sensor_{sensor_id}'
-                temp = self.hardware.read_megabas_temperature(sensor_id)
-                self.temperatures[sensor_name] = temp
-                logger.debug(f"{sensor_name}: {temp}°C")
+                raw_value = megabas_temps.get(sensor_name)
+                attempt_count = megabas_attempts.get(sensor_name, 0)
+                
+                # Record reading and get value to use
+                value_to_use, status = self.sensor_health_monitor.record_reading(sensor_name, raw_value)
+                self.temperatures[sensor_name] = value_to_use
+                
+                # Log based on status
+                if status == self.sensor_health_monitor.STATUS_HEALTHY:
+                    logger.debug(f"{sensor_name}: {value_to_use}°C (attempts: {attempt_count})")
+                elif status == self.sensor_health_monitor.STATUS_DEGRADED:
+                    logger.warning(f"{sensor_name}: {value_to_use}°C (DEGRADED - using last known good)")
+                elif status == self.sensor_health_monitor.STATUS_FAILED:
+                    logger.error(f"{sensor_name}: FAILED - no valid data available")
+                    
+                    # Send MQTT alert for failed sensors
+                    if self.sensor_health_monitor.should_alert(sensor_name, alert_threshold=5):
+                        if self.mqtt and self.mqtt.is_connected():
+                            alert_topic = f"{config.mqtt_root_topic}/sensor_alerts/{sensor_name}"
+                            alert_payload = {
+                                'sensor_id': sensor_name,
+                                'status': 'failed',
+                                'consecutive_errors': self.sensor_health_monitor._error_counts.get(sensor_name, 0),
+                                'timestamp': time.time()
+                            }
+                            self.mqtt.publish(alert_topic, alert_payload)
             
             logger.info(f"MegaBAS sensors read: {[self.temperatures.get(f'megabas_sensor_{i}', 'None') for i in range(1, 9)]}")
+            
+            # Issue #50 Fix: Get sensor health summary and publish to MQTT
+            health_summary = self.sensor_health_monitor.get_sensor_health_summary()
+            failed_sensors = self.sensor_health_monitor.get_failed_sensors()
+            degraded_sensors = self.sensor_health_monitor.get_degraded_sensors()
+            
+            # Log sensor health status
+            if failed_sensors:
+                logger.error(f"Failed sensors ({len(failed_sensors)}): {', '.join(failed_sensors)}")
+            if degraded_sensors:
+                logger.warning(f"Degraded sensors ({len(degraded_sensors)}): {', '.join(degraded_sensors)}")
+            
+            # Publish sensor health summary to MQTT
+            if self.mqtt and self.mqtt.is_connected():
+                health_topic = f"{config.mqtt_root_topic}/sensor_health"
+                self.mqtt.publish(health_topic, health_summary)
+            
             logger.debug("Starting sensor mapping and calculations...")
             logger.info("About to start MegaBAS sensor mapping...")
             
             # MegaBAS sensors with improved naming (based on v1 mapping)
             # FTX sensors (MegaBAS inputs 1-4) - CORRECTED to match v1
-            self.temperatures['outdoor_air_temp'] = self.temperatures.get('megabas_sensor_1', 0)      # Outdoor air intake
-            self.temperatures['exhaust_air_temp'] = self.temperatures.get('megabas_sensor_2', 0)     # Air leaving heat exchanger
-            self.temperatures['supply_air_temp'] = self.temperatures.get('megabas_sensor_3', 0)      # Air entering heat exchanger
-            self.temperatures['return_air_temp'] = self.temperatures.get('megabas_sensor_4', 0)     # Air returning from heat exchanger
+            self.temperatures['outdoor_air_temp'] = self.temperatures.get('megabas_sensor_1')      # Outdoor air intake
+            self.temperatures['exhaust_air_temp'] = self.temperatures.get('megabas_sensor_2')     # Air leaving heat exchanger
+            self.temperatures['supply_air_temp'] = self.temperatures.get('megabas_sensor_3')      # Air entering heat exchanger
+            self.temperatures['return_air_temp'] = self.temperatures.get('megabas_sensor_4')     # Air returning from heat exchanger
             logger.info("FTX sensors mapped successfully")
             
             # Solar collector and storage tank sensors (MegaBAS inputs 6-8) - CORRECTED to match v1
-            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
-            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
-            self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8', 0)      # T3 - Return line to solar collector
+            self.temperatures['solar_collector'] = self.temperatures.get('megabas_sensor_6')  # T1 - Solar panel outlet
+            self.temperatures['storage_tank'] = self.temperatures.get('megabas_sensor_7')     # T2 - Main storage tank
+            self.temperatures['return_line_temp'] = self.temperatures.get('megabas_sensor_8')      # T3 - Return line to solar collector
             
             # Also maintain the _temp versions for backward compatibility
-            self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6', 0)  # T1 - Solar panel outlet
-            self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7', 0)     # T2 - Main storage tank
+            self.temperatures['solar_collector_temp'] = self.temperatures.get('megabas_sensor_6')  # T1 - Solar panel outlet
+            self.temperatures['storage_tank_temp'] = self.temperatures.get('megabas_sensor_7')     # T2 - Main storage tank
             logger.info("Solar collector sensors mapped successfully")
             
             logger.debug("Starting water heater sensor mapping...")
             logger.info("About to map water heater sensors...")
             # All water heater RTD sensors with height-based naming
-            self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_0', 0)    # RTD sensor 0 - 0cm from bottom (coldest)
-            self.temperatures['water_heater_20cm'] = self.temperatures.get('rtd_sensor_1', 0)     # RTD sensor 1 - 20cm from bottom
-            self.temperatures['water_heater_40cm'] = self.temperatures.get('rtd_sensor_2', 0)     # RTD sensor 2 - 40cm from bottom
-            self.temperatures['water_heater_60cm'] = self.temperatures.get('rtd_sensor_3', 0)     # RTD sensor 3 - 60cm from bottom
-            self.temperatures['water_heater_80cm'] = self.temperatures.get('rtd_sensor_4', 0)     # RTD sensor 4 - 80cm from bottom
-            self.temperatures['water_heater_100cm'] = self.temperatures.get('rtd_sensor_5', 0)    # RTD sensor 5 - 100cm from bottom
-            self.temperatures['water_heater_120cm'] = self.temperatures.get('rtd_sensor_6', 0)    # RTD sensor 6 - 120cm from bottom
-            self.temperatures['water_heater_140cm'] = self.temperatures.get('rtd_sensor_7', 0)    # RTD sensor 7 - 140cm from bottom (hottest)
+            self.temperatures['water_heater_bottom'] = self.temperatures.get('rtd_sensor_0')    # RTD sensor 0 - 0cm from bottom (coldest)
+            self.temperatures['water_heater_20cm'] = self.temperatures.get('rtd_sensor_1')     # RTD sensor 1 - 20cm from bottom
+            self.temperatures['water_heater_40cm'] = self.temperatures.get('rtd_sensor_2')     # RTD sensor 2 - 40cm from bottom
+            self.temperatures['water_heater_60cm'] = self.temperatures.get('rtd_sensor_3')     # RTD sensor 3 - 60cm from bottom
+            self.temperatures['water_heater_80cm'] = self.temperatures.get('rtd_sensor_4')     # RTD sensor 4 - 80cm from bottom
+            self.temperatures['water_heater_100cm'] = self.temperatures.get('rtd_sensor_5')    # RTD sensor 5 - 100cm from bottom
+            self.temperatures['water_heater_120cm'] = self.temperatures.get('rtd_sensor_6')    # RTD sensor 6 - 120cm from bottom
+            self.temperatures['water_heater_140cm'] = self.temperatures.get('rtd_sensor_7')    # RTD sensor 7 - 140cm from bottom (hottest)
             logger.info("Water heater RTD sensors mapped successfully")
             
             # Debug logging for water heater sensors
@@ -1373,8 +1457,8 @@ class SolarHeatingSystem:
             logger.info("FTX backward compatibility aliases mapped successfully")
             
             # Heat exchanger sensors (using MegaBAS sensors 1-2)
-            self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1', 0)
-            self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2', 0)
+            self.temperatures['heat_exchanger_in'] = self.temperatures.get('megabas_sensor_1')
+            self.temperatures['heat_exchanger_out'] = self.temperatures.get('megabas_sensor_2')
             logger.info("Heat exchanger sensors mapped successfully")
             
             # Calculate heat exchanger efficiency
