@@ -313,6 +313,87 @@ class SolarHeatingDashboard {
         // Update last update time
         document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
         
+        // Update Status tab fields (pump runtime, heater runtime/energy, timestamps)
+        const state = data.system_state || {};
+        
+        // Helper function to format numbers
+        const fmt = (val, decimals = 1, unit = "") => {
+            if (val === null || val === undefined || isNaN(val)) return "--";
+            return `${Number(val).toFixed(decimals)}${unit}`;
+        };
+        
+        // Helper function to format timestamps
+        const formatTimestamp = (timestamp) => {
+            if (!timestamp || timestamp === null) return "--";
+            try {
+                const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
+                return date.toLocaleString();
+            } catch (e) {
+                return "--";
+            }
+        };
+        
+        // Update pump runtime
+        const pumpRuntime = state.pump_runtime_hours || 0;
+        const pumpRuntimeEl = document.getElementById("pump-runtime");
+        if (pumpRuntimeEl) {
+            pumpRuntimeEl.textContent = fmt(pumpRuntime, 2, " hours");
+        }
+        
+        // Update pump last change (use last_pump_start timestamp)
+        const pumpLastChange = formatTimestamp(state.last_pump_start);
+        const pumpLastChangeEl = document.getElementById("pump-last-change");
+        if (pumpLastChangeEl) {
+            pumpLastChangeEl.textContent = pumpLastChange;
+        }
+        
+        // Update pump control mode
+        const pumpMode = state.primary_pump_manual ? "Manual" : "Automatic";
+        const pumpModeEl = document.getElementById("control-pump-mode");
+        if (pumpModeEl) {
+            pumpModeEl.textContent = pumpMode;
+        }
+        
+        // Update heater runtime
+        const heaterRuntime = state.total_heating_time || 0;
+        const heaterRuntimeEl = document.getElementById("heater-runtime");
+        if (heaterRuntimeEl) {
+            heaterRuntimeEl.textContent = fmt(heaterRuntime, 2, " hours");
+        }
+        
+        // Update heater energy
+        const heaterEnergy = state.cartridge_energy_today || 0;
+        const heaterEnergyEl = document.getElementById("heater-energy");
+        if (heaterEnergyEl) {
+            heaterEnergyEl.textContent = fmt(heaterEnergy, 2, " kWh");
+        }
+        
+        // Update heater last active (we don't have this timestamp in API yet, show "N/A")
+        const heaterLastActiveEl = document.getElementById("heater-last-active");
+        if (heaterLastActiveEl) {
+            heaterLastActiveEl.textContent = "N/A";
+        }
+        
+        // Update mode last change (we don't have this timestamp in API yet, show "N/A")
+        const modeLastChangeEl = document.getElementById("mode-last-change");
+        if (modeLastChangeEl) {
+            modeLastChangeEl.textContent = "N/A";
+        }
+        
+        // Update manual control status
+        const manualStatus = state.manual_control ? "Enabled" : "Disabled";
+        const manualStatusEl = document.getElementById("control-manual-status");
+        if (manualStatusEl) {
+            manualStatusEl.textContent = manualStatus;
+        }
+        
+        // Update auto control active status
+        const autoControlActive = !state.manual_control ? "Yes" : "No";
+        const autoControlEl = document.getElementById("auto-control-active");
+        if (autoControlEl) {
+            autoControlEl.textContent = autoControlActive;
+        }
+        
         // Update hero card
         this.updateHeroCard(data);
         
