@@ -1674,10 +1674,6 @@ class SolarHeatingSystem:
                             
                             logger.info(f"Energy collected: {energy_diff:.3f} kWh in {time_diff/3600:.2f} hours, Rate: {energy_rate_per_hour:.2f} kWh/hour, Sources: {active_heat_sources}")
                         
-                        # Add to total hourly and daily totals
-                        hourly_contribution = energy_rate_per_hour * (time_diff / 3600)
-                        self.system_state['energy_collected_hour'] += hourly_contribution
-                        self.system_state['energy_collected_today'] += hourly_contribution
             
             # Update last calculation values
             self.system_state['last_energy_calculation'] = current_time
@@ -1685,8 +1681,15 @@ class SolarHeatingSystem:
             
             # Add energy collection metrics to temperatures
             self.temperatures['energy_collection_rate_kwh_per_hour'] = round(energy_rate_per_hour if 'energy_rate_per_hour' in locals() else 0.0, 2)
-            self.temperatures['energy_collected_today_kwh'] = round(self.system_state.get('energy_collected_today', 0.0), 2)
-            self.temperatures['energy_collected_hour_kwh'] = round(self.system_state.get('energy_collected_hour', 0.0), 2)
+            # Calculate total energy collected from all sources (prevents double-counting)
+            self.temperatures['energy_collected_today_kwh'] = round(
+                self.system_state.get('solar_energy_today', 0.0) +
+                self.system_state.get('cartridge_energy_today', 0.0) +
+                self.system_state.get('pellet_energy_today', 0.0), 2)
+            self.temperatures['energy_collected_hour_kwh'] = round(
+                self.system_state.get('solar_energy_hour', 0.0) +
+                self.system_state.get('cartridge_energy_hour', 0.0) +
+                self.system_state.get('pellet_energy_hour', 0.0), 2)
             
             # Add heat source specific energy metrics
             self.temperatures['solar_energy_today_kwh'] = round(self.system_state.get('solar_energy_today', 0.0), 2)
