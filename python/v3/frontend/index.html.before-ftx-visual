@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=18">
+    <link rel="stylesheet" href="static/css/style.css?v=17">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -537,76 +537,57 @@
                             <span class="metric-value" id="sys-ftx-efficiency">--%</span>
                         </div>
                     </div>
-                    <div class="system-visual ftx-visual-hx">
-                        <div class="ftx-diagram">
-                            <!-- Top Row: Outdoor In -->
-                            <div class="ftx-flow-row top-row">
-                                <div class="ftx-temp-box cold">
-                                    <div class="temp-label">OUTDOOR</div>
-                                    <div class="temp-value" id="sys-ftx-outdoor">--°C</div>
+                    <div class="system-visual ftx-visual">
+                        <div class="ftx-flow-v2">
+                            <!-- Fresh Air In (Top) -->
+                            <div class="ftx-airflow fresh-in">
+                                <div class="ftx-arrow-label">
+                                    <span class="arrow-icon">↓</span>
+                                    <span class="arrow-text">FRESH IN</span>
                                 </div>
-                                <div class="ftx-flow-arrow right cold">
-                                    <div class="flow-bar"></div>
-                                    <div class="arrow-head">▶</div>
-                                </div>
+                                <div class="ftx-temp" id="sys-ftx-outdoor">--°C</div>
+                                <div class="ftx-stream-label">Outdoor</div>
                             </div>
                             
-                            <!-- Middle: Heat Exchanger -->
-                            <div class="ftx-hx-container">
-                                <div class="ftx-hx-visual">
-                                    <div class="hx-stream cold-in"></div>
-                                    <div class="hx-stream warm-out"></div>
-                                    <div class="hx-stream warm-in"></div>
-                                    <div class="hx-stream cold-out"></div>
-                                    <div class="hx-cross-pattern"></div>
-                                    <div class="hx-efficiency-overlay">
-                                        <span id="sys-ftx-efficiency-inline">--%</span>
-                                    </div>
-                                </div>
+                            <!-- Heat Exchanger (Center) -->
+                            <div class="ftx-hx-box">
+                                <div class="hx-label">HEAT EXCHANGER</div>
+                                <div class="hx-efficiency-large" id="sys-ftx-efficiency-inline">--%</div>
                             </div>
                             
-                            <!-- Middle Rows: Supply and Return -->
-                            <div class="ftx-side-rows">
-                                <div class="ftx-flow-row">
-                                    <div class="ftx-flow-arrow right warm">
-                                        <div class="flow-bar"></div>
-                                        <div class="arrow-head">▶</div>
+                            <!-- Two-column flow (Supply and Return) -->
+                            <div class="ftx-side-flows">
+                                <div class="ftx-airflow supply-out">
+                                    <div class="ftx-arrow-label">
+                                        <span class="arrow-icon">→</span>
+                                        <span class="arrow-text">TO HOUSE</span>
                                     </div>
-                                    <div class="ftx-temp-box warm">
-                                        <div class="temp-label">SUPPLY</div>
-                                        <div class="temp-value" id="sys-ftx-supply">--°C</div>
-                                        <div class="temp-sublabel">To House</div>
-                                    </div>
+                                    <div class="ftx-temp" id="sys-ftx-supply">--°C</div>
+                                    <div class="ftx-stream-label">Supply</div>
                                 </div>
                                 
-                                <div class="ftx-flow-row">
-                                    <div class="ftx-temp-box warm">
-                                        <div class="temp-label">RETURN</div>
-                                        <div class="temp-value" id="sys-ftx-return">--°C</div>
-                                        <div class="temp-sublabel">From House</div>
+                                <div class="ftx-airflow return-in">
+                                    <div class="ftx-arrow-label">
+                                        <span class="arrow-icon">←</span>
+                                        <span class="arrow-text">FROM HOUSE</span>
                                     </div>
-                                    <div class="ftx-flow-arrow left warm">
-                                        <div class="arrow-head">◀</div>
-                                        <div class="flow-bar"></div>
-                                    </div>
+                                    <div class="ftx-temp" id="sys-ftx-return">--°C</div>
+                                    <div class="ftx-stream-label">Return</div>
                                 </div>
                             </div>
                             
-                            <!-- Bottom Row: Exhaust Out -->
-                            <div class="ftx-flow-row bottom-row">
-                                <div class="ftx-flow-arrow left cold">
-                                    <div class="arrow-head">◀</div>
-                                    <div class="flow-bar"></div>
+                            <!-- Exhaust Out (Bottom) -->
+                            <div class="ftx-airflow exhaust-out">
+                                <div class="ftx-arrow-label">
+                                    <span class="arrow-icon">↑</span>
+                                    <span class="arrow-text">EXHAUST OUT</span>
                                 </div>
-                                <div class="ftx-temp-box cold">
-                                    <div class="temp-label">EXHAUST</div>
-                                    <div class="temp-value" id="sys-ftx-exhaust">--°C</div>
-                                </div>
+                                <div class="ftx-temp" id="sys-ftx-exhaust">--°C</div>
+                                <div class="ftx-stream-label">Exhaust</div>
                             </div>
                         </div>
                     </div>
                 </div>
-
 
             </div>
         </div>

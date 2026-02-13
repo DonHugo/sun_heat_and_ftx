@@ -1948,261 +1948,146 @@ body {
 }
 
 
-
-/* ========================================
-   FTX VENTILATION - VISUAL HX DESIGN
-   ======================================== */
+/* ============================================================================
+   FTX CARD VISUALS
+   ============================================================================ */
 
 .ftx-card {
     border-top: 4px solid #9b59b6;
 }
 
-.ftx-visual-hx {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+/* ========================================
+   FTX VENTILATION V2 - CLEANER DESIGN
+   ======================================== */
+
+.ftx-visual {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 12px;
-    padding: 24px;
-    min-height: 320px;
+    padding: 20px;
 }
 
-.ftx-diagram {
+.ftx-flow-v2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 15px;
 }
 
-/* Flow Rows */
-.ftx-flow-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 400px;
-}
-
-.ftx-flow-row.top-row,
-.ftx-flow-row.bottom-row {
-    justify-content: center;
-}
-
-.ftx-side-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    max-width: 400px;
-}
-
-/* Temperature Boxes */
-.ftx-temp-box {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid;
+/* Airflow boxes */
+.ftx-airflow {
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
-    padding: 8px 16px;
-    min-width: 120px;
+    padding: 12px 20px;
+    min-width: 180px;
     text-align: center;
-    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.ftx-temp-box.cold {
-    border-color: #3498db;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.15));
+.ftx-airflow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.ftx-temp-box.warm {
-    border-color: #e74c3c;
-    background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.15));
+.ftx-arrow-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.temp-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 4px;
-}
-
-.temp-value {
+.arrow-icon {
     font-size: 24px;
+    font-weight: bold;
+}
+
+.arrow-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #555;
+}
+
+/* Color-code arrows by flow type */
+.fresh-in .arrow-icon {
+    color: #3b82f6; /* Blue - cold fresh air */
+}
+
+.supply-out .arrow-icon {
+    color: #f59e0b; /* Orange - warmed supply */
+}
+
+.return-in .arrow-icon {
+    color: #ef4444; /* Red - warm return */
+}
+
+.exhaust-out .arrow-icon {
+    color: #6b7280; /* Gray - cooled exhaust */
+}
+
+.ftx-temp {
+    font-size: 28px;
     font-weight: 700;
-    color: #fff;
+    color: #1a1a1a;
+    margin: 4px 0;
 }
 
-.temp-sublabel {
-    font-size: 9px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 2px;
+.ftx-stream-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* Flow Arrows */
-.ftx-flow-arrow {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    flex: 1;
+/* Heat Exchanger Box */
+.ftx-hx-box {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+    text-align: center;
+    margin: 10px 0;
+    border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
-.ftx-flow-arrow.right {
-    flex-direction: row;
+.hx-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
 }
 
-.ftx-flow-arrow.left {
-    flex-direction: row-reverse;
-}
-
-.flow-bar {
-    flex: 1;
-    height: 8px;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-}
-
-.ftx-flow-arrow.cold .flow-bar {
-    background: linear-gradient(90deg, #3498db, #5dade2);
-}
-
-.ftx-flow-arrow.warm .flow-bar {
-    background: linear-gradient(90deg, #e74c3c, #ec7063);
-}
-
-/* Animated flow effect */
-.flow-bar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent
-    );
-    animation: flowPulse 2s infinite;
-}
-
-@keyframes flowPulse {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-.arrow-head {
-    font-size: 20px;
-    color: #fff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-/* Heat Exchanger Visual */
-.ftx-hx-container {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    justify-content: center;
-    margin: 12px 0;
-}
-
-.ftx-hx-visual {
-    position: relative;
-    width: 200px;
-    height: 120px;
-    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-/* Air Streams inside HX */
-.hx-stream {
-    position: absolute;
-    height: 12px;
-    border-radius: 6px;
-}
-
-.hx-stream.cold-in {
-    top: 20px;
-    left: 0;
-    right: 50%;
-    background: linear-gradient(90deg, #3498db, #5dade2);
-}
-
-.hx-stream.warm-out {
-    top: 20px;
-    left: 50%;
-    right: 0;
-    background: linear-gradient(90deg, #e67e22, #f39c12);
-}
-
-.hx-stream.warm-in {
-    bottom: 20px;
-    right: 0;
-    left: 50%;
-    background: linear-gradient(270deg, #e74c3c, #c0392b);
-}
-
-.hx-stream.cold-out {
-    bottom: 20px;
-    left: 0;
-    right: 50%;
-    background: linear-gradient(270deg, #5dade2, #3498db);
-}
-
-/* Cross pattern to show heat exchange */
-.hx-cross-pattern {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background: 
-        linear-gradient(45deg, transparent 45%, rgba(231, 76, 60, 0.3) 45%, rgba(231, 76, 60, 0.3) 55%, transparent 55%),
-        linear-gradient(-45deg, transparent 45%, rgba(52, 152, 219, 0.3) 45%, rgba(52, 152, 219, 0.3) 55%, transparent 55%);
-}
-
-/* Efficiency Overlay */
-.hx-efficiency-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(241, 196, 15, 0.95);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+.hx-efficiency-large {
+    font-size: 32px;
     font-weight: 800;
-    color: #2c3e50;
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive */
+/* Side-by-side flows (Supply and Return) */
+.ftx-side-flows {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .ftx-visual-hx {
-        padding: 16px;
+    .ftx-side-flows {
+        flex-direction: column;
+        align-items: center;
     }
     
-    .ftx-hx-visual {
-        width: 160px;
-        height: 100px;
-    }
-    
-    .ftx-temp-box {
-        min-width: 100px;
-        padding: 6px 12px;
-    }
-    
-    .temp-value {
-        font-size: 20px;
+    .ftx-airflow {
+        width: 100%;
+        max-width: 240px;
     }
 }
-
-
 
 
 
