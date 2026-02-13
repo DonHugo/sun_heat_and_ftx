@@ -106,6 +106,8 @@ class SolarHeatingAPI:
                         "water_heater_100cm": round(temps.get("water_heater_100cm") or 0, 1),
                         "water_heater_120cm": round(temps.get("water_heater_120cm") or 0, 1),
                         "water_heater_140cm": round(temps.get("water_heater_140cm") or 0, 1),  # 140cm (top)
+                        # Water heater tank stored energy
+                        "stored_energy_kwh": round(temps.get("stored_energy_kwh") or 0, 2),
                         # Heat exchanger efficiency and air temperatures
                         "heat_exchanger_efficiency": round(temps.get('heat_exchanger_efficiency') or 0, 1),
                         "outdoor_air_temp": round(temps.get('outdoor_air_temp') or 0, 1),
@@ -597,6 +599,8 @@ class TemperaturesAPI(Resource):
                     "water_heater_100cm": round(temps.get("water_heater_100cm") or 0, 1),
                     "water_heater_120cm": round(temps.get("water_heater_120cm") or 0, 1),
                     "water_heater_140cm": round(temps.get("water_heater_140cm") or 0, 1),  # 140cm (top)
+                        # Water heater tank stored energy
+                        "stored_energy_kwh": round(temps.get("stored_energy_kwh") or 0, 2),
                     # Heat exchanger efficiency and air temperatures
                     "heat_exchanger_efficiency": round(temps.get('heat_exchanger_efficiency') or 0, 1),
                     "outdoor_air_temp": round(temps.get('outdoor_air_temp') or 0, 1),
