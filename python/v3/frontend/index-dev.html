@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌞 Solar Heating System v3 [DEV MODE]</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+    <!-- Development Mode Banner -->
+    <div style="background: #ff6b35; color: white; padding: 10px; text-align: center; font-weight: bold;">
+        🔧 DEVELOPMENT MODE - Using Mock API
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🌞 Solar Heating System v3</h1>
+            <div class="header-info">
+                <span id="last-update">Loading...</span>
+            </div>
+        </header>
+
+        <!-- System Overview Card -->
+        <div class="card system-overview">
+            <div class="overview-grid">
+                <div class="overview-item">
+                    <span class="label">System:</span>
+                    <span id="system-mode" class="value mode-badge">Loading...</span>
+                </div>
+                <div class="overview-item">
+                    <span class="label">MQTT:</span>
+                    <span id="mqtt-status" class="value badge">Loading...</span>
+                </div>
+                <div class="overview-item">
+                    <span class="label">Home Assistant:</span>
+                    <span id="ha-status" class="value badge">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="dashboard-tab">Dashboard</button>
+            <button class="tab-button" data-tab="temperatures-tab">Temperatures</button>
+            <button class="tab-button" data-tab="status-tab">Status</button>
+            <button class="tab-button" data-tab="diagnostics-tab">Diagnostics</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="card">
+                <h2>System Overview</h2>
+                <div class="system-info">
+                    <div class="info-row">
+                        <span class="label">Mode:</span>
+                        <span id="current-mode" class="value mode-badge">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Pump:</span>
+                        <span id="pump-status" class="value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Heater:</span>
+                        <span id="heater-status" class="value">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Quick Controls</h2>
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <label class="toggle-label">
+                            <span>💧 Pump</span>
+                            <input type="checkbox" id="pump-toggle" class="toggle-switch">
+                            <span class="toggle-hint" id="pump-toggle-hint"></span>
+                        </label>
+                    </div>
+                    <div class="control-item">
+                        <label class="toggle-label">
+                            <span>⚡ Heater</span>
+                            <input type="checkbox" id="heater-toggle" class="toggle-switch">
+                            <span class="toggle-hint" id="heater-toggle-hint"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Temperature Summary</h2>
+                <div class="temp-summary">
+                    <div class="temp-card">
+                        <span class="temp-icon">🌡️</span>
+                        <div class="temp-info">
+                            <span class="temp-label">Tank</span>
+                            <span id="tank-temp-summary" class="temp-value">--°C</span>
+                        </div>
+                    </div>
+                    <div class="temp-card">
+                        <span class="temp-icon">☀️</span>
+                        <div class="temp-info">
+                            <span class="temp-label">Collector</span>
+                            <span id="collector-temp-summary" class="temp-value">--°C</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperatures Tab -->
+        <div id="temperatures-tab" class="tab-content">
+            <div class="card">
+                <h2>Temperature Readings</h2>
+                <div id="temperature-list" class="temp-list">
+                    <p class="loading">Loading temperature data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Tab -->
+        <div id="status-tab" class="tab-content">
+            <div class="card">
+                <h2>System Status</h2>
+                <div class="system-info">
+                    <div class="info-row">
+                        <span class="label">Status:</span>
+                        <span id="system-status" class="value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Energy:</span>
+                        <span id="energy-status" class="value">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Control Panel</h2>
+                <div class="control-panel">
+                    <div class="control-section">
+                        <h3>Current Mode</h3>
+                        <p id="control-current-mode" class="mode-display">Loading...</p>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3>Change Mode</h3>
+                        <div class="button-group">
+                            <button class="btn btn-primary" data-mode="auto">Auto Mode</button>
+                            <button class="btn btn-secondary" data-mode="manual">Manual Mode</button>
+                        </div>
+                    </div>
+
+                    <div class="control-section">
+                        <h3>Pump Control</h3>
+                        <div class="status-row">
+                            <span>Status:</span>
+                            <span id="control-pump-status">Loading...</span>
+                        </div>
+                        <div class="button-group">
+                            <button id="control-pump-start" class="btn btn-success">Start Pump</button>
+                            <button id="control-pump-stop" class="btn btn-danger">Stop Pump</button>
+                        </div>
+                    </div>
+
+                    <div class="control-section">
+                        <h3>Heater Control</h3>
+                        <div class="status-row">
+                            <span>Status:</span>
+                            <span id="control-heater-status">Loading...</span>
+                        </div>
+                        <p class="info-text">Heater available in both Auto and Manual modes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diagnostics Tab -->
+        <div id="diagnostics-tab" class="tab-content">
+            <div class="card">
+                <h2>System Diagnostics</h2>
+                <div class="diagnostic-info">
+                    <div class="info-row">
+                        <span class="label">API Status:</span>
+                        <span id="api-status" class="value">Checking...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Update Interval:</span>
+                        <span class="value">5 seconds</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Last Update:</span>
+                        <span id="diagnostic-last-update" class="value">Never</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Mock API FIRST (before dashboard.js) -->
+    <script src="api-mock.js"></script>
+    
+    <!-- Load Dashboard (will detect MockAPI and use it) -->
+    <script src="static/js/dashboard.js?v=10-dev"></script>
+</body>
+</html>

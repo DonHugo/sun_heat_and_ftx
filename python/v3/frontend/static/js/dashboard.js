@@ -169,6 +169,16 @@ class SolarHeatingDashboard {
             throw new Error('Configuration not loaded yet');
         }
         
+        // Check if MockAPI is available (local development mode)
+        if (window.MockAPI) {
+            console.log(`[DEV MODE] Using Mock API for: ${method} ${endpoint}`);
+            return window.MockAPI.mockFetch(endpoint, {
+                method: method,
+                body: data ? JSON.stringify(data) : null
+            }).then(response => response.json());
+        }
+        
+        // Production mode - use real API
         const url = `${this.apiBaseUrl}${endpoint}`;
         const options = {
             method: method,
