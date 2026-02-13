@@ -356,40 +356,43 @@ class SolarHeatingDashboard {
         }
         
         // ==================================================================
-        // WATER HEATER TANK
         // ==================================================================
-        const tankTop = temps.tank_top || temps.storage_tank_top || 0;
-        const tankMiddle = temps.tank_middle || 0;
-        const tankBottom = temps.tank_bottom || temps.storage_tank_bottom || 0;
+        // WATER HEATER TANK (8 sensors)
+        // ==================================================================
         const storedEnergy = temps.stored_energy_kwh || 0;
-        
-        updateEl('sys-tank-top', fmt(tankTop));
-        updateEl('sys-tank-middle', fmt(tankMiddle));
-        updateEl('sys-tank-bottom', fmt(tankBottom));
         updateEl('sys-tank-energy', fmt(storedEnergy, 2, ' kWh'));
         
-        // Update tank gradient visualization
+        // Update all 8 tank temperature sensors
+        const tankSensors = [
+            { height: 140, key: 'water_heater_140cm' },
+            { height: 120, key: 'water_heater_120cm' },
+            { height: 100, key: 'water_heater_100cm' },
+            { height: 80, key: 'water_heater_80cm' },
+            { height: 60, key: 'water_heater_60cm' },
+            { height: 40, key: 'water_heater_40cm' },
+            { height: 20, key: 'water_heater_20cm' },
+            { height: 0, key: 'water_heater_bottom' }
+        ];
+        
         const getColorClass = (temp) => {
             if (temp < 40) return 'cold';
             if (temp < 60) return 'warm';
             return 'hot';
         };
         
-        const tankLevelTop = document.getElementById('sys-tank-level-top');
-        const tankLevelMid = document.getElementById('sys-tank-level-mid');
-        const tankLevelBot = document.getElementById('sys-tank-level-bot');
+        tankSensors.forEach(sensor => {
+            const temp = temps[sensor.key] || 0;
+            const tempEl = document.getElementById(`sys-tank-${sensor.height}`);
+            const levelEl = document.getElementById(`sys-tank-level-${sensor.height}`);
+            
+            if (tempEl) {
+                updateEl(`sys-tank-${sensor.height}`, fmt(temp));
+            }
+            if (levelEl) {
+                levelEl.className = `tank-level ${getColorClass(temp)}`;
+            }
+        });
         
-        if (tankLevelTop) {
-            tankLevelTop.className = `tank-level tank-top ${getColorClass(tankTop)}`;
-        }
-        if (tankLevelMid) {
-            tankLevelMid.className = `tank-level tank-mid ${getColorClass(tankMiddle)}`;
-        }
-        if (tankLevelBot) {
-            tankLevelBot.className = `tank-level tank-bot ${getColorClass(tankBottom)}`;
-        }
-        
-        // ==================================================================
         // FTX VENTILATION
         // ==================================================================
         const outdoorTemp = temps.outdoor_air_temp || 0;
