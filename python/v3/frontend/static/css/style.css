@@ -2112,3 +2112,139 @@ body {
     }
 }
 
+/* FTX Flow Diagram - Integrated with temperatures */
+.ftx-flow-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
+    border-radius: 12px;
+}
+
+.ftx-flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.ftx-flow-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 80px;
+}
+
+.ftx-temp-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.ftx-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.ftx-exchanger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+}
+
+.ftx-exchanger-spacer {
+    width: 80px;
+    height: 80px;
+}
+
+.ftx-arrow-right,
+.ftx-arrow-left {
+    flex: 1;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(155, 89, 182, 0.3), var(--accent-color));
+    position: relative;
+}
+
+.ftx-arrow-right::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid var(--accent-color);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.ftx-arrow-left {
+    background: linear-gradient(90deg, var(--accent-color), rgba(155, 89, 182, 0.3));
+}
+
+.ftx-arrow-left::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-right: 12px solid var(--accent-color);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .ftx-flow-diagram {
+        gap: 20px;
+        padding: 15px;
+    }
+    
+    .ftx-flow-row {
+        gap: 10px;
+    }
+    
+    .ftx-flow-item {
+        min-width: 60px;
+    }
+    
+    .ftx-temp-value {
+        font-size: 1.1rem;
+    }
+    
+    .ftx-label {
+        font-size: 0.65rem;
+    }
+    
+    .ftx-exchanger {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+    
+    .ftx-exchanger-spacer {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .ftx-arrow-right::after,
+    .ftx-arrow-left::before {
+        border-width: 10px 8px;
+    }
+}
+
