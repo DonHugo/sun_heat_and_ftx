@@ -2112,226 +2112,139 @@ body {
     }
 }
 
-/* FTX Flow Diagram - Centered HX with arrows */
-.ftx-flow-diagram-center {
+/* FTX Flow Diagram - Integrated with temperatures */
+.ftx-flow-diagram {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.08), rgba(155, 89, 182, 0.08));
+    gap: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
     border-radius: 12px;
 }
 
-.ftx-temp-item {
+.ftx-flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.ftx-flow-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    min-width: 80px;
 }
 
-.ftx-temp-item .ftx-temp-value {
-    font-size: 1.6rem;
+.ftx-temp-value {
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--primary-color);
 }
 
-.ftx-temp-item .ftx-label {
-    font-size: 0.7rem;
+.ftx-label {
+    font-size: 0.75rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     font-weight: 600;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
 }
 
-.ftx-middle-row {
+.ftx-exchanger {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 40px;
-    width: 100%;
-}
-
-.ftx-center-hx {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ftx-hx-circle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     border-radius: 50%;
-    box-shadow: 0 6px 16px rgba(155, 89, 182, 0.35);
-    z-index: 2;
-}
-
-.hx-text {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: white;
-    line-height: 1;
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
 }
 
-.hx-efficiency {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
-    margin-top: 4px;
+.ftx-exchanger-spacer {
+    width: 80px;
+    height: 80px;
 }
 
-/* Arrow styles */
-.ftx-arrow-down,
-.ftx-arrow-up,
-.ftx-arrow-left,
-.ftx-arrow-right {
-    position: absolute;
-    background: linear-gradient(135deg, rgba(155, 89, 182, 0.4), var(--accent-color));
-    z-index: 1;
-}
-
-.ftx-arrow-down {
-    width: 4px;
-    height: 50px;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.ftx-arrow-down::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 12px solid var(--accent-color);
-}
-
-.ftx-arrow-up {
-    width: 4px;
-    height: 50px;
-    bottom: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.ftx-arrow-up::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 12px solid var(--accent-color);
-}
-
+.ftx-arrow-right,
 .ftx-arrow-left {
-    height: 4px;
-    width: 50px;
-    left: -50px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.ftx-arrow-left::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    border-right: 12px solid var(--accent-color);
-}
-
-.ftx-arrow-right {
-    height: 4px;
-    width: 50px;
-    right: -50px;
-    top: 50%;
-    transform: translateY(-50%);
+    flex: 1;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(155, 89, 182, 0.3), var(--accent-color));
+    position: relative;
 }
 
 .ftx-arrow-right::after {
     content: '';
     position: absolute;
-    right: -8px;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
     width: 0;
     height: 0;
+    border-left: 12px solid var(--accent-color);
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-left: 12px solid var(--accent-color);
+}
+
+.ftx-arrow-left {
+    background: linear-gradient(90deg, var(--accent-color), rgba(155, 89, 182, 0.3));
+}
+
+.ftx-arrow-left::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-right: 12px solid var(--accent-color);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
 }
 
 /* Mobile responsive */
 @media (max-width: 480px) {
-    .ftx-flow-diagram-center {
-        padding: 20px 15px;
-        gap: 15px;
+    .ftx-flow-diagram {
+        gap: 20px;
+        padding: 15px;
     }
     
-    .ftx-temp-item .ftx-temp-value {
-        font-size: 1.3rem;
+    .ftx-flow-row {
+        gap: 10px;
     }
     
-    .ftx-temp-item .ftx-label {
+    .ftx-flow-item {
+        min-width: 60px;
+    }
+    
+    .ftx-temp-value {
+        font-size: 1.1rem;
+    }
+    
+    .ftx-label {
         font-size: 0.65rem;
     }
     
-    .ftx-middle-row {
-        gap: 25px;
+    .ftx-exchanger {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
     }
     
-    .ftx-hx-circle {
-        width: 80px;
-        height: 80px;
+    .ftx-exchanger-spacer {
+        width: 60px;
+        height: 60px;
     }
     
-    .hx-text {
-        font-size: 1.3rem;
-    }
-    
-    .hx-efficiency {
-        font-size: 0.75rem;
-    }
-    
-    .ftx-arrow-down,
-    .ftx-arrow-up {
-        height: 40px;
-    }
-    
-    .ftx-arrow-down {
-        top: -40px;
-    }
-    
-    .ftx-arrow-up {
-        bottom: -40px;
-    }
-    
-    .ftx-arrow-left {
-        width: 35px;
-        left: -35px;
-    }
-    
-    .ftx-arrow-right {
-        width: 35px;
-        right: -35px;
+    .ftx-arrow-right::after,
+    .ftx-arrow-left::before {
+        border-width: 10px 8px;
     }
 }
+

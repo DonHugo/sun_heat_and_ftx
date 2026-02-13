@@ -414,7 +414,6 @@ class SolarHeatingDashboard {
         }
         
         updateEl('sys-ftx-efficiency', fmt(efficiency, 0, '%'));
-        updateEl('sys-ftx-efficiency-inline', fmt(efficiency, 0, '%'));
     }
 
     

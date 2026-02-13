@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=16">
+    <link rel="stylesheet" href="static/css/style.css?v=15">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -538,41 +538,35 @@
                         </div>
                     </div>
                     <div class="system-visual">
-                        <div class="ftx-flow-diagram-center">
-                            <!-- Top: Outdoor -->
-                            <div class="ftx-temp-item top">
-                                <span class="ftx-temp-value" id="sys-ftx-outdoor">--°C</span>
-                                <span class="ftx-label">OUTDOOR</span>
-                            </div>
-                            
-                            <!-- Left and Right: Supply and Return -->
-                            <div class="ftx-middle-row">
-                                <div class="ftx-temp-item left">
+                        <div class="ftx-flow-diagram">
+                            <!-- Top flow: Outdoor -> HX -> Supply -->
+                            <div class="ftx-flow-row">
+                                <div class="ftx-flow-item">
+                                    <span class="ftx-temp-value" id="sys-ftx-outdoor">--°C</span>
+                                    <span class="ftx-label">Outdoor</span>
+                                </div>
+                                <div class="ftx-arrow-right"></div>
+                                <div class="ftx-exchanger">HX</div>
+                                <div class="ftx-arrow-right"></div>
+                                <div class="ftx-flow-item">
                                     <span class="ftx-temp-value" id="sys-ftx-supply">--°C</span>
-                                    <span class="ftx-label">SUPPLY</span>
-                                </div>
-                                
-                                <div class="ftx-center-hx">
-                                    <div class="ftx-arrow-down"></div>
-                                    <div class="ftx-hx-circle">
-                                        <span class="hx-text">HX</span>
-                                        <span class="hx-efficiency" id="sys-ftx-efficiency-inline">--%</span>
-                                    </div>
-                                    <div class="ftx-arrow-up"></div>
-                                    <div class="ftx-arrow-left"></div>
-                                    <div class="ftx-arrow-right"></div>
-                                </div>
-                                
-                                <div class="ftx-temp-item right">
-                                    <span class="ftx-temp-value" id="sys-ftx-return">--°C</span>
-                                    <span class="ftx-label">RETURN</span>
+                                    <span class="ftx-label">Supply</span>
                                 </div>
                             </div>
                             
-                            <!-- Bottom: Exhaust -->
-                            <div class="ftx-temp-item bottom">
-                                <span class="ftx-temp-value" id="sys-ftx-exhaust">--°C</span>
-                                <span class="ftx-label">EXHAUST</span>
+                            <!-- Bottom flow: Return -> HX -> Exhaust -->
+                            <div class="ftx-flow-row">
+                                <div class="ftx-flow-item">
+                                    <span class="ftx-temp-value" id="sys-ftx-return">--°C</span>
+                                    <span class="ftx-label">Return</span>
+                                </div>
+                                <div class="ftx-arrow-left"></div>
+                                <div class="ftx-exchanger-spacer"></div>
+                                <div class="ftx-arrow-left"></div>
+                                <div class="ftx-flow-item">
+                                    <span class="ftx-temp-value" id="sys-ftx-exhaust">--°C</span>
+                                    <span class="ftx-label">Exhaust</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -611,7 +605,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=15"></script>
+    <script src="static/js/dashboard.js?v=14"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->
