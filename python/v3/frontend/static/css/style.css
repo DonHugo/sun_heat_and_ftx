@@ -2062,3 +2062,20 @@ body {
 .pellet-card {
     border-top: 4px solid #8D6E63;
 }
+
+/* Material Design Icons Styling */
+.sidebar-icon i {
+    font-size: 20px;
+    color: #90a4ae;
+    transition: all 0.3s ease;
+}
+
+.sidebar-link:hover .sidebar-icon i {
+    color: #90CAF9;
+    transform: scale(1.1);
+}
+
+.sidebar-link.active .sidebar-icon i {
+    color: #64B5F6;
+    text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+}

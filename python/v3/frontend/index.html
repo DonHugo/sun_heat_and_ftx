@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=22">
+    <link rel="stylesheet" href="static/css/style.css?v=24">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 </head>
 <body>
     <!-- Sidebar Navigation -->
@@ -17,24 +18,24 @@
         
         <nav class="sidebar-nav">
             <button class="sidebar-link active" data-tab="dashboard">
-                <span class="sidebar-icon">📊</span>
-                <span class="sidebar-text">Dashboard</span>
+                <span class="sidebar-icon"><i class="mdi mdi-view-dashboard"></i></span>
+                <span class="sidebar-text">Overview</span>
             </button>
             <button class="sidebar-link" data-tab="temperatures">
-                <span class="sidebar-icon">🌡️</span>
+                <span class="sidebar-icon"><i class="mdi mdi-thermometer"></i></span>
                 <span class="sidebar-text">Temperatures</span>
             </button>
+            <button class="sidebar-link" data-tab="systems">
+                <span class="sidebar-icon"><i class="mdi mdi-cog-outline"></i></span>
+                <span class="sidebar-text">Systems</span>
+            </button>
             <button class="sidebar-link" data-tab="control">
-                <span class="sidebar-icon">⚙️</span>
-                <span class="sidebar-text">Status</span>
+                <span class="sidebar-icon"><i class="mdi mdi-tune"></i></span>
+                <span class="sidebar-text">Control</span>
             </button>
             <button class="sidebar-link" data-tab="diagnostics">
-                <span class="sidebar-icon">🔧</span>
-                <span class="sidebar-text">Diagnostics</span>
-            </button>
-            <button class="sidebar-link" data-tab="systems">
-                <span class="sidebar-icon">🏠</span>
-                <span class="sidebar-text">Systems</span>
+                <span class="sidebar-icon"><i class="mdi mdi-home-assistant"></i></span>
+                <span class="sidebar-text">Home Assistant</span>
             </button>
         </nav>
         
