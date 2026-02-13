@@ -446,17 +446,23 @@ class SolarHeatingDashboard {
         updateEl('sys-ftx-exhaust', fmt(exhaustTemp));
         updateEl('sys-ftx-return', fmt(returnTemp));
         
-        // Calculate heat recovery efficiency
-        // Efficiency = (Supply - Outdoor) / (Return - Exhaust) * 100%
-        // This measures how much heat from return air is recovered before exhaust
-        let efficiency = 0;
-        if (returnTemp > exhaustTemp + 1) { // Avoid division by near-zero
-            efficiency = ((supplyTemp - outdoorTemp) / (returnTemp - exhaustTemp)) * 100;
-            efficiency = Math.max(0, Math.min(100, efficiency)); // Clamp to 0-100%
+        // Calculate heat recovery as temperature delta (Return - Exhaust)
+        // This shows actual heat extracted from return air
+        let heatRecovery = 0;
+        let recoveryEmoji = '--';
+        if (returnTemp !== null && exhaustTemp !== null) {
+            heatRecovery = returnTemp - exhaustTemp;
+            
+            // Emoji based on recovery amount
+            if (heatRecovery < 5) { recoveryEmoji = '🔴'; }
+            else if (heatRecovery < 10) { recoveryEmoji = '🟡'; }
+            else if (heatRecovery < 15) { recoveryEmoji = '🟢'; }
+            else { recoveryEmoji = '💚'; }
         }
         
-        updateEl('sys-ftx-efficiency', fmt(efficiency, 0, '%'));
-        updateEl('sys-ftx-efficiency-inline', fmt(efficiency, 0, '%'));
+        // Display as temperature delta with emoji
+        updateEl('sys-ftx-efficiency', heatRecovery > 0 ? `${heatRecovery.toFixed(1)}°C ${recoveryEmoji}` : '-- °C');
+        updateEl('sys-ftx-efficiency-inline', heatRecovery > 0 ? `${heatRecovery.toFixed(1)}°C` : '--');
     }
 
     
