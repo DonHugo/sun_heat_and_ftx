@@ -274,6 +274,9 @@ class SolarHeatingDashboard {
         
         // Update hero card
         this.updateHeroCard(data);
+        
+        // Update energy card
+        this.updateEnergyCard(data);
     }
     
     // UX Fix #4: Update hero card with system status
@@ -371,6 +374,45 @@ class SolarHeatingDashboard {
                 heroEnergyStatus.style.color = '#95a5a6';
             }
         }
+    }
+    
+    // Update energy summary card
+    updateEnergyCard(data) {
+        // Extract energy data from API response
+        const solarDaily = data.system_state?.solar_energy_today ?? 0;
+        const heaterDaily = data.system_state?.cartridge_energy_today ?? 0;
+        const pelletDaily = data.system_state?.pellet_energy_today ?? 0;
+        
+        const solarRate = data.system_state?.solar_energy_hour ?? 0;
+        const heaterRate = data.system_state?.cartridge_energy_hour ?? 0;
+        const pelletRate = data.system_state?.pellet_energy_hour ?? 0;
+        
+        // Calculate total energy
+        const totalEnergy = solarDaily + heaterDaily + pelletDaily;
+        
+        // Update total energy display
+        const totalElement = document.getElementById('energy-total');
+        if (totalElement) {
+            totalElement.textContent = totalEnergy.toFixed(1);
+        }
+        
+        // Update solar energy
+        const solarDailyElement = document.getElementById('energy-solar-daily');
+        const solarRateElement = document.getElementById('energy-solar-rate');
+        if (solarDailyElement) solarDailyElement.textContent = solarDaily.toFixed(1);
+        if (solarRateElement) solarRateElement.textContent = solarRate.toFixed(2);
+        
+        // Update heater energy
+        const heaterDailyElement = document.getElementById('energy-heater-daily');
+        const heaterRateElement = document.getElementById('energy-heater-rate');
+        if (heaterDailyElement) heaterDailyElement.textContent = heaterDaily.toFixed(1);
+        if (heaterRateElement) heaterRateElement.textContent = heaterRate.toFixed(2);
+        
+        // Update pellet energy
+        const pelletDailyElement = document.getElementById('energy-pellet-daily');
+        const pelletRateElement = document.getElementById('energy-pellet-rate');
+        if (pelletDailyElement) pelletDailyElement.textContent = pelletDaily.toFixed(1);
+        if (pelletRateElement) pelletRateElement.textContent = pelletRate.toFixed(2);
     }
     
     updateTemperatures(data) {

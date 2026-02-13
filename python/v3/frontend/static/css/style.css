@@ -1232,6 +1232,201 @@ body {
 }
 
 /* =============================================================================
+   ENERGY SUMMARY CARD
+   ============================================================================= */
+
+.energy-summary-card {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+}
+
+.energy-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.energy-summary-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: #ffffff;
+}
+
+.energy-total {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.energy-total-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.energy-total-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.energy-total-unit {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.energy-sources-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.energy-source {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.energy-source:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.energy-source-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.energy-source-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.energy-source-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.energy-source-values {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.energy-source-daily {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.energy-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.energy-unit {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.energy-source-rate {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.energy-rate {
+    font-weight: 600;
+}
+
+.energy-rate-unit {
+    font-size: 0.75rem;
+}
+
+/* Color accents for different energy sources */
+.energy-source.solar .energy-source-icon {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+.energy-source.heater .energy-source-icon {
+    filter: drop-shadow(0 0 8px rgba(255, 100, 50, 0.5));
+}
+
+.energy-source.pellet .energy-source-icon {
+    filter: drop-shadow(0 0 8px rgba(139, 90, 43, 0.5));
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .energy-summary-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .energy-summary-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .energy-summary-title {
+        font-size: 1.3rem;
+    }
+    
+    .energy-sources-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .energy-source {
+        padding: 14px;
+    }
+    
+    .energy-source-icon {
+        font-size: 1.8rem;
+    }
+    
+    .energy-value {
+        font-size: 1.3rem;
+    }
+    
+    .energy-total-value {
+        font-size: 1.6rem;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .energy-summary-title {
+        font-size: 1.2rem;
+    }
+    
+    .energy-total-value {
+        font-size: 1.4rem;
+    }
+    
+    .energy-value {
+        font-size: 1.2rem;
+    }
+}
+
+/* =============================================================================
    PHASE A: QUICK UX WINS (2026-02-13)
    ============================================================================= */
 

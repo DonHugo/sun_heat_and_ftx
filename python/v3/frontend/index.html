@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=12">
+    <link rel="stylesheet" href="static/css/style.css?v=13">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -84,6 +84,74 @@
                                     <div class="metric-label">Energy Status</div>
                                     <div class="metric-value" id="hero-energy-status">Collecting</div>
                                     <div class="metric-status" id="hero-energy-detail">Solar heating active</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Energy Summary Card -->
+            <div class="energy-summary-card">
+                <div class="energy-summary-header">
+                    <h3 class="energy-summary-title">⚡ Energy Today</h3>
+                    <div class="energy-total">
+                        <span class="energy-total-label">Total:</span>
+                        <span class="energy-total-value" id="energy-total">--</span>
+                        <span class="energy-total-unit">kWh</span>
+                    </div>
+                </div>
+                
+                <div class="energy-sources-grid">
+                    <!-- Solar Energy -->
+                    <div class="energy-source solar">
+                        <div class="energy-source-icon">☀️</div>
+                        <div class="energy-source-content">
+                            <div class="energy-source-label">Solar</div>
+                            <div class="energy-source-values">
+                                <div class="energy-source-daily">
+                                    <span class="energy-value" id="energy-solar-daily">--</span>
+                                    <span class="energy-unit">kWh</span>
+                                </div>
+                                <div class="energy-source-rate">
+                                    <span class="energy-rate" id="energy-solar-rate">--</span>
+                                    <span class="energy-rate-unit">kW/h</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Heater Energy -->
+                    <div class="energy-source heater">
+                        <div class="energy-source-icon">🔥</div>
+                        <div class="energy-source-content">
+                            <div class="energy-source-label">Heater</div>
+                            <div class="energy-source-values">
+                                <div class="energy-source-daily">
+                                    <span class="energy-value" id="energy-heater-daily">--</span>
+                                    <span class="energy-unit">kWh</span>
+                                </div>
+                                <div class="energy-source-rate">
+                                    <span class="energy-rate" id="energy-heater-rate">--</span>
+                                    <span class="energy-rate-unit">kW/h</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pellet Energy -->
+                    <div class="energy-source pellet">
+                        <div class="energy-source-icon">🪵</div>
+                        <div class="energy-source-content">
+                            <div class="energy-source-label">Pellets</div>
+                            <div class="energy-source-values">
+                                <div class="energy-source-daily">
+                                    <span class="energy-value" id="energy-pellet-daily">--</span>
+                                    <span class="energy-unit">kWh</span>
+                                </div>
+                                <div class="energy-source-rate">
+                                    <span class="energy-rate" id="energy-pellet-rate">--</span>
+                                    <span class="energy-rate-unit">kW/h</span>
                                 </div>
                             </div>
                         </div>
@@ -374,7 +442,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=11"></script>
+    <script src="static/js/dashboard.js?v=12"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->
