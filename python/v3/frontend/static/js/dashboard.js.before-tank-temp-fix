@@ -358,9 +358,12 @@ class SolarHeatingDashboard {
         // ==================================================================
         // WATER HEATER TANK
         // ==================================================================
-        const tankTop = temps.tank_top || temps.storage_tank_top || 0;
-        const tankMiddle = temps.tank_middle || 0;
-        const tankBottom = temps.tank_bottom || temps.storage_tank_bottom || 0;
+        const tankTop = temps.storage_tank_top || temps.tank_top || temps.rtd_sensor_7 || 0;
+        const tankBottom = temps.storage_tank_bottom || temps.tank_bottom || temps.rtd_sensor_0 || 0;
+        // Calculate middle as average of sensors 3 and 4 (middle section)
+        const sensor3 = temps.rtd_sensor_3 || 0;
+        const sensor4 = temps.rtd_sensor_4 || 0;
+        const tankMiddle = (sensor3 + sensor4) / 2;
         const storedEnergy = temps.stored_energy_kwh || 0;
         
         updateEl('sys-tank-top', fmt(tankTop));
