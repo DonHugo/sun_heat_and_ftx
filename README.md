@@ -51,6 +51,14 @@ chmod +x deploy_to_pi.sh
 
 ## 📚 **Documentation**
 
+## 🤖 OpenCode Agents
+
+This project uses unified OpenCode agents. See [`.opencode/README.md`](.opencode/README.md) for:
+- Available agents and their capabilities
+- How to invoke agents
+- Project-specific usage patterns
+- Link to comprehensive agent guide
+
 ### **🚀 Start Here (New Users)**
 - **[Complete System Overview](docs/SYSTEM_OVERVIEW.md)** - Master guide to everything
 - **[Component Map](docs/COMPONENT_MAP.md)** - Visual navigation guide

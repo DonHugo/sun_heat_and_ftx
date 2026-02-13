@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=14">
+    <link rel="stylesheet" href="static/css/style.css?v=5">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -34,7 +34,6 @@
             <button class="tab-button" data-tab="temperatures">Temperatures</button>
             <button class="tab-button" data-tab="control">Status</button>
             <button class="tab-button" data-tab="diagnostics">Diagnostics</button>
-            <button class="tab-button" data-tab="systems">Systems</button>
         </nav>
 
         <!-- Dashboard Tab -->
@@ -85,74 +84,6 @@
                                     <div class="metric-label">Energy Status</div>
                                     <div class="metric-value" id="hero-energy-status">Collecting</div>
                                     <div class="metric-status" id="hero-energy-detail">Solar heating active</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Energy Summary Card -->
-            <div class="energy-summary-card">
-                <div class="energy-summary-header">
-                    <h3 class="energy-summary-title">⚡ Energy Today</h3>
-                    <div class="energy-total">
-                        <span class="energy-total-label">Total:</span>
-                        <span class="energy-total-value" id="energy-total">--</span>
-                        <span class="energy-total-unit">kWh</span>
-                    </div>
-                </div>
-                
-                <div class="energy-sources-grid">
-                    <!-- Solar Energy -->
-                    <div class="energy-source solar">
-                        <div class="energy-source-icon">☀️</div>
-                        <div class="energy-source-content">
-                            <div class="energy-source-label">Solar</div>
-                            <div class="energy-source-values">
-                                <div class="energy-source-daily">
-                                    <span class="energy-value" id="energy-solar-daily">--</span>
-                                    <span class="energy-unit">kWh</span>
-                                </div>
-                                <div class="energy-source-rate">
-                                    <span class="energy-rate" id="energy-solar-rate">--</span>
-                                    <span class="energy-rate-unit">kW/h</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Heater Energy -->
-                    <div class="energy-source heater">
-                        <div class="energy-source-icon">🔥</div>
-                        <div class="energy-source-content">
-                            <div class="energy-source-label">Heater</div>
-                            <div class="energy-source-values">
-                                <div class="energy-source-daily">
-                                    <span class="energy-value" id="energy-heater-daily">--</span>
-                                    <span class="energy-unit">kWh</span>
-                                </div>
-                                <div class="energy-source-rate">
-                                    <span class="energy-rate" id="energy-heater-rate">--</span>
-                                    <span class="energy-rate-unit">kW/h</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Pellet Energy -->
-                    <div class="energy-source pellet">
-                        <div class="energy-source-icon">🪵</div>
-                        <div class="energy-source-content">
-                            <div class="energy-source-label">Pellets</div>
-                            <div class="energy-source-values">
-                                <div class="energy-source-daily">
-                                    <span class="energy-value" id="energy-pellet-daily">--</span>
-                                    <span class="energy-unit">kWh</span>
-                                </div>
-                                <div class="energy-source-rate">
-                                    <span class="energy-rate" id="energy-pellet-rate">--</span>
-                                    <span class="energy-rate-unit">kW/h</span>
                                 </div>
                             </div>
                         </div>
@@ -414,172 +345,6 @@
             </div>
         </div>
 
-        <!-- Systems Tab -->
-        <div id="systems" class="tab-content">
-            <div class="systems-grid">
-                <!-- Solar Heating System Card -->
-                <div class="system-card solar-card">
-                    <div class="system-header">
-                        <div class="system-icon">🌞</div>
-                        <h3>Solar Heating System</h3>
-                    </div>
-                    <div class="system-metrics">
-                        <div class="system-metric">
-                            <span class="metric-label">Collector Temperature</span>
-                            <span class="metric-value" id="sys-solar-collector">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Tank Temperature</span>
-                            <span class="metric-value" id="sys-solar-tank">--°C</span>
-                        </div>
-                        <div class="system-metric highlight">
-                            <span class="metric-label">Temperature Difference (dT)</span>
-                            <span class="metric-value" id="sys-solar-dt">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Pump Status</span>
-                            <span class="metric-value status-badge" id="sys-solar-pump">OFF</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Energy Today</span>
-                            <span class="metric-value" id="sys-solar-energy">-- kWh</span>
-                        </div>
-                    </div>
-                    <div class="system-visual">
-                        <div class="solar-flow-indicator" id="sys-solar-flow">
-                            <div class="flow-line"></div>
-                            <div class="flow-arrow"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cartridge Heater Card -->
-                <div class="system-card heater-card">
-                    <div class="system-header">
-                        <div class="system-icon">🔥</div>
-                        <h3>Cartridge Heater</h3>
-                    </div>
-                    <div class="system-metrics">
-                        <div class="system-metric">
-                            <span class="metric-label">Status</span>
-                            <span class="metric-value status-badge" id="sys-heater-status">OFF</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Current Power</span>
-                            <span class="metric-value" id="sys-heater-power">-- kW</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Energy Today</span>
-                            <span class="metric-value" id="sys-heater-energy-today">-- kWh</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Runtime Today</span>
-                            <span class="metric-value" id="sys-heater-runtime">-- hours</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Rated Power</span>
-                            <span class="metric-value">3.0 kW</span>
-                        </div>
-                    </div>
-                    <div class="system-visual">
-                        <div class="heater-power-bar">
-                            <div class="power-bar-fill" id="sys-heater-bar"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Water Heater Tank Card -->
-                <div class="system-card tank-card">
-                    <div class="system-header">
-                        <div class="system-icon">🌡️</div>
-                        <h3>Water Heater Tank</h3>
-                    </div>
-                    <div class="system-metrics">
-                        <div class="system-metric">
-                            <span class="metric-label">Top Temperature</span>
-                            <span class="metric-value" id="sys-tank-top">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Middle Temperature</span>
-                            <span class="metric-value" id="sys-tank-middle">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Bottom Temperature</span>
-                            <span class="metric-value" id="sys-tank-bottom">--°C</span>
-                        </div>
-                        <div class="system-metric highlight">
-                            <span class="metric-label">Stored Energy</span>
-                            <span class="metric-value" id="sys-tank-energy">-- kWh</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Tank Capacity</span>
-                            <span class="metric-value">360 L</span>
-                        </div>
-                    </div>
-                    <div class="system-visual">
-                        <div class="tank-gradient">
-                            <div class="tank-level tank-top" id="sys-tank-level-top"></div>
-                            <div class="tank-level tank-mid" id="sys-tank-level-mid"></div>
-                            <div class="tank-level tank-bot" id="sys-tank-level-bot"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FTX Ventilation Card -->
-                <div class="system-card ftx-card">
-                    <div class="system-header">
-                        <div class="system-icon">💨</div>
-                        <h3>FTX Ventilation</h3>
-                    </div>
-                    <div class="system-metrics">
-                        <div class="system-metric">
-                            <span class="metric-label">Outdoor Air</span>
-                            <span class="metric-value" id="sys-ftx-outdoor">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Supply Air</span>
-                            <span class="metric-value" id="sys-ftx-supply">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Exhaust Air</span>
-                            <span class="metric-value" id="sys-ftx-exhaust">--°C</span>
-                        </div>
-                        <div class="system-metric">
-                            <span class="metric-label">Return Air</span>
-                            <span class="metric-value" id="sys-ftx-return">--°C</span>
-                        </div>
-                        <div class="system-metric highlight">
-                            <span class="metric-label">Heat Recovery</span>
-                            <span class="metric-value" id="sys-ftx-efficiency">--%</span>
-                        </div>
-                    </div>
-                    <div class="system-visual">
-                        <div class="ftx-flow-diagram">
-                            <div class="ftx-flow-line outdoor">
-                                <span class="flow-label">Outdoor</span>
-                                <div class="flow-arrow-right"></div>
-                            </div>
-                            <div class="ftx-exchanger">HX</div>
-                            <div class="ftx-flow-line supply">
-                                <div class="flow-arrow-right"></div>
-                                <span class="flow-label">Supply</span>
-                            </div>
-                            <div class="ftx-flow-line return">
-                                <span class="flow-label">Return</span>
-                                <div class="flow-arrow-left"></div>
-                            </div>
-                            <div class="ftx-flow-line exhaust">
-                                <div class="flow-arrow-left"></div>
-                                <span class="flow-label">Exhaust</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
@@ -609,7 +374,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=13"></script>
+    <script src="static/js/dashboard.js?v=9"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->

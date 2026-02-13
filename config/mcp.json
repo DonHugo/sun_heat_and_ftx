@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "mqtt-diagnostics": {
+      "command": "npx",
+      "args": ["-y", "--package=mqtt-diagnostics-mcp", "mqtt-diagnostics-mcp"],
+      "env": {
+        "MQTT_HOST": "192.168.0.110",
+        "MQTT_PORT": "1883",
+        "MQTT_USERNAME": "mqtt_beaches",
+        "MQTT_PASSWORD": "uQX6NiZ.7R"
+      }
+    },
+    "hardware-gpio-assistant": {
+      "command": "npx",
+      "args": ["-y", "--package=hardware-gpio-assistant-mcp", "hardware-gpio-assistant-mcp"],
+      "env": {
+        "BOARD_MODEL": "raspberry_pi_zero_2_w",
+        "PINOUT_PROFILE": "solar_heating_v3"
+      }
+    },
+    "doc-markdown-formatter": {
+      "command": "npx",
+      "args": ["-y", "--package=markdown-doc-mcp", "markdown-doc-mcp"],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "--package=@withmartian/github-mcp", "github-mcp"],
+      "env": {
+
+      }
+    }
+  }
+}

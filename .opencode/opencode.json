@@ -1,0 +1,51 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "plan": {
+      "mode": "primary",
+      "description": "Analysis and planning mode without making code changes",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": "ask",
+        "webfetch": "allow"
+      },
+      "tools": {
+        "write": false,
+        "edit": false
+      }
+    },
+    "build": {
+      "mode": "primary",
+      "description": "Full development mode with all tools enabled for Solar Heating System",
+      "temperature": 0.3,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+    "manager": {
+      "mode": "primary",
+      "description": "Ansible & infrastructure workflow orchestration - delegates to subagents for requirements, architecture, development, and validation",
+      "temperature": 0.2,
+      "model": "github-copilot/claude-sonnet-4.5",
+      "prompt": ".opencode/agent/manager.md",
+      "color": "#9B59B6",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow",
+        "webfetch": "deny"
+      },
+      "tools": {
+        "write": false,
+        "edit": false,
+        "read": true,
+        "bash": true,
+        "task": true,
+        "glob": true,
+        "grep": true
+      }
+    }
+  }
+}

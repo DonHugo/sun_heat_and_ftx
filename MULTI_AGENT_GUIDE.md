@@ -2,7 +2,10 @@
 
 ## 🎯 Overview
 
-This project uses a **multi-agent approach** where different AI agents specialize in different aspects of the development lifecycle. Each agent has specific responsibilities and works together in a coordinated workflow.
+This project uses a **multi-agent approach** where different AI agents specialize in different aspects of the development lifecycle for the Solar Heating System. Each agent has specific responsibilities and works together in a coordinated workflow.
+
+**Project Type:** Solar Heating Control System (Raspberry Pi with hardware constraints)
+**Focus:** Hardware reliability, real-time control, service stability, MQTT integration
 
 ## 🤖 The Eight Agents
 
@@ -15,44 +18,97 @@ This project uses a **multi-agent approach** where different AI agents specializ
 | **@tester** | Test Engineer | Writing test specs, test strategy |
 | **@developer** | Software Developer | Implementing code, fixing bugs |
 | **@reviewer** | Code Reviewer (Optional) | Deep code review for critical features |
-| **@validator** | Quality Validator | Code review + hardware validation |
+| **@validator** | Quality Validator | Code review + hardware validation + production deployment (3-phase) |
+
+## ⚡ Autonomous Workflow (NEW!)
+
+**The manager now runs autonomously with only 2 approval gates:**
+
+1. ✅ **Requirements Approval** - You collaborate with @requirements to ensure the end goal is correct
+2. ✅ **Production Deployment** - You control when to deploy to production
+
+**Everything else happens automatically:**
+- Architecture → Testing → Implementation → Code Review (autonomous)
+- GitHub status updates automatically at each phase
+- Project board tracks progress in real-time
+- Manager provides progress updates every 2-5 minutes
+
+**You can pause anytime by saying "pause" or "stop"**
+
+---
 
 ## 🚀 Quick Start Examples
 
-### Example 0: Let Manager Orchestrate (Recommended for Complex Features)
+### Example 0: Let Manager Orchestrate (Recommended - Autonomous Workflow!)
 
 ```
-You: "@manager I want to add a feature that sends me an email alert 
-      when the solar panel temperature exceeds 90°C"
+You: "@manager fix issue #45"
 
-Manager Agent:
-- Analyzes the request
-- Creates project plan
-- Routes to @requirements → @architect → @tester → @developer → @validator
-- Tracks progress through each phase
-- Ensures nothing is skipped
-- Updates documentation
-- Confirms completion
+Manager:
+- ✅ Assigns to @requirements
+- ✅ Updates GitHub: "status: requirements"
+- [Project board moves to "Requirements" automatically]
+
+Requirements:
+- Analyzes issue, gathers requirements
+- "Found X. Proposed solution: Y. Questions: 1) ...? 2) ...?"
+
+You: [Discuss and answer questions]
+
+Manager:
+- "Requirements complete! Summary: [...]"
+- "✅ Approve to start implementation? (approve/discuss)"
+
+You: "approve"  ⚠️ FIRST APPROVAL GATE
+
+Manager:
+- "Starting autonomous workflow..."
+- [2 min] "✅ Architecture complete"
+- [5 min] "✅ Tests complete (60+ tests)"
+- [10 min] "✅ Implementation complete"
+- [2 min] "✅ Code review passed"
+- ✅ Updates GitHub automatically at each phase
+- [Project board tracks progress in real-time]
+
+Manager:
+- "⚠️ Ready to deploy to production?"
+- "Deploy? (yes/no/pause)"
+
+You: "yes"  ⚠️ SECOND APPROVAL GATE
+
+Manager:
+- Deploys to production
+- Closes issue
+- "✅ Issue #45 complete!"
 ```
+
+**You only needed to:**
+1. Start work: "@manager fix issue #45"
+2. Approve requirements: "approve"
+3. Approve deployment: "yes"
+
+**Everything else was autonomous!** 🚀
 
 ### Example 1: New Feature Development (Direct Agent Access)
 
 ```
-You: "@requirements I want to add a feature that sends me an email alert 
-      when the solar panel temperature exceeds 90°C"
+You: "@requirements I want to add a frost protection mode that automatically 
+      activates the backup heater when outdoor temperature drops below 0°C"
 
 Requirements Agent:
 - Asks clarifying questions
 - Documents the requirement
 - Creates acceptance criteria
+- Considers hardware safety
 - Hands off to @architect
 
 You: "@architect Here are the requirements..."
 
 Architect Agent:
-- Designs the solution
-- Plans component interactions
-- Chooses email library
+- Designs the solution for frost protection
+- Plans component interactions (temperature monitoring, relay control)
+- Considers hardware safety (relay protection, hysteresis)
+- Defines failure recovery behavior
 - Hands off to @tester
 
 You: "@tester Here's the architecture..."
@@ -72,8 +128,9 @@ Developer Agent:
 You: "@validator The implementation is complete..."
 
 Validator Agent:
-- Creates validation procedures
-- Provides commands to test on Raspberry Pi
+- Phase 1: Code review (hardware safety, code quality)
+- Phase 2: Hardware validation on Raspberry Pi (relay control, sensor reading)
+- Phase 3: Production deployment (service restart, monitoring)
 - Confirms feature meets requirements
 ```
 
@@ -323,21 +380,30 @@ Coach Agent:
 - "@validator Verify the relay control implementation and test on hardware"
 - "@validator Validate the energy reporting feature meets requirements"
 
-**What Validator Does (Two Phases):**
+**What Validator Does (Three Phases):**
 
 **Phase 1: Code Review**
 1. Verify architecture compliance
-2. Check code quality
-3. Review error handling
+2. Check code quality and hardware safety
+3. Review error handling (GPIO, sensors, relays)
 4. Assess logging
-5. Check best practices
+5. Check best practices for embedded systems
 6. Approve for hardware testing
 
 **Phase 2: Hardware Validation**
 1. Create test procedures for Raspberry Pi
 2. Provide SSH commands to run
-3. Analyze test results
-4. Verify acceptance criteria
+3. Test actual relay control and sensor reading
+4. Verify MQTT integration with Home Assistant
+5. Test service behavior (systemd, watchdog)
+6. Analyze test results
+7. Verify acceptance criteria
+
+**Phase 3: Production Deployment**
+1. Execute production deployment
+2. Restart service safely
+3. Monitor for 5-10 minutes
+4. Verify no errors or issues
 5. Get final user approval
 
 **When to use @reviewer vs @validator:**
@@ -497,17 +563,24 @@ implementation."
 
 All agents understand your project context:
 
-**System:** Solar heating control system
-**Hardware:** Raspberry Pi 4 with relays and temperature sensors
-**Key Technologies:** Python, MQTT, systemd, Home Assistant
+**System:** Solar heating control system for Raspberry Pi
+**Hardware:** 
+- Raspberry Pi 4
+- GPIO relay control (pump, backup heater)
+- DS18B20 temperature sensors (OneWire)
+- Real-time monitoring and control
+**Key Technologies:** Python, MQTT, systemd, Home Assistant integration, RPi.GPIO
 **Current Location:** `/opt/solar_heating_v3` on Raspberry Pi
 **Access:** SSH via `ssh pi@192.168.0.18`
+**Service:** `solar_heating_v3.service`
 
 **Important Constraints:**
-- All hardware testing must be done on actual Raspberry Pi
-- Real-time requirements for sensor monitoring
-- Service must be reliable (systemd + watchdog)
+- All hardware testing must be done on actual Raspberry Pi (no simulation)
+- Real-time requirements for sensor monitoring (1-second intervals)
+- Service must be reliable (systemd + watchdog + automatic restart)
 - Integration with Home Assistant via MQTT
+- Hardware safety (relay protection, sensor validation, GPIO safety)
+- Network resilience (MQTT reconnection handling)
 
 ## 🎓 Learning From Agents
 
