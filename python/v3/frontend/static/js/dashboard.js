@@ -447,10 +447,11 @@ class SolarHeatingDashboard {
         updateEl('sys-ftx-return', fmt(returnTemp));
         
         // Calculate heat recovery efficiency
-        // Efficiency = (Supply - Outdoor) / (Return - Outdoor) * 100%
+        // Efficiency = (Supply - Outdoor) / (Return - Exhaust) * 100%
+        // This measures how much heat from return air is recovered before exhaust
         let efficiency = 0;
-        if (returnTemp > outdoorTemp + 1) { // Avoid division by near-zero
-            efficiency = ((supplyTemp - outdoorTemp) / (returnTemp - outdoorTemp)) * 100;
+        if (returnTemp > exhaustTemp + 1) { // Avoid division by near-zero
+            efficiency = ((supplyTemp - outdoorTemp) / (returnTemp - exhaustTemp)) * 100;
             efficiency = Math.max(0, Math.min(100, efficiency)); // Clamp to 0-100%
         }
         
