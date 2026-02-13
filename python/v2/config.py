@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+import os
 import argparse
 
 @dataclass
 class MQTTConfig:
     broker: str = '192.168.0.110'
     port: int = 1883
-    username: str = 'mqtt_beaches'
-    password: str = 'uQX6NiZ.7R'
+    username: str = os.getenv('MQTT_USERNAME', os.getenv('SOLAR_MQTT_USERNAME', ''))
+    password: str = os.getenv('MQTT_PASSWORD', os.getenv('SOLAR_MQTT_PASSWORD', ''))
     client_id_prefix: str = 'python-mqtt-tcp-pub-sub'
     sub_topics: list = None
 

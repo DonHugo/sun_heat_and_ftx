@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 """
 Test Mode Change Detection
 
@@ -14,8 +15,15 @@ from datetime import datetime
 # MQTT Configuration
 MQTT_BROKER = "192.168.0.110"
 MQTT_PORT = 1883
-MQTT_USERNAME = "mqtt_beaches"
-MQTT_PASSWORD = "uQX6NiZ.7R"
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", os.getenv("SOLAR_MQTT_USERNAME", ""))
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", os.getenv("SOLAR_MQTT_PASSWORD", ""))
+
+# Security (Issue #45): Validate credentials are provided
+if not MQTT_USERNAME or not MQTT_PASSWORD:
+    raise ValueError(
+        "MQTT credentials required. Set MQTT_USERNAME and MQTT_PASSWORD "
+        "environment variables. See .env.example for template."
+    )
 
 class ModeChangeTester:
     def __init__(self):

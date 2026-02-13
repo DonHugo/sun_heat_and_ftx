@@ -1,4 +1,5 @@
 import concurrent.futures
+import os
 import logging
 import queue
 import random
@@ -35,8 +36,8 @@ SUB_TOPIC_2 = "hass/#"
 
 # generate client ID with pub prefix randomly
 CLIENT_ID = f'python-mqtt-tcp-pub-sub-{random.randint(0, 1000)}'
-USERNAME = 'mqtt_beaches'
-PASSWORD = 'uQX6NiZ.7R'
+USERNAME = os.getenv('MQTT_USERNAME', os.getenv('SOLAR_MQTT_USERNAME', ''))
+PASSWORD = os.getenv('MQTT_PASSWORD', os.getenv('SOLAR_MQTT_PASSWORD', ''))
 
 FIRST_RECONNECT_DELAY = 1
 RECONNECT_RATE = 2
