@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=21">
+    <link rel="stylesheet" href="static/css/style.css?v=19">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
@@ -488,7 +488,6 @@
                     </div>
                 </div>
 
-
                 <!-- Water Heater Tank Card -->
                 <div class="system-card tank-card">
                     <div class="system-header">
@@ -496,6 +495,18 @@
                         <h3>Water Heater Tank</h3>
                     </div>
                     <div class="system-metrics">
+                        <div class="system-metric">
+                            <span class="metric-label">Top Temperature</span>
+                            <span class="metric-value" id="sys-tank-top">--°C</span>
+                        </div>
+                        <div class="system-metric">
+                            <span class="metric-label">Middle Temperature</span>
+                            <span class="metric-value" id="sys-tank-middle">--°C</span>
+                        </div>
+                        <div class="system-metric">
+                            <span class="metric-label">Bottom Temperature</span>
+                            <span class="metric-value" id="sys-tank-bottom">--°C</span>
+                        </div>
                         <div class="system-metric highlight">
                             <span class="metric-label">Stored Energy</span>
                             <span class="metric-value" id="sys-tank-energy">-- kWh</span>
@@ -507,38 +518,9 @@
                     </div>
                     <div class="system-visual">
                         <div class="tank-gradient">
-                            <div class="tank-level" id="sys-tank-level-140">
-                                <span class="tank-label">140cm</span>
-                                <span class="tank-temp" id="sys-tank-140">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-120">
-                                <span class="tank-label">120cm</span>
-                                <span class="tank-temp" id="sys-tank-120">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-100">
-                                <span class="tank-label">100cm</span>
-                                <span class="tank-temp" id="sys-tank-100">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-80">
-                                <span class="tank-label">80cm</span>
-                                <span class="tank-temp" id="sys-tank-80">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-60">
-                                <span class="tank-label">60cm</span>
-                                <span class="tank-temp" id="sys-tank-60">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-40">
-                                <span class="tank-label">40cm</span>
-                                <span class="tank-temp" id="sys-tank-40">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-20">
-                                <span class="tank-label">20cm</span>
-                                <span class="tank-temp" id="sys-tank-20">--°C</span>
-                            </div>
-                            <div class="tank-level" id="sys-tank-level-0">
-                                <span class="tank-label">0cm</span>
-                                <span class="tank-temp" id="sys-tank-0">--°C</span>
-                            </div>
+                            <div class="tank-level tank-top" id="sys-tank-level-top"></div>
+                            <div class="tank-level tank-mid" id="sys-tank-level-mid"></div>
+                            <div class="tank-level tank-bot" id="sys-tank-level-bot"></div>
                         </div>
                     </div>
                 </div>
