@@ -133,12 +133,14 @@ class SolarHeatingDashboard {
     }
     
     async loadSystemData() {
+        console.log("📊 loadSystemData() called - isLoading:", this.isLoading, "configLoaded:", this.configLoaded);
         if (this.isLoading || !this.configLoaded) return;
         
         this.isLoading = true;
         
         try {
             // Load system status
+            console.log("🔄 Fetching /status...");
             const statusResponse = await this.apiRequest('GET', '/status');
             if (statusResponse) {
                 this.updateSystemStatus(statusResponse);
@@ -162,6 +164,7 @@ class SolarHeatingDashboard {
             
         } catch (error) {
             console.error('Error loading system data:', error);
+            console.error("❌ Error details:", error.message, error.stack);
             document.getElementById('api-status').textContent = 'Disconnected';
             document.getElementById('api-status').className = 'value disconnected';
             this.showNotification('Failed to connect to API server', 'error');
