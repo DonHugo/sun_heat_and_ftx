@@ -2079,3 +2079,95 @@ body {
     color: #64B5F6;
     text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
 }
+
+/* Material Design Icons - General Styling */
+.metric-icon i,
+.energy-source-icon i,
+.system-icon i,
+.hx-icon i {
+    font-size: inherit;
+    color: inherit;
+}
+
+/* Sidebar title icon */
+.sidebar-title i {
+    color: #FDB813;
+    margin-right: 8px;
+}
+
+/* Sidebar toggle icon */
+.sidebar-toggle i {
+    font-size: 1.5rem;
+}
+
+/* Hero metric icons */
+.metric-icon i {
+    font-size: 2rem;
+}
+
+/* Energy source icons */
+.energy-source-icon i {
+    font-size: 2rem;
+}
+
+/* System card icons */
+.system-icon i {
+    font-size: 2.5rem;
+}
+
+/* Heat exchanger icons */
+.hx-icon i {
+    font-size: 1.2rem;
+}
+
+/* Heading icons (h3, h4) */
+h3 i, h4 i {
+    margin-right: 8px;
+    opacity: 0.9;
+}
+
+/* Control label icons */
+.toggle-label-text i,
+.heater-label-text i {
+    margin-right: 6px;
+}
+
+/* Status Indicator Dots */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 6px;
+    box-shadow: 0 0 8px currentColor;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-poor {
+    background-color: #f44336;
+    color: #f44336;
+}
+
+.status-fair {
+    background-color: #ffeb3b;
+    color: #ffeb3b;
+}
+
+.status-good {
+    background-color: #4caf50;
+    color: #4caf50;
+}
+
+.status-excellent {
+    background-color: #00e676;
+    color: #00e676;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}

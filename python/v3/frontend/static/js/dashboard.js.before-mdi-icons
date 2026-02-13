@@ -449,22 +449,19 @@ class SolarHeatingDashboard {
         // Calculate heat recovery as temperature delta (Return - Exhaust)
         // This shows actual heat extracted from return air
         let heatRecovery = 0;
-        let recoveryIndicator = '';
+        let recoveryEmoji = '--';
         if (returnTemp !== null && exhaustTemp !== null) {
             heatRecovery = returnTemp - exhaustTemp;
             
-            // Status indicator based on recovery amount
-            if (heatRecovery < 5) { recoveryIndicator = '<span class="status-dot status-poor"></span>'; }
-            else if (heatRecovery < 10) { recoveryIndicator = '<span class="status-dot status-fair"></span>'; }
-            else if (heatRecovery < 15) { recoveryIndicator = '<span class="status-dot status-good"></span>'; }
-            else { recoveryIndicator = '<span class="status-dot status-excellent"></span>'; }
+            // Emoji based on recovery amount
+            if (heatRecovery < 5) { recoveryEmoji = '🔴'; }
+            else if (heatRecovery < 10) { recoveryEmoji = '🟡'; }
+            else if (heatRecovery < 15) { recoveryEmoji = '🟢'; }
+            else { recoveryEmoji = '💚'; }
         }
         
-        // Display as temperature delta with status indicator
-        const effElement = document.getElementById('sys-ftx-efficiency');
-        if (effElement) {
-            effElement.innerHTML = heatRecovery > 0 ? `${heatRecovery.toFixed(1)}°C ${recoveryIndicator}` : '-- °C';
-        }
+        // Display as temperature delta with emoji
+        updateEl('sys-ftx-efficiency', heatRecovery > 0 ? `${heatRecovery.toFixed(1)}°C ${recoveryEmoji}` : '-- °C');
         updateEl('sys-ftx-efficiency-inline', heatRecovery > 0 ? `${heatRecovery.toFixed(1)}°C` : '--');
     }
 

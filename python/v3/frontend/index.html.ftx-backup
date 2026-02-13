@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=29">
+    <link rel="stylesheet" href="static/css/style.css?v=27">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 </head>
@@ -12,8 +12,8 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h1 class="sidebar-title"><i class="mdi mdi-white-balance-sunny"></i> Solar v3</h1>
-            <button class="sidebar-toggle" id="sidebar-toggle"><i class="mdi mdi-menu"></i></button>
+            <h1 class="sidebar-title">🌞 Solar v3</h1>
+            <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
         </div>
         
         <nav class="sidebar-nav">
@@ -75,7 +75,7 @@
                         
                         <div class="hero-metrics">
                             <div class="hero-metric">
-                                <div class="metric-icon"><i class="mdi mdi-thermometer"></i></div>
+                                <div class="metric-icon">🌡️</div>
                                 <div class="metric-content">
                                     <div class="metric-label">Tank Temperature</div>
                                     <div class="metric-value" id="hero-temp-tank">--°C</div>
@@ -93,7 +93,7 @@
                             </div>
                             
                             <div class="hero-metric">
-                                <div class="metric-icon"><i class="mdi mdi-water"></i></div>
+                                <div class="metric-icon">💧</div>
                                 <div class="metric-content">
                                     <div class="metric-label">Pump</div>
                                     <div class="metric-value" id="hero-pump-status">OFF</div>
@@ -102,7 +102,7 @@
                             </div>
                             
                             <div class="hero-metric">
-                                <div class="metric-icon"><i class="mdi mdi-lightning-bolt"></i></div>
+                                <div class="metric-icon">⚡</div>
                                 <div class="metric-content">
                                     <div class="metric-label">Energy Status</div>
                                     <div class="metric-value" id="hero-energy-status">Collecting</div>
@@ -117,7 +117,7 @@
             <!-- Energy Summary Card -->
             <div class="energy-summary-card">
                 <div class="energy-summary-header">
-                    <h3 class="energy-summary-title"><i class="mdi mdi-lightning-bolt"></i> Energy Today</h3>
+                    <h3 class="energy-summary-title">⚡ Energy Today</h3>
                     <div class="energy-total">
                         <span class="energy-total-label">Total:</span>
                         <span class="energy-total-value" id="energy-total">--</span>
@@ -146,7 +146,7 @@
                     
                     <!-- Heater Energy -->
                     <div class="energy-source heater">
-                        <div class="energy-source-icon"><i class="mdi mdi-fire"></i></div>
+                        <div class="energy-source-icon">🔥</div>
                         <div class="energy-source-content">
                             <div class="energy-source-label">Heater</div>
                             <div class="energy-source-values">
@@ -204,7 +204,7 @@
 
                 <!-- Temperature Display -->
                 <div class="card">
-                    <h3><i class="mdi mdi-thermometer"></i> Current Temperatures</h3>
+                    <h3>🌡️ Current Temperatures</h3>
                     <div class="temperature-grid">
                         <div class="temp-item">
                             <span class="temp-label">Tank:</span>
@@ -227,12 +227,12 @@
 
                 <!-- Quick Controls -->
                 <div class="card">
-                    <h3><i class="mdi mdi-lightning-bolt"></i> Quick Controls</h3>
+                    <h3>⚡ Quick Controls</h3>
                     
                     <!-- Pump Toggle Switch -->
                     <div class="toggle-control-container">
                         <div class="toggle-label">
-                            <span class="toggle-label-text"><i class="mdi mdi-water-pump"></i> Primary Pump</span>
+                            <span class="toggle-label-text">💧 Primary Pump</span>
                             <label class="toggle-switch" for="pump-toggle">
                                 <input type="checkbox" id="pump-toggle">
                                 <span class="toggle-slider"></span>
@@ -243,7 +243,7 @@
                     <!-- Heater Toggle Switch -->
                     <div class="heater-control-container">
                         <div class="heater-toggle-label">
-                            <span class="heater-label-text"><i class="mdi mdi-fire"></i> Cartridge Heater</span>
+                            <span class="heater-label-text">🔥 Cartridge Heater</span>
                             <label class="toggle-switch" for="heater-toggle">
                                 <input type="checkbox" id="heater-toggle">
                                 <span class="toggle-slider"></span>
@@ -276,7 +276,7 @@
         <!-- Temperatures Tab -->
         <div id="temperatures" class="tab-content">
             <div class="card">
-                <h3><i class="mdi mdi-thermometer"></i> Temperature Monitoring</h3>
+                <h3>🌡️ Temperature Monitoring</h3>
                 <div class="temperature-details">
                     <div class="temp-card">
                         <h4>Water Tank</h4>
@@ -305,11 +305,11 @@
         <!-- Control Tab - REDESIGNED as Status Monitoring View -->
         <div id="control" class="tab-content">
             <div class="card">
-                <h3><i class="mdi mdi-chart-line"></i> System Status <h3>📊 System Status & Details</h3> Details</h3>
+                <h3>📊 System Status & Details</h3>
                 <p class="tab-description">Detailed system state and control history. Use Dashboard tab for controls.</p>
                 
                 <div class="control-section">
-                    <h4><i class="mdi mdi-water-pump"></i> Pump Status</h4>
+                    <h4>💧 Pump Status</h4>
                     <div class="status-detail-grid">
                         <div class="status-detail-item">
                             <span class="label">Current State:</span>
@@ -331,7 +331,7 @@
                 </div>
                 
                 <div class="control-section">
-                    <h4><i class="mdi mdi-cog"></i> System Mode Details</h4>
+                    <h4>⚙️ System Mode Details</h4>
                     <div class="status-detail-grid">
                         <div class="status-detail-item">
                             <span class="label">Current Mode:</span>
@@ -353,7 +353,7 @@
                 </div>
                 
                 <div class="control-section">
-                    <h4><i class="mdi mdi-fire"></i> Heater Status</h4>
+                    <h4>🔥 Heater Status</h4>
                     <div class="status-detail-grid">
                         <div class="status-detail-item">
                             <span class="label">Current State:</span>
@@ -442,7 +442,7 @@
                 <!-- Solar Heating System Card -->
                 <div class="system-card solar-card">
                     <div class="system-header">
-                        <div class="system-icon"><i class="mdi mdi-white-balance-sunny"></i></div>
+                        <div class="system-icon">🌞</div>
                         <h3>Solar Heating System</h3>
                     </div>
                     <div class="system-metrics">
@@ -478,7 +478,7 @@
                 <!-- Cartridge Heater Card -->
                 <div class="system-card heater-card">
                     <div class="system-header">
-                        <div class="system-icon"><i class="mdi mdi-fire"></i></div>
+                        <div class="system-icon">🔥</div>
                         <h3>Cartridge Heater</h3>
                     </div>
                     <div class="system-metrics">
@@ -514,7 +514,7 @@
                 <!-- Water Heater Tank Card -->
                 <div class="system-card tank-card">
                     <div class="system-header">
-                        <div class="system-icon"><i class="mdi mdi-thermometer"></i></div>
+                        <div class="system-icon">🌡️</div>
                         <h3>Water Heater Tank</h3>
                     </div>
                     <div class="system-metrics">
@@ -568,7 +568,7 @@
                 <!-- FTX Ventilation Card -->
                 <div class="system-card ftx-card">
                     <div class="system-header">
-                        <div class="system-icon"><i class="mdi mdi-fan"></i></div>
+                        <div class="system-icon">💨</div>
                         <h3>FTX Ventilation</h3>
                     </div>
                     <div class="system-metrics">
@@ -586,7 +586,8 @@
                             </div>
                             <div class="ftx-arrow">→</div>
                             <div class="ftx-hx">
-                                <div class="hx-icon"><i class="mdi mdi-lightning-bolt"></i></div>
+                                <div class="hx-icon">⚡</div>
+                                <div class="hx-eff" id="sys-ftx-efficiency-inline">--%</div>
                             </div>
                             <div class="ftx-arrow">→</div>
                             <div class="ftx-temp warm-temp">
@@ -602,10 +603,7 @@
                                 <div class="temp-value" id="sys-ftx-exhaust">--°C</div>
                             </div>
                             <div class="ftx-arrow">←</div>
-                            <div class="ftx-hx">
-                                <div class="hx-icon"><i class="mdi mdi-fire"></i></div>
-                                <div class="hx-eff" id="sys-ftx-efficiency-inline">--°C</div>
-                            </div>
+                            <div class="ftx-hx-placeholder"></div>
                             <div class="ftx-arrow">←</div>
                             <div class="ftx-temp warm-temp">
                                 <div class="temp-label">Return</div>
@@ -649,7 +647,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=20"></script>
+    <script src="static/js/dashboard.js?v=19"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->
