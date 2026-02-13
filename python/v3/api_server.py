@@ -4,6 +4,7 @@ Integrated with main_system.py to provide clean API endpoints
 Following TDD principles and design specifications
 
 Issue #43: Added pydantic validation for input security
+Issue #46: Standardized error handling with security-focused responses
 """
 
 import json
@@ -23,6 +24,14 @@ from api_models import (
     ModeRequest,
     validate_request,
     ValidationErrorResponse
+)
+
+# Import standardized error handling (Issue #46)
+from api_errors import (
+    APIErrorCode,
+    create_error_response,
+    create_success_response,
+    create_failure_response
 )
 
 logger = logging.getLogger(__name__)
@@ -143,10 +152,13 @@ class SolarHeatingAPI:
                     "timestamp": datetime.now().isoformat() + "Z"
                 }
             except Exception as e:
-                return {
-                    "error": f"Failed to get system status: {str(e)}",
-                    "timestamp": datetime.now().isoformat() + "Z"
-                }
+                # Use standardized error response (Issue #46)
+                error_response, _ = create_error_response(
+                    APIErrorCode.SYSTEM_STATUS_ERROR,
+                    exception=e
+                )
+                error_response["timestamp"] = datetime.now().isoformat() + "Z"
+                return error_response
     
     def _get_mqtt_status(self) -> Dict[str, Any]:
         """Get MQTT connection status and last message"""
@@ -175,12 +187,14 @@ class SolarHeatingAPI:
                 "last_message": last_message
             }
         except Exception as e:
+            # Use standardized error response (Issue #46)
+            logger.error(f"MQTT status check failed", exc_info=e)
             return {
                 "connected": False,
                 "broker": "Error",
                 "last_message": {
                     "topic": "Error",
-                    "payload": str(e),
+                    "payload": "MQTT communication error",
                     "timestamp": "Error",
                     "qos": 0
                 }
@@ -219,9 +233,11 @@ class SolarHeatingAPI:
                 "qos": 0
             }
         except Exception as e:
+            # Log error but return generic message (Issue #46)
+            logger.error(f"Failed to parse MQTT logs", exc_info=e)
             return {
                 "topic": "Error",
-                "payload": str(e),
+                "payload": "Log parsing error",
                 "timestamp": "Error",
                 "qos": 0
             }
@@ -241,7 +257,9 @@ class SolarHeatingAPI:
                 status["sensors"] = "Active"
             
             return status
-        except Exception:
+        except Exception as e:
+            # Log hardware check failure (Issue #46)
+            logger.error(f"Hardware status check failed", exc_info=e)
             return {
                 "rtd_boards": "Error",
                 "relays": "Error",
@@ -261,11 +279,15 @@ class SolarHeatingAPI:
                         capture_output=True, text=True, timeout=5
                     )
                     status[service] = result.stdout.strip() if result.returncode == 0 else "inactive"
-                except:
+                except Exception as e:
+                    # Log but continue checking other services (Issue #46)
+                    logger.debug(f"Could not check {service} status", exc_info=e)
                     status[service] = "unknown"
             
             return status
-        except Exception:
+        except Exception as e:
+            # Log service status check failure (Issue #46)
+            logger.error(f"Service status check failed", exc_info=e)
             return {
                 "solar_heating_v3": "unknown",
                 "mqtt": "unknown",
@@ -440,11 +462,12 @@ class SolarHeatingAPI:
                 # This code is unreachable due to enum validation (Issue #43)
             
             except Exception as e:
-                return {
-                    "success": False,
-                    "error": f"Control failed: {str(e)}",
-                    "error_code": "SYSTEM_ERROR"
-                }
+                # Use standardized error response (Issue #46)
+                return create_failure_response(
+                    "Control operation failed",
+                    APIErrorCode.CONTROL_FAILED.value,
+                    details=None  # Never expose exception details
+                )
         # Fallback response (should not be reached)
         return {
             "success": False,
@@ -480,11 +503,12 @@ class SolarHeatingAPI:
                 }
             
             except Exception as e:
-                return {
-                    "success": False,
-                    "error": f"Mode change failed: {str(e)}",
-                    "error_code": "SYSTEM_ERROR"
-                }
+                # Use standardized error response (Issue #46)
+                logger.error("Mode change operation failed", exc_info=e)
+                return create_failure_response(
+                    "Mode change failed",
+                    APIErrorCode.MODE_CHANGE_FAILED.value
+                )
     
     def _publish_mqtt(self, topic: str, payload: str):
         """Publish message to MQTT"""
@@ -494,7 +518,8 @@ class SolarHeatingAPI:
                 "-m", payload, "-q", "0", "-r"
             ], timeout=5)
         except Exception as e:
-            print(f"MQTT publish failed: {e}")
+            # Log MQTT publish failure (Issue #46)
+            logger.error(f"MQTT publish failed for topic {topic}", exc_info=e)
     
     def start_server(self):
         """Start the API server"""
@@ -502,7 +527,10 @@ class SolarHeatingAPI:
             print(f"Starting Solar Heating API server on {self.host}:{self.port}")
             self.app.run(host=self.host, port=self.port, debug=False, threaded=True)
         except Exception as e:
-            print(f"Failed to start API server: {e}")
+            # Log server startup failure (Issue #46)
+            logger.error(f"Failed to start API server", exc_info=e)
+            # Re-raise to ensure startup failures are visible
+            raise
 
 
 # API Resource Classes
@@ -624,7 +652,13 @@ class TemperaturesAPI(Resource):
                 "timestamp": datetime.now().isoformat() + "Z"
             }
         except Exception as e:
-            return {"error": f"Failed to get temperatures: {str(e)}"}, 500
+            # Use standardized error response (Issue #46)
+            error_response, status = create_error_response(
+                APIErrorCode.TEMPERATURE_READ_ERROR,
+                exception=e,
+                http_status=500
+            )
+            return error_response, status
 
 
 class MQTTAPI(Resource):
