@@ -49,21 +49,19 @@ class SolarHeatingDashboard {
     
     async loadConfig() {
         try {
-            // Fetch configuration from web server
-            const response = await fetch('/api/config');
-            const config = await response.json();
+            // Use relative API URL that works through nginx proxy
+            // This allows the dashboard to work from any device on the network
+            this.apiBaseUrl = '/api';
+            this.updateInterval = 5000; // 5 seconds
             
-            this.apiBaseUrl = config.api_base_url;
-            this.updateInterval = config.update_interval || 5000;
-            
-            console.log('Configuration loaded:', config);
+            console.log('Configuration loaded (using nginx proxy)');
             console.log('API Base URL:', this.apiBaseUrl);
             
             this.configLoaded = true;
         } catch (error) {
-            console.error('Failed to load configuration, using defaults:', error);
-            // Fallback to localhost if config fails
-            this.apiBaseUrl = 'http://localhost:5001/api';
+            console.error('Failed to load configuration:', error);
+            // Still use relative URL as fallback
+            this.apiBaseUrl = '/api';
             this.configLoaded = true;
         }
     }
