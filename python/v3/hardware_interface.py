@@ -284,7 +284,12 @@ class HardwareInterface:
         try:
             stack = stack or self.relay_board
             relay_value = lib4relind.get_relay(stack, relay_id)
-            return pump_config.get_pump_status(relay_value)
+            
+            # Apply NC inversion for cartridge heater (relay 2)
+            if relay_id == 2:  # Cartridge heater - direct NC inversion
+                return relay_value == 0  # NC relay: 0=ON, 1=OFF
+            else:  # Other relays - use pump config logic
+                return pump_config.get_pump_status(relay_value)
             
         except Exception as e:
             logger.error(f"Error reading relay {relay_id}: {e}")
