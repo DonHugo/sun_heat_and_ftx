@@ -17,10 +17,11 @@ services:
       - SOLAR_LOG_LEVEL=info
       
       # MQTT Configuration
+      # Security (Issue #45): No default credentials - must be set in .env file
       - SOLAR_MQTT_BROKER=${MQTT_BROKER:-192.168.0.110}
       - SOLAR_MQTT_PORT=${MQTT_PORT:-1883}
-      - SOLAR_MQTT_USERNAME=${MQTT_USERNAME:-mqtt_beaches}
-      - SOLAR_MQTT_PASSWORD=${MQTT_PASSWORD:-uQX6NiZ.7R}
+      - SOLAR_MQTT_USERNAME=${MQTT_USERNAME}
+      - SOLAR_MQTT_PASSWORD=${MQTT_PASSWORD}
       
       # Hardware Configuration
       - SOLAR_HARDWARE_PLATFORM=raspberry_pi_zero_2_w

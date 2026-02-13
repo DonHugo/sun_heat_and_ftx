@@ -2,11 +2,14 @@
 """
 Watchdog System for Solar Heating System v3
 Monitors network connectivity, MQTT communication, and system health
+
+Security: Issue #45 - Credentials loaded from environment variables
 """
 
 import asyncio
 import json
 import logging
+import os
 import time
 import subprocess
 import signal
@@ -29,7 +32,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WatchdogConfig:
-    """Watchdog configuration"""
+    """Watchdog configuration
+    
+    Security (Issue #45): Credentials must be set via environment variables:
+    - MQTT_USERNAME or SOLAR_MQTT_USERNAME
+    - MQTT_PASSWORD or SOLAR_MQTT_PASSWORD
+    """
     # Network monitoring
     ping_hosts: List[str] = None
     ping_interval: int = 30  # seconds
@@ -38,8 +46,9 @@ class WatchdogConfig:
     # MQTT monitoring
     mqtt_broker: str = "192.168.0.110"
     mqtt_port: int = 1883
-    mqtt_username: str = "mqtt_beaches"
-    mqtt_password: str = "uQX6NiZ.7R"
+    # Security: No default credentials - must be set from environment
+    mqtt_username: str = None
+    mqtt_password: str = None
     mqtt_heartbeat_topic: str = "solar_heating_v3/heartbeat"
     mqtt_check_interval: int = 60  # seconds
     mqtt_timeout: int = 30  # seconds
@@ -55,6 +64,19 @@ class WatchdogConfig:
     def __post_init__(self):
         if self.ping_hosts is None:
             self.ping_hosts = ["8.8.8.8", "1.1.1.1", "192.168.0.1"]
+        
+        # Security (Issue #45): Load credentials from environment
+        if self.mqtt_username is None:
+            self.mqtt_username = os.getenv('MQTT_USERNAME') or os.getenv('SOLAR_MQTT_USERNAME')
+        if self.mqtt_password is None:
+            self.mqtt_password = os.getenv('MQTT_PASSWORD') or os.getenv('SOLAR_MQTT_PASSWORD')
+        
+        # Validate credentials are provided
+        if not self.mqtt_username or not self.mqtt_password:
+            raise ValueError(
+                "MQTT credentials required. Set MQTT_USERNAME and MQTT_PASSWORD "
+                "environment variables. See .env.example for template."
+            )
 
 @dataclass
 class SystemStatus:

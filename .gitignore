@@ -20,14 +20,15 @@ venv/
 env/
 test_env/
 .venv/
+
+# Environment variables and secrets (SECURITY - Issue #45)
 .env
+.env.local
+.env.*.local
+*.env
+!.env.example
 
-# IDE/Editor files
-.vscode/
-.idea/
-.cursor/
-
-# API Keys and Secrets
+# API Keys and Secrets (SECURITY - Issue #45)
 *api*key*
 *secret*
 *password*
@@ -35,6 +36,13 @@ test_env/
 *.swp
 *.swo
 *~
+credentials*
+!*example*
+
+# IDE/Editor files
+.vscode/
+.idea/
+.cursor/
 
 # OS generated files
 .DS_Store
@@ -44,5 +52,11 @@ test_env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
 # Runtime state files
 system_operational_state.json
+
+# Security: Ignore any files that might contain credentials
+config/*.local
+config/*secret*
+config/*password*

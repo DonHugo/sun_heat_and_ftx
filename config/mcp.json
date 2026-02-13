@@ -6,9 +6,10 @@
       "env": {
         "MQTT_HOST": "192.168.0.110",
         "MQTT_PORT": "1883",
-        "MQTT_USERNAME": "mqtt_beaches",
-        "MQTT_PASSWORD": "uQX6NiZ.7R"
-      }
+        "MQTT_USERNAME": "${MQTT_USERNAME}",
+        "MQTT_PASSWORD": "${MQTT_PASSWORD}"
+      },
+      "_comment": "Security (Issue #45): Set MQTT_USERNAME and MQTT_PASSWORD in your shell environment or .env file"
     },
     "hardware-gpio-assistant": {
       "command": "npx",
