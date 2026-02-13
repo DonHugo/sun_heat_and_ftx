@@ -2171,3 +2171,12 @@ h3 i, h4 i {
         opacity: 0.6;
     }
 }
+
+/* BOB robot icon in sidebar */
+.bob-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 3px rgba(253, 184, 19, 0.3));
+}
