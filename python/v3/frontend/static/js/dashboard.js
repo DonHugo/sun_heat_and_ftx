@@ -33,8 +33,11 @@ class SolarHeatingDashboard {
         // Setup event listeners
         this.setupEventListeners();
         
-        // Setup tab navigation
+        // Setup sidebar navigation (replaces tab navigation)
         this.setupTabNavigation();
+        
+        // Setup sidebar toggle for mobile
+        this.setupSidebarToggle();
         
         // Initial data load
         await this.loadSystemData();
@@ -114,21 +117,59 @@ class SolarHeatingDashboard {
     }
     
     setupTabNavigation() {
-        const tabButtons = document.querySelectorAll('.tab-button');
+        // Updated to use .sidebar-link instead of .tab-button
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
         const tabContents = document.querySelectorAll('.tab-content');
         
-        tabButtons.forEach(button => {
+        sidebarLinks.forEach(button => {
             button.addEventListener('click', () => {
                 const targetTab = button.getAttribute('data-tab');
                 
                 // Remove active class from all buttons and contents
-                tabButtons.forEach(btn => btn.classList.remove('active'));
+                sidebarLinks.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
                 
                 // Add active class to clicked button and corresponding content
                 button.classList.add('active');
                 document.getElementById(targetTab)?.classList.add('active');
+                
+                // Close sidebar on mobile after selecting a tab
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar) {
+                        sidebar.classList.remove('open');
+                    }
+                }
             });
+        });
+    }
+    
+    setupSidebarToggle() {
+        const sidebar = document.getElementById('sidebar');
+        
+        // Hamburger button click (via CSS body::before on mobile)
+        // We detect clicks in the hamburger area when sidebar is closed
+        document.body.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar) {
+                // Hamburger is positioned at top-left (20px from edges)
+                // CSS creates a 50x50px clickable area
+                const rect = { left: 20, top: 20, right: 70, bottom: 70 };
+                if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom &&
+                    !sidebar.classList.contains('open')) {
+                    sidebar.classList.add('open');
+                    e.stopPropagation();
+                }
+            }
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
         });
     }
     

@@ -4,14 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=21">
+    <link rel="stylesheet" href="static/css/style.css?v=22">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>🌞 Solar Heating System v3</h1>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-title">🌞 Solar v3</h1>
+            <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <button class="sidebar-link active" data-tab="dashboard">
+                <span class="sidebar-icon">📊</span>
+                <span class="sidebar-text">Dashboard</span>
+            </button>
+            <button class="sidebar-link" data-tab="temperatures">
+                <span class="sidebar-icon">🌡️</span>
+                <span class="sidebar-text">Temperatures</span>
+            </button>
+            <button class="sidebar-link" data-tab="control">
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-text">Status</span>
+            </button>
+            <button class="sidebar-link" data-tab="diagnostics">
+                <span class="sidebar-icon">🔧</span>
+                <span class="sidebar-text">Diagnostics</span>
+            </button>
+            <button class="sidebar-link" data-tab="systems">
+                <span class="sidebar-icon">🏠</span>
+                <span class="sidebar-text">Systems</span>
+            </button>
+        </nav>
+        
+        <div class="sidebar-footer">
             <div class="status-indicators">
                 <div class="status-item" id="system-status">
                     <span class="status-label">System:</span>
@@ -22,21 +49,15 @@
                     <span class="status-value" id="mqtt-connection">Loading...</span>
                 </div>
                 <div class="status-item" id="ha-status">
-                    <span class="status-label">Home Assistant:</span>
+                    <span class="status-label">HA:</span>
                     <span class="status-value" id="ha-connection">Loading...</span>
                 </div>
             </div>
-        </header>
+        </div>
+    </aside>
 
-        <!-- Navigation Tabs -->
-        <nav class="tab-navigation">
-            <button class="tab-button active" data-tab="dashboard">Dashboard</button>
-            <button class="tab-button" data-tab="temperatures">Temperatures</button>
-            <button class="tab-button" data-tab="control">Status</button>
-            <button class="tab-button" data-tab="diagnostics">Diagnostics</button>
-            <button class="tab-button" data-tab="systems">Systems</button>
-        </nav>
-
+    <!-- Main Content Area -->
+    <main class="main-content">
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <!-- UX Fix #4: Hero Card for At-a-Glance Status -->
@@ -596,8 +617,6 @@
             </div>
         </div>
 
-
-
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
@@ -611,7 +630,7 @@
                 </div>
             </div>
         </footer>
-    </div>
+    </main>
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
@@ -627,7 +646,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=16"></script>
+    <script src="static/js/dashboard.js?v=17"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->

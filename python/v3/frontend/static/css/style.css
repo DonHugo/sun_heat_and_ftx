@@ -1,4 +1,5 @@
-/* Solar Heating System v3 - Frontend Styles - Dark Blue Theme */
+/* Solar Heating System v3 - Frontend Styles - Dark Blue Theme with Sidebar */
+/* Cache version: v22 */
 
 /* Reset and Base Styles */
 * {
@@ -15,61 +16,193 @@ body {
     line-height: 1.6;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
+/* =============================================================================
+   SIDEBAR NAVIGATION
+   ============================================================================= */
 
-/* Header Styles */
-.header {
-    background: rgba(30, 40, 60, 0.95);
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(100, 181, 246, 0.2);
-}
-
-.header h1 {
-    text-align: center;
-    color: #e0e5ec;
-    margin-bottom: 15px;
-    font-size: 2.5rem;
-    font-weight: 700;
-    text-shadow: 0 2px 8px rgba(100, 181, 246, 0.3);
-}
-
-.status-indicators {
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: rgba(26, 35, 50, 0.98);
+    border-right: 1px solid rgba(100, 181, 246, 0.3);
+    z-index: 1000;
+    transition: transform 0.3s ease;
     display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.status-item {
+.sidebar.collapsed {
+    transform: translateX(-250px);
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(100, 181, 246, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #64B5F6;
+    margin: 0;
+}
+
+.sidebar-toggle {
+    display: none; /* Hidden on desktop */
+    background: transparent;
+    border: none;
+    color: #64B5F6;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+.sidebar-link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(100, 181, 246, 0.15);
-    border-radius: 20px;
-    border: 1px solid rgba(100, 181, 246, 0.3);
+    gap: 12px;
+    width: 100%;
+    padding: 15px 20px;
+    border: none;
+    background: transparent;
+    color: #90a4ae;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
 }
 
-.status-label {
+.sidebar-link:hover {
+    background: rgba(100, 181, 246, 0.15);
+    color: #64B5F6;
+    border-left-color: rgba(100, 181, 246, 0.5);
+}
+
+.sidebar-link.active {
+    background: rgba(100, 181, 246, 0.2);
+    color: #64B5F6;
+    border-left-color: #64B5F6;
+}
+
+.sidebar-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.sidebar-text {
+    flex: 1;
+    text-align: left;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(100, 181, 246, 0.2);
+}
+
+.sidebar-footer .status-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-footer .status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: rgba(100, 181, 246, 0.1);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.sidebar-footer .status-label {
     font-weight: 600;
     color: #b0bec5;
 }
 
-.status-value {
+.sidebar-footer .status-value {
     font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.9rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
 }
 
+/* Main Content Area */
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: 0;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Mobile Responsive - Sidebar */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-250px);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-toggle {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    /* Add hamburger button for mobile */
+    body::before {
+        content: '☰';
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 999;
+        font-size: 2rem;
+        color: #64B5F6;
+        cursor: pointer;
+        background: rgba(26, 35, 50, 0.95);
+        padding: 10px 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(100, 181, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* =============================================================================
+   ORIGINAL STYLES (adapted for sidebar layout)
+   ============================================================================= */
+
+/* Status indicators */
 .status-value.connected {
     background: #27ae60;
     color: white;
@@ -83,51 +216,6 @@ body {
 .status-value.loading {
     background: #f39c12;
     color: white;
-}
-
-/* Tab Navigation */
-.tab-navigation {
-    display: flex;
-    background: rgba(30, 40, 60, 0.95);
-    border-radius: 15px;
-    padding: 5px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(100, 181, 246, 0.2);
-}
-
-.tab-button {
-    flex: 1;
-    padding: 18px 24px;
-    min-height: 48px;
-    border: none;
-    background: transparent;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1.05rem;
-    color: #90a4ae;
-    transition: all 0.3s ease;
-}
-
-.tab-button:hover {
-    background: rgba(100, 181, 246, 0.15);
-    color: #64B5F6;
-}
-
-.tab-button.active {
-    background: #64B5F6;
-    color: white;
-    box-shadow: 0 4px 12px rgba(100, 181, 246, 0.5);
-}
-
-/* Tab Content */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
 }
 
 /* Dashboard Grid */
@@ -720,33 +808,14 @@ body {
     font-weight: 600;
 }
 
-/* Responsive Design */
+/* Mobile Responsive - Content */
 @media (max-width: 768px) {
     body {
         font-size: 16px;
     }
     
-    .container {
-        padding: 10px;
-    }
-    
-    .header h1 {
-        font-size: 2rem;
-    }
-    
-    .status-indicators {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .tab-navigation {
-        flex-direction: column;
-    }
-    
-    .tab-button {
-        margin-bottom: 5px;
-        font-size: 1.1rem;
-        padding: 20px 24px;
+    .main-content {
+        padding: 60px 10px 10px;
     }
     
     .dashboard-grid {
@@ -788,10 +857,6 @@ body {
 }
 
 @media (max-width: 480px) {
-    .header h1 {
-        font-size: 1.5rem;
-    }
-    
     .temperature-grid {
         grid-template-columns: 1fr;
     }
@@ -800,16 +865,16 @@ body {
         grid-template-columns: 1fr;
     }
     
-    .tab-button {
-        font-size: 1.15rem;
-        padding: 22px 20px;
-    }
-    
     .card h3 {
         font-size: 1.6rem;
     }
 }
 
+/* ============================================================================= 
+   Remaining styles from original file (UX fixes, energy card, systems tab, etc.)
+   ============================================================================= */
+
+/* Append all remaining styles from line 812 onwards */
 /* UX Fix #1: Status Detail View Styles */
 .tab-description {
     color: #90a4ae;
@@ -1996,9 +2061,4 @@ body {
 /* Pellet Stove Card */
 .pellet-card {
     border-top: 4px solid #8D6E63;
-}
-
-/* Pump Card */
-.pump-card {
-    border-top: 4px solid #26C6DA;
 }
