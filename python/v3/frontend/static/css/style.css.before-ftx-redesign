@@ -1947,7 +1947,6 @@ body {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
 }
 
-
 /* ============================================================================
    FTX CARD VISUALS
    ============================================================================ */
@@ -1956,140 +1955,82 @@ body {
     border-top: 4px solid #9b59b6;
 }
 
-/* ========================================
-   FTX VENTILATION V2 - CLEANER DESIGN
-   ======================================== */
-
-.ftx-visual {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.ftx-flow-v2 {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Airflow boxes */
-.ftx-airflow {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    padding: 12px 20px;
-    min-width: 180px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.ftx-airflow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.ftx-arrow-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.ftx-flow-diagram {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 8px;
-    margin-bottom: 8px;
+    align-items: center;
+    position: relative;
 }
 
-.arrow-icon {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.arrow-text {
+.ftx-flow-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    color: #555;
+    color: #6c757d;
 }
 
-/* Color-code arrows by flow type */
-.fresh-in .arrow-icon {
-    color: #3b82f6; /* Blue - cold fresh air */
+.ftx-flow-line.outdoor {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-end;
 }
 
-.supply-out .arrow-icon {
-    color: #f59e0b; /* Orange - warmed supply */
+.ftx-flow-line.supply {
+    grid-column: 3;
+    grid-row: 1;
+    justify-content: flex-start;
 }
 
-.return-in .arrow-icon {
-    color: #ef4444; /* Red - warm return */
+.ftx-flow-line.return {
+    grid-column: 3;
+    grid-row: 2;
+    justify-content: flex-start;
 }
 
-.exhaust-out .arrow-icon {
-    color: #6b7280; /* Gray - cooled exhaust */
+.ftx-flow-line.exhaust {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-end;
 }
 
-.ftx-temp {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 4px 0;
-}
-
-.ftx-stream-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Heat Exchanger Box */
-.ftx-hx-box {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    border-radius: 12px;
-    padding: 16px 24px;
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-    text-align: center;
-    margin: 10px 0;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-}
-
-.hx-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.9);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-}
-
-.hx-efficiency-large {
-    font-size: 32px;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Side-by-side flows (Supply and Return) */
-.ftx-side-flows {
+.ftx-exchanger {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
     display: flex;
-    gap: 15px;
-    width: 100%;
+    align-items: center;
     justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .ftx-side-flows {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .ftx-airflow {
-        width: 100%;
-        max-width: 240px;
-    }
+.flow-arrow-right,
+.flow-arrow-left {
+    width: 0;
+    height: 0;
 }
 
+.flow-arrow-right {
+    border-left: 8px solid #9b59b6;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
 
+.flow-arrow-left {
+    border-right: 8px solid #9b59b6;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
 
 /* ============================================================================
    ANIMATIONS
