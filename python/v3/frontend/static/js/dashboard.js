@@ -333,8 +333,9 @@ class SolarHeatingDashboard {
             }
         };
         
-        // Update pump runtime
-        const pumpRuntime = state.pump_runtime_hours || 0;
+        // Update pump runtime (use realtime value that includes current running cycle)
+        const temps = data.temperatures || {};
+        const pumpRuntime = temps.pump_runtime_hours_realtime || state.pump_runtime_hours || 0;
         const pumpRuntimeEl = document.getElementById("pump-runtime");
         if (pumpRuntimeEl) {
             pumpRuntimeEl.textContent = fmt(pumpRuntime, 2, " hours");
