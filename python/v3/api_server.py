@@ -34,6 +34,10 @@ from api_errors import (
     create_failure_response
 )
 
+# Rate limiting module (Issue #47)
+from rate_limiter import SimpleRateLimiter, check_rate_limit, add_rate_limit_headers
+import rate_limiter
+
 logger = logging.getLogger(__name__)
 class SolarHeatingAPI:
     """REST API server for Solar Heating System"""
@@ -59,6 +63,23 @@ class SolarHeatingAPI:
         
         # CORS support for frontend
         self._setup_cors()
+        
+        # Initialize rate limiter (Issue #47)
+        rate_limiter.api_rate_limiter = SimpleRateLimiter(
+            default_limit=60,      # 60 requests per minute
+            window_seconds=60,     # 1 minute window
+            burst_limit=10,        # 10 requests per second burst
+            burst_window=1         # 1 second burst window
+        )
+        
+        # Set custom limits for specific endpoints
+        # Status endpoint can be polled more frequently
+        rate_limiter.api_rate_limiter.set_endpoint_limit('/api/status', limit=120, window=60)
+        
+        # Setup rate limiting hooks
+        self._setup_rate_limiting()
+        
+        logger.info("API rate limiting enabled (Issue #47)")
     
     def _setup_routes(self):
         """Setup all API routes"""
@@ -77,6 +98,20 @@ class SolarHeatingAPI:
             response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
             return response
     
+    
+    def _setup_rate_limiting(self):
+        """Setup rate limiting for all requests (Issue #47)"""
+        @self.app.before_request
+        def apply_rate_limit():
+            # Check rate limit before processing request
+            error_response = check_rate_limit()
+            if error_response:
+                return error_response
+        
+        @self.app.after_request
+        def add_headers(response):
+            # Add rate limit headers to all responses
+            return add_rate_limit_headers(response)
     def get_system_status(self) -> Dict[str, Any]:
         """Get complete system status"""
         with self.lock:
