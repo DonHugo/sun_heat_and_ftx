@@ -71,6 +71,17 @@ class MQTTHandler:
         
         # Message handlers
         self.message_handlers: Dict[str, Callable] = {}
+
+        # Publish metrics (Issue #51)
+        self.publish_stats = {
+            'total_attempts': 0,
+            'successful': 0,
+            'failed': 0,
+            'failed_disconnected': 0,
+            'failed_error': 0,
+            'last_failure': None,
+            'last_failure_topic': None
+        }
     
     def connect(self) -> bool:
         """Connect to MQTT broker"""
@@ -619,47 +630,184 @@ class MQTTHandler:
         except Exception as e:
             logger.error(f"Error handling TaskMaster AI message: {e}")
     
-    def publish(self, topic: str, message: Dict[str, Any], retain: bool = False) -> bool:
-        """Publish JSON message to MQTT topic"""
+    def publish(self, topic: str, message: Dict[str, Any], retain: bool = False, qos: int = 0) -> bool:
+        """
+        Publish JSON message to MQTT topic with enhanced error handling
+        
+        Args:
+            topic: MQTT topic to publish to
+            message: Dictionary to publish as JSON
+            retain: Whether to retain the message on broker
+            qos: Quality of Service level (0, 1, or 2)
+        
+        Returns:
+            bool: True if publish successful, False otherwise
+        
+        Note:
+            Failed publishes are logged with detailed error information.
+            For retry queue functionality, see Issue #51
+        """
+        self.publish_stats['total_attempts'] += 1
+        
         try:
-            if not self.connected or not self.client:
-                logger.warning("MQTT not connected, cannot publish")
+            # Validate topic
+            if not self._is_valid_mqtt_topic(topic):
+                logger.error(f"❌ MQTT Publish Failed - Invalid topic format: {topic}")
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_error'] += 1
                 return False
             
+            # Check connection
+            if not self.connected or not self.client:
+                logger.warning(
+                    f"⚠️  MQTT Publish Failed - Not connected. "
+                    f"Topic: {topic}, Message size: {len(str(message))} chars. "
+                    f"Consider implementing retry queue (Issue #51)."
+                )
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_disconnected'] += 1
+                self.publish_stats['last_failure'] = time.time()
+                self.publish_stats['last_failure_topic'] = topic
+                return False
+            
+            # Publish message
             payload = json.dumps(message)
-            result = self.client.publish(topic, payload, retain=retain)
+            result = self.client.publish(topic, payload, qos=qos, retain=retain)
             
+            # Check result immediately (synchronous check)
             if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
-                logger.debug(f"Published to {topic}: {message} (retain: {retain})")
+                logger.debug(f"✅ Published to {topic}: {len(payload)} bytes (retain: {retain}, qos: {qos})")
+                self.publish_stats['successful'] += 1
                 return True
             else:
-                logger.error(f"Failed to publish to {topic}: {result.rc}")
+                # Detailed error logging with error code interpretation
+                error_msg = self._interpret_publish_error(result.rc)
+                logger.error(
+                    f"❌ MQTT Publish Failed - "
+                    f"Topic: {topic}, "
+                    f"Error Code: {result.rc}, "
+                    f"Reason: {error_msg}, "
+                    f"Message size: {len(payload)} bytes, "
+                    f"Retain: {retain}, "
+                    f"QoS: {qos}"
+                )
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_error'] += 1
+                self.publish_stats['last_failure'] = time.time()
+                self.publish_stats['last_failure_topic'] = topic
                 return False
                 
         except Exception as e:
-            logger.error(f"Error publishing to {topic}: {e}")
+            logger.error(
+                f"❌ MQTT Publish Exception - "
+                f"Topic: {topic}, "
+                f"Error: {e}, "
+                f"Type: {type(e).__name__}"
+            )
+            self.publish_stats['failed'] += 1
+            self.publish_stats['failed_error'] += 1
+            self.publish_stats['last_failure'] = time.time()
+            self.publish_stats['last_failure_topic'] = topic
             return False
-    
-    def publish_raw(self, topic: str, message: str) -> bool:
-        """Publish raw string message to MQTT topic"""
+
+
+    def _interpret_publish_error(self, rc: int) -> str:
+        """Interpret MQTT publish error codes"""
+        error_codes = {
+            0: "Success",
+            1: "Incorrect protocol version",
+            2: "Invalid client identifier",
+            3: "Server unavailable",
+            4: "Bad username or password",
+            5: "Not authorized",
+            16: "No matching subscribers",
+            17: "No subscription existed",
+            128: "Malformed packet",
+            129: "Protocol error",
+            135: "Not authorized",
+            144: "Topic name invalid",
+            145: "Packet too large",
+            151: "Quota exceeded",
+            153: "Payload format invalid"
+        }
+        return error_codes.get(rc, f"Unknown error code: {rc}")
+
+    def publish_raw(self, topic: str, message: str, retain: bool = False, qos: int = 0) -> bool:
+        """
+        Publish raw string message to MQTT topic with enhanced error handling
+        
+        Args:
+            topic: MQTT topic to publish to
+            message: String message to publish
+            retain: Whether to retain the message on broker
+            qos: Quality of Service level (0, 1, or 2)
+        
+        Returns:
+            bool: True if publish successful, False otherwise
+        """
+        self.publish_stats['total_attempts'] += 1
+        
         try:
-            if not self.connected or not self.client:
-                logger.warning("MQTT not connected, cannot publish")
+            # Validate topic
+            if not self._is_valid_mqtt_topic(topic):
+                logger.error(f"❌ MQTT Publish Failed - Invalid topic format: {topic}")
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_error'] += 1
                 return False
             
-            result = self.client.publish(topic, message)
+            # Check connection
+            if not self.connected or not self.client:
+                logger.warning(
+                    f"⚠️  MQTT Publish Failed - Not connected. "
+                    f"Topic: {topic}, Message size: {len(message)} chars. "
+                    f"Consider implementing retry queue (Issue #51)."
+                )
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_disconnected'] += 1
+                self.publish_stats['last_failure'] = time.time()
+                self.publish_stats['last_failure_topic'] = topic
+                return False
             
+            # Publish message
+            result = self.client.publish(topic, message, qos=qos, retain=retain)
+            
+            # Check result
             if result.rc == mqtt_client.MQTT_ERR_SUCCESS:
-                logger.debug(f"Published raw to {topic}: {message}")
+                logger.debug(f"✅ Published raw to {topic}: {len(message)} bytes (retain: {retain}, qos: {qos})")
+                self.publish_stats['successful'] += 1
                 return True
             else:
-                logger.error(f"Failed to publish raw to {topic}: {result.rc}")
+                # Detailed error logging
+                error_msg = self._interpret_publish_error(result.rc)
+                logger.error(
+                    f"❌ MQTT Publish Raw Failed - "
+                    f"Topic: {topic}, "
+                    f"Error Code: {result.rc}, "
+                    f"Reason: {error_msg}, "
+                    f"Message size: {len(message)} bytes, "
+                    f"Retain: {retain}, "
+                    f"QoS: {qos}"
+                )
+                self.publish_stats['failed'] += 1
+                self.publish_stats['failed_error'] += 1
+                self.publish_stats['last_failure'] = time.time()
+                self.publish_stats['last_failure_topic'] = topic
                 return False
                 
         except Exception as e:
-            logger.error(f"Error publishing raw to {topic}: {e}")
+            logger.error(
+                f"❌ MQTT Publish Raw Exception - "
+                f"Topic: {topic}, "
+                f"Error: {e}, "
+                f"Type: {type(e).__name__}"
+            )
+            self.publish_stats['failed'] += 1
+            self.publish_stats['failed_error'] += 1
+            self.publish_stats['last_failure'] = time.time()
+            self.publish_stats['last_failure_topic'] = topic
             return False
-    
+
+
     def publish_status(self, status_data: Dict[str, Any]) -> bool:
         """Publish system status"""
         try:
@@ -745,3 +893,38 @@ class MQTTHandler:
     def get_all_messages(self) -> Dict[str, str]:
         """Get all last messages"""
         return self.last_messages.copy()
+
+    def get_publish_stats(self) -> Dict[str, Any]:
+        """
+        Get MQTT publish statistics
+        
+        Returns:
+            Dictionary with publish success/failure metrics
+        """
+        stats = self.publish_stats.copy()
+        
+        # Calculate success rate
+        if stats['total_attempts'] > 0:
+            stats['success_rate'] = (stats['successful'] / stats['total_attempts']) * 100
+        else:
+            stats['success_rate'] = 100.0
+        
+        # Format last failure time
+        if stats['last_failure']:
+            stats['time_since_last_failure'] = time.time() - stats['last_failure']
+        else:
+            stats['time_since_last_failure'] = None
+        
+        return stats
+    
+    def reset_publish_stats(self):
+        """Reset publish statistics (useful for testing)"""
+        self.publish_stats = {
+            'total_attempts': 0,
+            'successful': 0,
+            'failed': 0,
+            'failed_disconnected': 0,
+            'failed_error': 0,
+            'last_failure': None,
+            'last_failure_topic': None
+        }
