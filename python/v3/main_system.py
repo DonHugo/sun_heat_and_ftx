@@ -564,7 +564,7 @@ class SolarHeatingSystem:
             logger.info("Sensor health monitoring initialized")
 
             # Initialize MQTT handler with persistent retry logic
-            self.mqtt = MQTTHandler()
+            self.mqtt = MQTTHandler(config)
             mqtt_connected = False
             initial_mqtt_retries = 5
             initial_retry_delay = 10
