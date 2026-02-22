@@ -3563,9 +3563,11 @@ class SolarHeatingSystem:
                 elif switch_name == "cartridge_heater":
                     self.system_state["cartridge_heater"] = state
                     # Control cartridge heater relay (relay 2) with NC inversion like V1
-                    self.hardware.set_relay_state(config.cartridge_heater_relay, state)
+                    self.hardware.set_relay_state(
+                        pump_config.cartridge_heater_relay, state
+                    )
                     logger.info(
-                        f"Cartridge heater relay {config.cartridge_heater_relay} set to {'ON' if state else 'OFF'}"
+                        f"Cartridge heater relay {pump_config.cartridge_heater_relay} set to {'ON' if state else 'OFF'}"
                     )
 
                 # Publish switch state back to Home Assistant
