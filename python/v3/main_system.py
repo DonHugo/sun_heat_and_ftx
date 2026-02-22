@@ -1546,6 +1546,12 @@ class SolarHeatingSystem:
                 raw_value = megabas_temps.get(sensor_name)
                 attempt_count = megabas_attempts.get(sensor_name, 0)
 
+                # Skip health monitoring for sensors with no physical sensor connected
+                if sensor_id in config.megabas_absent_sensors:
+                    self.temperatures[sensor_name] = None
+                    logger.debug(f"{sensor_name}: no sensor installed (skipped)")
+                    continue
+
                 # Record reading and get value to use
                 value_to_use, status = self.sensor_health_monitor.record_reading(
                     sensor_name, raw_value

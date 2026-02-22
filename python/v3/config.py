@@ -22,6 +22,10 @@ class SystemConfig(BaseModel):
     )
     rtd_board_address: int = Field(default=0, description="RTD board address")
     megabas_board_address: int = Field(default=3, description="MegaBAS board address")
+    megabas_absent_sensors: list = Field(
+        default=[5],
+        description="MegaBAS sensor IDs with no physical sensor connected (skipped from health monitoring)",
+    )
     relay_board_address: int = Field(default=2, description="Relay board address")
 
     # Temperature Monitoring Configuration
