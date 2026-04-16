@@ -307,24 +307,32 @@ class SolarHeatingAPI:
     def _get_service_status(self) -> Dict[str, str]:
         """Get systemd service status"""
         try:
-            services = ["solar_heating_v3", "mqtt", "solar_heating_watchdog"]
+            # Map frontend key -> actual systemd unit name.
+            # "mqtt" is shown in the UI but the real broker unit is "mosquitto".
+            services = {
+                "solar_heating_v3": "solar_heating_v3",
+                "mqtt": "mosquitto",
+                "solar_heating_watchdog": "solar_heating_watchdog",
+            }
             status = {}
 
-            for service in services:
+            for key, unit in services.items():
                 try:
                     result = subprocess.run(
-                        ["systemctl", "is-active", service],
+                        ["systemctl", "is-active", unit],
                         capture_output=True,
                         text=True,
                         timeout=5,
                     )
-                    status[service] = (
-                        result.stdout.strip() if result.returncode == 0 else "inactive"
-                    )
+                    # systemctl is-active prints the state ("active", "activating",
+                    # "inactive", "failed", ...) regardless of exit code. Prefer
+                    # stdout so transitional states are visible in the UI.
+                    state = result.stdout.strip()
+                    status[key] = state if state else "unknown"
                 except Exception as e:
                     # Log but continue checking other services (Issue #46)
-                    logger.debug(f"Could not check {service} status", exc_info=e)
-                    status[service] = "unknown"
+                    logger.debug(f"Could not check {unit} status", exc_info=e)
+                    status[key] = "unknown"
 
             return status
         except Exception as e:
