@@ -923,8 +923,15 @@ class MQTTHandler:
             return False
 
     def is_connected(self) -> bool:
-        """Check if MQTT is connected"""
-        return self.connected and self.client and self.client.is_connected()
+        """Check if MQTT is connected.
+
+        Delegates purely to paho's client.is_connected() rather than ANDing
+        with self.connected. The self.connected flag can become stale if
+        _on_connect's internal client.is_connected() guard races with paho's
+        own state transition, leaving the flag False even after a successful
+        connect. paho's is_connected() is authoritative.
+        """
+        return self.client is not None and self.client.is_connected()
 
     def get_last_message(self, topic: str) -> Optional[str]:
         """Get last message for a topic"""
