@@ -253,6 +253,28 @@ Agent (response):
 1. Increment cache version (`?v=X`) in index.html
 2. Hard refresh browser (Ctrl+Shift+R)
 
+### Issue: Two Services Competing for Port 5001 (MQTT/HA "Disconnected")
+**Symptom:** Web GUI "System Diagnostics" panel shows MQTT Status = **Disconnected** and Home Assistant Status = **Disconnected**, even though the broker is reachable and `main_system.py` is running.
+
+**Root Cause:** Two systemd units were both trying to bind port 5001:
+- `solar_heating_api.service` — ran `python/v3/run_api_server.py`, a standalone mock using `MockSolarSystem` (no `.mqtt` attribute).
+- `solar_heating_v3.service` — runs `main_system.py`, which embeds the real API server (see `main_system.py` lines ~692-717) backed by the live `SolarHeatingSystem`.
+
+Whichever bound first won the port. When the mock won, the GUI's dashboard polled `/api/mqtt` on the mock and got `connected: false` because `MockSolarSystem` has no MQTT handler. The frontend (`dashboard.js` lines 819-822) derives HA status from the MQTT status, so both indicators flipped to Disconnected together.
+
+**Solution:**
+1. `sudo systemctl stop solar_heating_api.service`
+2. `sudo systemctl disable solar_heating_api.service`
+3. `sudo systemctl restart solar_heating_v3.service` (so it binds :5001)
+4. Verify: `curl http://localhost:5001/api/mqtt` → `{"connected": true, ...}`
+
+The standalone script `python/v3/run_api_server.py` has been marked DEPRECATED with a module-level header and a runtime guard that exits if invoked directly. Do not re-enable `solar_heating_api.service`.
+
+**Related commits:**
+- `99227d5` — `api_server.py::_get_mqtt_status()` uses `getattr(self.solar_system, "mqtt", None)` for defensive attribute access.
+- `38a1eca` — `mqtt_handler.py` reconnect refactor (daemon thread, lock-guarded).
+- `bb8d218` — `mqtt_handler.py::is_connected()` delegates to paho client state.
+
 ### Issue: Stale API Data Displayed
 **Symptom:** Frontend shows non-zero rate when device is OFF
 
@@ -289,6 +311,17 @@ const rate = deviceOn ? (data.system_state?.device_rate ?? 0) : 0;
 - **Fix:** Check device status before displaying rates
 - **Commit:** `e84a0d2`
 - **Status:** ✅ DEPLOYED (JS v24)
+
+### Phase 5: MQTT/HA Diagnostics Fix & API Service Consolidation
+- **Issue:** System Diagnostics panel showed MQTT and Home Assistant as Disconnected.
+- **Root cause:** `solar_heating_api.service` (mock) and `solar_heating_v3.service` (real) both competed for port 5001; mock has no MQTT handler.
+- **Fix:**
+  - Hardened `api_server.py::_get_mqtt_status()` with `getattr` (`99227d5`).
+  - Refactored `mqtt_handler.py` reconnect logic (`38a1eca`).
+  - `is_connected()` now delegates to paho's own state (`bb8d218`).
+  - Disabled `solar_heating_api.service`; deprecated `run_api_server.py`.
+- **Verification:** `/api/mqtt` returns `connected: true`; zero DEBUG log noise; GUI polls succeed.
+- **Status:** ✅ DEPLOYED
 
 ---
 
