@@ -250,11 +250,12 @@ class SolarHeatingAPI:
             }
 
             # Try to get MQTT status from main system
-            if (
-                hasattr(self.solar_system, "mqtt_client")
-                and self.solar_system.mqtt_client
-            ):
-                connected = self.solar_system.mqtt_client.is_connected()
+            # Note: main_system.py exposes the MQTT handler as `self.mqtt`
+            # (not `mqtt_client`). Using the wrong attribute caused the
+            # dashboard to always show "Disconnected".
+            mqtt_handler = getattr(self.solar_system, "mqtt", None)
+            if mqtt_handler is not None:
+                connected = mqtt_handler.is_connected()
                 broker_status = "Connected" if connected else "Disconnected"
 
             # Get last MQTT message from logs
