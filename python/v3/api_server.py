@@ -258,8 +258,12 @@ class SolarHeatingAPI:
                 connected = mqtt_handler.is_connected()
                 broker_status = "Connected" if connected else "Disconnected"
 
-            # Get last MQTT message from logs
-            last_message = self._get_last_mqtt_message()
+            # Get last MQTT message directly from the handler (populated on
+            # publish/receive). Avoids fragile journalctl log parsing.
+            if mqtt_handler is not None:
+                recorded = getattr(mqtt_handler, "last_message", None)
+                if recorded:
+                    last_message = recorded
 
             return {
                 "connected": connected,
@@ -278,48 +282,6 @@ class SolarHeatingAPI:
                     "timestamp": "Error",
                     "qos": 0,
                 },
-            }
-
-    def _get_last_mqtt_message(self) -> Dict[str, Any]:
-        """Get last MQTT message from logs"""
-        try:
-            # Use journalctl to get recent MQTT messages
-            command = "journalctl -u solar_heating_v3.service --since '5 minutes ago' | grep 'mqtt_handler - INFO -' | tail -n 20"
-            log_output = subprocess.check_output(command, shell=True, text=True).strip()
-
-            if log_output:
-                # Parse the last message
-                lines = log_output.split("\n")
-                last_line = lines[-1] if lines else ""
-
-                # Extract topic and payload using regex
-                mqtt_pattern = re.compile(
-                    r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} - mqtt_handler - INFO - .*? (?P<topic>homeassistant/[^:]+): (?P<payload>.*)$"
-                )
-
-                match = mqtt_pattern.match(last_line)
-                if match:
-                    return {
-                        "topic": match.group("topic"),
-                        "payload": match.group("payload"),
-                        "timestamp": match.group("timestamp"),
-                        "qos": 0,
-                    }
-
-            return {
-                "topic": "No messages",
-                "payload": "No data",
-                "timestamp": "Never",
-                "qos": 0,
-            }
-        except Exception as e:
-            # Log error but return generic message (Issue #46)
-            logger.error(f"Failed to parse MQTT logs", exc_info=e)
-            return {
-                "topic": "Error",
-                "payload": "Log parsing error",
-                "timestamp": "Error",
-                "qos": 0,
             }
 
     def _get_hardware_status(self) -> Dict[str, str]:

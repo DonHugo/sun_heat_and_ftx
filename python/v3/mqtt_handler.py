@@ -14,6 +14,7 @@ import json
 import logging
 import threading
 import time
+from datetime import datetime
 from typing import Dict, Any, Optional, Callable
 from paho.mqtt import client as mqtt_client
 from config import mqtt_topics, SystemConfig
@@ -67,6 +68,9 @@ class MQTTHandler:
 
         # Message storage
         self.last_messages: Dict[str, str] = {}
+
+        # Most recent message (any topic, in or out) for diagnostics API
+        self.last_message: Optional[Dict[str, Any]] = None
 
         # Callbacks
         self.system_callback: Optional[Callable] = None
@@ -362,6 +366,21 @@ class MQTTHandler:
 
         return True
 
+    def _record_last_message(
+        self, topic: str, payload: str, direction: str, qos: int = 0
+    ) -> None:
+        """Record most recent MQTT message for diagnostics API."""
+        try:
+            self.last_message = {
+                "topic": topic,
+                "payload": str(payload)[:200],
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "qos": qos,
+                "direction": direction,
+            }
+        except Exception as e:
+            logger.debug(f"Failed to record last MQTT message: {e}")
+
     def _on_message(self, client, userdata, msg):
         """MQTT message callback"""
         try:
@@ -372,6 +391,7 @@ class MQTTHandler:
 
             # Store last message for each topic
             self.last_messages[topic] = payload
+            self._record_last_message(topic, payload, "in", qos=msg.qos)
 
             # Handle Home Assistant switch commands (raw string payload)
             if topic.startswith(
@@ -478,6 +498,7 @@ class MQTTHandler:
 
             # Store the data for system use
             self.last_messages[topic] = payload
+            self._record_last_message(topic, payload, "in")
 
             # Call system callback if available
             if self.system_callback:
@@ -724,6 +745,7 @@ class MQTTHandler:
                     f"✅ Published to {topic}: {len(payload)} bytes (retain: {retain}, qos: {qos})"
                 )
                 self.publish_stats["successful"] += 1
+                self._record_last_message(topic, payload, "out", qos=qos)
                 return True
             else:
                 # Detailed error logging with error code interpretation
