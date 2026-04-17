@@ -20,6 +20,10 @@ class SolarHeatingDashboard {
         this.pumpState = false;
         this.heaterLockoutUntil = 0;
         this.heaterLockoutTimer = null;
+        // Toast tracking so we can clear stale messages (e.g. a lingering
+        // "Failed to connect" after the API comes back up).
+        this.toastTimer = null;
+        this.toastContext = null;
         this.init();
     }
     
@@ -146,29 +150,38 @@ class SolarHeatingDashboard {
     
     setupSidebarToggle() {
         const sidebar = document.getElementById('sidebar');
-        
-        // Hamburger button click (via CSS body::before on mobile)
-        // We detect clicks in the hamburger area when sidebar is closed
-        document.body.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768 && sidebar) {
-                // Hamburger is positioned at top-left (20px from edges)
-                // CSS creates a 50x50px clickable area
-                const rect = { left: 20, top: 20, right: 70, bottom: 70 };
-                if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                    e.clientY >= rect.top && e.clientY <= rect.bottom &&
-                    !sidebar.classList.contains('open')) {
-                    sidebar.classList.add('open');
-                    e.stopPropagation();
+        const hamburger = document.getElementById('mobile-hamburger');
+        if (!sidebar) return;
+
+        const setOpen = (open) => {
+            sidebar.classList.toggle('open', open);
+            if (hamburger) {
+                hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                hamburger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+            }
+        };
+
+        // Hamburger button toggles sidebar
+        if (hamburger) {
+            hamburger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setOpen(!sidebar.classList.contains('open'));
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && (!hamburger || !hamburger.contains(e.target))) {
+                    setOpen(false);
                 }
             }
         });
-        
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
-                if (!sidebar.contains(e.target)) {
-                    sidebar.classList.remove('open');
-                }
+
+        // Close sidebar on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                setOpen(false);
             }
         });
     }
@@ -202,13 +215,20 @@ class SolarHeatingDashboard {
             // Update API status indicator
             document.getElementById('api-status').textContent = 'Connected';
             document.getElementById('api-status').className = 'value connected';
-            
+
+            // Clear any stale "Failed to connect" toast now that we're back online.
+            if (this.toastContext === 'api-error') {
+                this.dismissNotification();
+            }
+
         } catch (error) {
+            // Transient 503s during API startup are handled silently in apiRequest
+            // (returns null), so reaching this catch means a real failure.
             console.error('Error loading system data:', error);
             console.error("❌ Error details:", error.message, error.stack);
             document.getElementById('api-status').textContent = 'Disconnected';
             document.getElementById('api-status').className = 'value disconnected';
-            this.showNotification('Failed to connect to API server', 'error');
+            this.showNotification('Failed to connect to API server', 'error', 'api-error');
         } finally {
             this.isLoading = false;
         }
@@ -244,11 +264,19 @@ class SolarHeatingDashboard {
         
         const response = await fetch(url, options);
         console.log(`📡 API Response: ${response.status} ${response.statusText}`);
-        
+
+        // 503 = API server still initializing (startup race). Treat as transient:
+        // return null so callers skip the update this cycle and the next poll
+        // (5 s later) tries again, without raising a scary error toast.
+        if (response.status === 503) {
+            console.log('⏳ API starting up (503) — will retry on next poll');
+            return null;
+        }
+
         if (!response.ok) {
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
-        
+
         return await response.json();
     }
     
@@ -1041,13 +1069,21 @@ class SolarHeatingDashboard {
         document.getElementById('loading-overlay')?.classList.add('hidden');
     }
     
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info', context = null) {
         const toast = document.getElementById('notification-toast');
         const messageElement = document.getElementById('toast-message');
-        
+
         if (toast && messageElement) {
+            // Clear any pending auto-hide from a previous toast so we don't
+            // stack timers and prematurely dismiss this new one.
+            if (this.toastTimer) {
+                clearTimeout(this.toastTimer);
+                this.toastTimer = null;
+            }
+            this.toastContext = context;
+
             messageElement.textContent = message;
-            
+
             // Set icon based on type
             const icon = toast.querySelector('.toast-icon');
             if (icon) {
@@ -1069,14 +1105,29 @@ class SolarHeatingDashboard {
                         toast.style.background = 'rgba(52, 152, 219, 0.95)';
                 }
             }
-            
+
             toast.classList.add('show');
-            
-            // Auto-hide after 3 seconds
-            setTimeout(() => {
+
+            // Auto-hide after 3 seconds (timer is tracked so we can cancel it
+            // from dismissNotification() or a subsequent showNotification()).
+            this.toastTimer = setTimeout(() => {
                 toast.classList.remove('show');
+                this.toastTimer = null;
+                this.toastContext = null;
             }, 3000);
         }
+    }
+
+    dismissNotification() {
+        const toast = document.getElementById('notification-toast');
+        if (this.toastTimer) {
+            clearTimeout(this.toastTimer);
+            this.toastTimer = null;
+        }
+        if (toast) {
+            toast.classList.remove('show');
+        }
+        this.toastContext = null;
     }
     
     // UX Fix #3: Add status dots to status indicators

@@ -641,7 +641,9 @@ class SystemStatusAPI(Resource):
         """GET /api/status"""
         api_server = getattr(SystemStatusAPI, "_api_server", None)
         if not api_server:
-            return {"error": "API server not initialized"}, 500
+            # Return 503 (Service Unavailable) during startup race so clients
+            # can retry transparently instead of surfacing a scary 500 toast.
+            return {"error": "starting", "starting": True}, 503
 
         return api_server.get_system_status()
 
@@ -659,7 +661,8 @@ class ControlAPI(Resource):
         """
         api_server = getattr(ControlAPI, "_api_server", None)
         if not api_server:
-            return {"error": "API server not initialized"}, 500
+            # 503 during startup race so clients can retry transparently
+            return {"error": "starting", "starting": True}, 503
 
         # validated_data is a ControlRequest pydantic model
         # action is already validated to be one of the enum values
@@ -680,7 +683,8 @@ class ModeAPI(Resource):
         """
         api_server = getattr(ModeAPI, "_api_server", None)
         if not api_server:
-            return {"error": "API server not initialized"}, 500
+            # 503 during startup race so clients can retry transparently
+            return {"error": "starting", "starting": True}, 503
 
         # validated_data is a ModeRequest pydantic model
         # mode is already validated to be one of the enum values
@@ -695,7 +699,9 @@ class TemperaturesAPI(Resource):
         """GET /api/temperatures"""
         api_server = getattr(TemperaturesAPI, "_api_server", None)
         if not api_server:
-            return {"error": "API server not initialized"}, 500
+            # 503 during startup race so clients can retry transparently
+            # instead of surfacing a scary 500 toast.
+            return {"error": "starting", "starting": True}, 503
 
         try:
             temperatures = {}
@@ -781,7 +787,8 @@ class MQTTAPI(Resource):
         """GET /api/mqtt"""
         api_server = getattr(MQTTAPI, "_api_server", None)
         if not api_server:
-            return {"error": "API server not initialized"}, 500
+            # 503 during startup race so clients can retry transparently instead of surfacing a scary 500 toast.
+            return {"error": "starting", "starting": True}, 503
 
         mqtt_status = api_server._get_mqtt_status()
         return {
