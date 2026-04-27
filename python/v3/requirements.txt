@@ -8,7 +8,7 @@
 
 # MQTT communication
 paho-mqtt>=1.6.1
-asyncio-mqtt>=0.16.0
+asyncio-mqtt>=0.16.2
 
 # Data processing and analysis
 numpy>=1.21.0
