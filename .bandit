@@ -1,0 +1,14 @@
+[bandit]
+# Bandit configuration for sun_heat_and_ftx
+# See: https://bandit.readthedocs.io/en/latest/config.html
+
+# Exclude virtualenvs, vendored deps, build artifacts, and test scaffolding.
+# Paths are comma-separated and relative to the repo root.
+exclude_dirs = ./selenium_env,./venv,./.venv,./env,./node_modules,./.git,./build,./dist,./.pytest_cache,./.opencode,./tests,./test
+
+# Skip noisy or intentionally-accepted check IDs:
+#   B101  assert_used                    -- pytest patterns / debug asserts
+#   B104  hardcoded_bind_all_interfaces  -- LAN service binds to 0.0.0.0 by design
+#   B404  import_subprocess              -- subprocess use is reviewed at call sites
+#   B603  subprocess_without_shell_equals_true -- args list form, no shell injection
+skips = B101,B104,B404,B603

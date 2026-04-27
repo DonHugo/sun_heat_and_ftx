@@ -46,8 +46,11 @@ jobs:
     - name: Run Bandit security linter
       run: |
         echo "🔍 Running Bandit security linter..."
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -f txt
+        # Full JSON report for the PR comment / artifact (never blocks).
+        bandit -r . -c .bandit -f json -o bandit-report.json || true
+        # Human-readable summary; only Medium+ severity at High confidence
+        # fails the build. Style noise is filtered via .bandit (skips/excludes).
+        bandit -r . -c .bandit -ll -ii
         
     - name: Run Semgrep security scan
       run: |

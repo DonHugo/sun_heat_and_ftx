@@ -37,14 +37,14 @@ def is_raspberry_pi():
         try:
             with open('/proc/device-tree/model', 'r') as f:
                 return 'Raspberry Pi' in f.read()
-        except:
+        except OSError:
             pass
         
         # Fallback to /proc/cpuinfo (older method)
         with open('/proc/cpuinfo', 'r') as f:
             content = f.read()
             return 'BCM' in content or 'Raspberry Pi' in content
-    except:
+    except OSError:
         return False
 
 
