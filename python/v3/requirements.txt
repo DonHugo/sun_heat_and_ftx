@@ -31,7 +31,7 @@ httpx>=0.25.0
 python-dotenv>=1.0.0
 
 # Logging and monitoring
-structlog>=23.0.0
+structlog>=25.5.0
 
 # Note: Hardware libraries (megabas, librtd, lib4relind) are installed system-wide
 # and should be installed separately using the Sequent Microsystems installation scripts
