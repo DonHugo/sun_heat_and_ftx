@@ -15,7 +15,7 @@ numpy>=1.21.0
 pandas>=1.3.0
 
 # Web framework and API
-fastapi>=0.104.0
+fastapi>=0.136.1
 uvicorn>=0.24.0
 flask>=3.0.0
 flask-restful>=0.3.10
