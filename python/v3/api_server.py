@@ -67,17 +67,20 @@ class SolarHeatingAPI:
         self._setup_cors()
 
         # Initialize rate limiter (Issue #47)
+        # Raised from 60/60s + 10/1s after P1 UX rollout: multi-endpoint
+        # dashboard polling (5s cadence across status/temps/pumps/etc.) was
+        # tripping the limiter and surfacing as misleading "connection" toasts.
         rate_limiter.api_rate_limiter = SimpleRateLimiter(
-            default_limit=60,  # 60 requests per minute
+            default_limit=300,  # 300 requests per minute
             window_seconds=60,  # 1 minute window
-            burst_limit=10,  # 10 requests per second burst
+            burst_limit=30,  # 30 requests per second burst
             burst_window=1,  # 1 second burst window
         )
 
         # Set custom limits for specific endpoints
-        # Status endpoint can be polled more frequently
+        # Status endpoint can be polled more frequently (raised 120 -> 600)
         rate_limiter.api_rate_limiter.set_endpoint_limit(
-            "/api/status", limit=120, window=60
+            "/api/status", limit=600, window=60
         )
 
         # Setup rate limiting hooks

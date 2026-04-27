@@ -273,6 +273,14 @@ class SolarHeatingDashboard {
             return null;
         }
 
+        // 429 = rate limited. Treat as transient (same pattern as 503):
+        // silent-retry on next poll cycle rather than surfacing a misleading
+        // "Failed to connect to API server" toast.
+        if (response.status === 429) {
+            console.log('⏳ Rate limited (429) — will retry on next poll');
+            return null;
+        }
+
         if (!response.ok) {
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
