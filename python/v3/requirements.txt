@@ -11,7 +11,7 @@ paho-mqtt>=1.6.1
 asyncio-mqtt>=0.16.2
 
 # Data processing and analysis
-numpy>=1.21.0
+numpy>=2.4.4
 pandas>=1.3.0
 
 # Web framework and API
