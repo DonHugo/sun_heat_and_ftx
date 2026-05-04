@@ -5,7 +5,7 @@
 paho-mqtt>=1.6.1,<2.0.0
 
 # Configuration Management
-python-dotenv>=1.0.0,<2.0.0
+python-dotenv>=1.2.2,<2.0.0
 
 # Data Validation
 pydantic>=2.0.0,<3.0.0
