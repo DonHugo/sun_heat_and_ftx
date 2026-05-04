@@ -2,7 +2,7 @@
 taskmaster-ai>=0.1.0
 fastapi>=0.136.1
 uvicorn>=0.46.0
-pydantic>=2.5.0
+pydantic>=2.13.3
 
 # Existing project dependencies
 statistics
