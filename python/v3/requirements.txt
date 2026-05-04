@@ -28,7 +28,7 @@ influxdb-client>=1.36.0
 httpx>=0.25.0
 
 # Configuration and utilities
-python-dotenv>=1.0.0
+python-dotenv>=1.2.2
 
 # Logging and monitoring
 structlog>=25.5.0
