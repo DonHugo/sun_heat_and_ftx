@@ -1,6 +1,6 @@
 # Core dependencies
 taskmaster-ai>=0.1.0
-fastapi>=0.136.1
+fastapi>=0.136.3
 uvicorn>=0.46.0
 pydantic>=2.5.0
 
