@@ -262,13 +262,43 @@ Agent (response):
 
 Whichever bound first won the port. When the mock won, the GUI's dashboard polled `/api/mqtt` on the mock and got `connected: false` because `MockSolarSystem` has no MQTT handler. The frontend (`dashboard.js` lines 819-822) derives HA status from the MQTT status, so both indicators flipped to Disconnected together.
 
-**Solution:**
+**Immediate Solution:**
 1. `sudo systemctl stop solar_heating_api.service`
-2. `sudo systemctl disable solar_heating_api.service`
-3. `sudo systemctl restart solar_heating_v3.service` (so it binds :5001)
-4. Verify: `curl http://localhost:5001/api/mqtt` → `{"connected": true, ...}`
+2. `sudo systemctl restart solar_heating_v3.service` (so it binds :5001)
+3. Verify: `curl http://localhost:5001/api/mqtt` → `{"connected": true, ...}`
+
+**⚠️ `disable` is NOT enough — it will come back on reboot.** (Confirmed 2026-07-03.)
+`solar_heating_web_gui.service` pulled the mock in via `Wants=solar_heating_api.service`
+with `After=...solar_heating_v3.service`, so on every boot the mock started *after* v3
+and could win the port race. A `disabled` unit still starts when another enabled unit
+`Wants` it. Two additional steps are required for a permanent fix:
+
+4. **Remove the dependency at the source** — delete the `Wants=solar_heating_api.service`
+   line from `/etc/systemd/system/solar_heating_web_gui.service` and change its
+   `After=network.target solar_heating_api.service` to `After=network.target solar_heating_v3.service`,
+   then `sudo systemctl daemon-reload`.
+5. **Mask the mock** so nothing can ever start it (belt-and-braces):
+   ```bash
+   # `mask` refuses when a real file exists at the unit path, so move it aside first:
+   sudo mv /etc/systemd/system/solar_heating_api.service /etc/systemd/system/solar_heating_api.service.disabled.$(date +%Y%m%d)
+   sudo systemctl mask solar_heating_api.service    # -> symlink to /dev/null
+   ```
+6. **Prove it survives reboot:** `sudo systemctl reboot`, then after boot verify
+   `sudo ss -ltnp | grep 5001` shows `main_system.py` (not `run_api_server.py`) and
+   `/api/status` returns `system_state` with ~66 keys incl. `solar_energy_today`
+   (the mock's `system_state` has only 6 keys and no energy fields — a fast tell).
+
+**Diagnostic fast-tells that the mock (not the real system) is answering :5001:**
+- `temperatures.tank == 65.5` and `solar_collector == 72.1` — these are the hardcoded
+  fallback values in `api_server.py` (the mock lacks a `.temperatures` dict).
+- `mqtt_status.connected == false` while `mosquitto` is `active`.
+- `system_state` has 6 keys (`cartridge_heater, last_update, manual_control, mode, primary_pump, test_mode`) instead of ~66.
 
 The standalone script `python/v3/run_api_server.py` has been marked DEPRECATED with a module-level header and a runtime guard that exits if invoked directly. Do not re-enable `solar_heating_api.service`.
+
+**Also removed during this incident:** the dead `solar-heating-gui.service` unit — it
+pointed at a deleted file (`web_interface/app_improved_mqtt.py`) and was in a systemd
+restart loop (32,500+ restarts). It was `disable --now`'d and the unit file removed.
 
 **Related commits:**
 - `99227d5` — `api_server.py::_get_mqtt_status()` uses `getattr(self.solar_system, "mqtt", None)` for defensive attribute access.
@@ -322,6 +352,32 @@ const rate = deviceOn ? (data.system_state?.device_rate ?? 0) : 0;
   - Disabled `solar_heating_api.service`; deprecated `run_api_server.py`.
 - **Verification:** `/api/mqtt` returns `connected: true`; zero DEBUG log noise; GUI polls succeed.
 - **Status:** ✅ DEPLOYED
+
+### Phase 6: Port 5001 Race — Permanent Hardening (2026-07-03)
+- **Issue:** Regression of Phase 5 — GUI again showed MQTT/HA Disconnected, tank 65.5°C /
+  collector 72.1°C (fallback values), and Energy Today 0.0 kWh. `disable` from Phase 5 had
+  NOT prevented recurrence.
+- **Root cause (deeper than Phase 5):** `run_api_server.py` (mock, PID 533) held :5001 while
+  the real `main_system.py` (PID 532) ran without the port. The mock was still running
+  despite being `disabled` because `solar_heating_web_gui.service` had
+  `Wants=solar_heating_api.service` — an enabled unit's `Wants` starts a disabled unit.
+- **Permanent fix (reboot-proven):**
+  - Removed `Wants=solar_heating_api.service` from `solar_heating_web_gui.service`; set its
+    `After=` to `solar_heating_v3.service`.
+  - `mask`ed `solar_heating_api.service` (moved real file aside → symlink to /dev/null).
+  - `disable --now` + removed the dead `solar-heating-gui.service` (deleted target file,
+    32,500+ restart loop).
+  - Synced Pi from `bb8d218` → `6f73903` (26 commits). Pi had uncommitted local edits to
+    `api_server.py` (an older intermediate version) and `mqtt_handler.py` (identical to
+    origin). Backed both up to `/home/pi/solar_backups/` + `git stash@{0}` before syncing.
+    The sync also fixed `service_status.mqtt` reporting `inactive` (now maps `mqtt`→`mosquitto`)
+    and raised the API rate limits.
+- **Verification:** Rebooted the Pi; confirmed `main_system.py` (not the mock) binds :5001,
+  `mqtt.connected: true`, `service_status.mqtt: active`, real temps, energy present, GUI HTTP 200.
+- **Status:** ✅ DEPLOYED & REBOOT-VERIFIED
+- **Lesson:** For a unit that must never run, `disable` alone is insufficient if any enabled
+  unit `Wants`/`Requires` it. Break the dependency at the source AND `mask` the unit, then
+  prove it with a reboot.
 
 ---
 
