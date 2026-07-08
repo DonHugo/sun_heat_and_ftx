@@ -1177,7 +1177,7 @@ class SolarHeatingSystem:
                 }
 
                 # Add device_class for temperature sensors
-                if sensor["device_class"]:
+                if sensor.get("device_class"):
                     config["device_class"] = sensor["device_class"]
 
                 # Add icon if specified
@@ -1185,11 +1185,11 @@ class SolarHeatingSystem:
                     config["icon"] = sensor["icon"]
 
                 # Add state_class for different sensor types
-                if sensor["device_class"] == "energy":
+                if sensor.get("device_class") == "energy":
                     config["state_class"] = "total"
-                elif sensor["device_class"] == "temperature":
+                elif sensor.get("device_class") == "temperature":
                     config["state_class"] = "measurement"
-                elif sensor["device_class"] == "power":
+                elif sensor.get("device_class") == "power":
                     config["state_class"] = "measurement"
                 elif sensor["entity_id"] == "temperature_change_rate_c_h":
                     config["state_class"] = "measurement"
