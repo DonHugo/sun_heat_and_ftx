@@ -88,8 +88,8 @@ If user query contains **ANY** of these keywords, you **MUST** enter Investigati
 - **Local Dev:** `/Users/hafs/Documents/Github/sun_heat_and_ftx/`
 
 ### Current Versions
-- **CSS:** v=35
-- **JS:** v=24
+- **CSS:** v=37
+- **JS:** v=27
 
 ---
 
@@ -137,7 +137,32 @@ git push origin main
 ```bash
 # Pull changes on Pi
 ssh pi@192.168.0.18 "cd /home/pi/solar_heating && git pull origin main"
+```
 
+##### 4a. Deploy BACKEND code (⚠️ CRITICAL — git pull is NOT enough)
+
+**The backend runs from `/opt/solar_heating_v3/` which is a PLAIN COPY, not a
+git checkout.** `git pull` in `/home/pi/solar_heating` updates the *source* but
+NOT what the service executes. You MUST copy changed backend `.py` files into
+`/opt/solar_heating_v3/` with the rm+cp pattern, then restart the service.
+
+```bash
+# Copy each changed backend file (example: all 5 that night cooling touched)
+ssh pi@192.168.0.18 'SRC=/home/pi/solar_heating/python/v3; DST=/opt/solar_heating_v3; \
+  for f in config.py main_system.py mqtt_handler.py api_server.py api_models.py; do \
+    sudo rm "$DST/$f" && sudo cp "$SRC/$f" "$DST/$f" && echo "deployed $f"; \
+  done'
+
+# Restart the service so it loads the new backend code
+ssh pi@192.168.0.18 "sudo systemctl restart solar_heating_v3.service && sleep 6 && systemctl is-active solar_heating_v3.service"
+
+# Verify :5001 is bound by main_system.py (NOT the mock) and no fatal errors
+ssh pi@192.168.0.18 "sudo ss -ltnp | grep 5001"
+ssh pi@192.168.0.18 "sudo journalctl -u solar_heating_v3.service --since '1 min ago' --no-pager | grep -iE 'error|traceback' | grep -viE 'MegaBAS sensor 5|TaskMaster AI connection'"
+```
+
+##### 4b. Deploy FRONTEND files
+```bash
 # Deploy index.html
 ssh pi@192.168.0.18 "sudo rm /opt/solar_heating/frontend/index.html && sudo cp /home/pi/solar_heating/python/v3/frontend/index.html /opt/solar_heating/frontend/index.html"
 
@@ -146,6 +171,9 @@ ssh pi@192.168.0.18 "sudo rm /opt/solar_heating/frontend/static/js/dashboard.js 
 
 # Deploy CSS (if changed)
 ssh pi@192.168.0.18 "sudo rm /opt/solar_heating/frontend/static/css/style.css && sudo cp /home/pi/solar_heating/python/v3/frontend/static/css/style.css /opt/solar_heating/frontend/static/css/style.css"
+
+# Fix ownership to www-data (rm+cp as root leaves files root-owned)
+ssh pi@192.168.0.18 "sudo chown www-data:www-data /opt/solar_heating/frontend/index.html /opt/solar_heating/frontend/static/js/dashboard.js /opt/solar_heating/frontend/static/css/style.css"
 
 # Deploy images (if new ones added)
 ssh pi@192.168.0.18 "sudo rm /opt/solar_heating/frontend/static/images/<image> && sudo cp /home/pi/solar_heating/python/v3/frontend/static/images/<image> /opt/solar_heating/frontend/static/images/<image>"
