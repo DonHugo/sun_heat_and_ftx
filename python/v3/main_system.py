@@ -77,6 +77,7 @@ class SolarHeatingSystem:
             "manual_control": False,
             "overheated": False,
             "collector_cooling_active": False,
+            "night_cooling_active": False,
             "last_update": time.time(),
             "pump_runtime_hours": 0.0,
             "heating_cycles_count": 0,
@@ -143,6 +144,10 @@ class SolarHeatingSystem:
             "dTStop_tank_1": config.dTStop_tank_1,
             "kylning_kollektor": config.kylning_kollektor,
             "kylning_kollektor_hysteres": config.kylning_kollektor_hysteres,
+            "night_cooling_enabled": config.night_cooling_enabled,
+            "night_cooling_tank_temp": config.night_cooling_tank_temp,
+            "night_cooling_hysteres": config.night_cooling_hysteres,
+            "night_cooling_dt_min": config.night_cooling_dt_min,
             "temp_kok": config.temp_kok,
             "temp_kok_hysteres": config.temp_kok_hysteres,
             # Enhanced temperature management
@@ -428,6 +433,13 @@ class SolarHeatingSystem:
                     "last_midnight_reset_date", ""
                 ),
                 "last_day_reset": self.system_state.get("last_day_reset", 0),
+                # Night cooling user settings (persist across restarts)
+                "night_cooling_enabled": self.control_params.get(
+                    "night_cooling_enabled", False
+                ),
+                "night_cooling_tank_temp": self.control_params.get(
+                    "night_cooling_tank_temp", 80.0
+                ),
                 # Timestamps
                 "last_save_time": time.time(),
                 "last_save_date": datetime.now().isoformat(),
@@ -486,6 +498,16 @@ class SolarHeatingSystem:
                 self.system_state["last_day_reset"] = saved_state.get(
                     "last_day_reset", time.time()
                 )
+
+                # Restore night cooling user settings (if present)
+                if "night_cooling_enabled" in saved_state:
+                    self.control_params["night_cooling_enabled"] = saved_state[
+                        "night_cooling_enabled"
+                    ]
+                if "night_cooling_tank_temp" in saved_state:
+                    self.control_params["night_cooling_tank_temp"] = saved_state[
+                        "night_cooling_tank_temp"
+                    ]
 
                 last_save_date = saved_state.get("last_save_date", "Unknown")
                 logger.info(
@@ -613,6 +635,7 @@ class SolarHeatingSystem:
                 "manual_control": False,
                 "overheated": False,
                 "collector_cooling_active": False,
+                "night_cooling_active": False,
                 "last_update": time.time(),
                 "pump_runtime_hours": 0.0,
                 "heating_cycles_count": 0,
@@ -657,6 +680,10 @@ class SolarHeatingSystem:
                 "dTStart_tank_1": config.dTStart_tank_1,
                 "dTStop_tank_1": config.dTStop_tank_1,
                 "kylning_kollektor": config.kylning_kollektor,
+                "night_cooling_enabled": config.night_cooling_enabled,
+                "night_cooling_tank_temp": config.night_cooling_tank_temp,
+                "night_cooling_hysteres": config.night_cooling_hysteres,
+                "night_cooling_dt_min": config.night_cooling_dt_min,
                 "temp_kok": config.temp_kok,
                 "temp_kok_hysteres": config.temp_kok_hysteres,
                 # Enhanced temperature management
@@ -1211,7 +1238,14 @@ class SolarHeatingSystem:
                     "device_class": "heat",
                     "payload_on": "ON",
                     "payload_off": "OFF",
-                }
+                },
+                {
+                    "name": "Night Cooling Active",
+                    "entity_id": "night_cooling_active",
+                    "device_class": "running",
+                    "payload_on": "ON",
+                    "payload_off": "OFF",
+                },
             ]
 
             for binary_sensor in overheating_binary_sensors:
@@ -1293,6 +1327,11 @@ class SolarHeatingSystem:
                     "entity_id": "cartridge_heater",
                     "icon": "mdi:heating-coil",
                 },
+                {
+                    "name": "Night Cooling",
+                    "entity_id": "night_cooling",
+                    "icon": "mdi:snowflake-thermometer",
+                },
             ]
 
             for switch in switches:
@@ -1353,6 +1392,15 @@ class SolarHeatingSystem:
                     "max_value": 120,
                     "step": 1,
                     "icon": "mdi:thermometer-high",
+                },
+                {
+                    "name": "Night Cooling Tank Temperature",
+                    "entity_id": "night_cooling_tank_temp",
+                    "unit_of_measurement": "°C",
+                    "min_value": 50,
+                    "max_value": 95,
+                    "step": 1,
+                    "icon": "mdi:snowflake-thermometer",
                 },
                 {
                     "name": "Boiling Temperature",
@@ -1826,6 +1874,11 @@ class SolarHeatingSystem:
             self.temperatures["is_heating"] = is_heating
             logger.debug(f"is_heating: {is_heating}")
             logger.info("Heating status calculated successfully")
+
+            # Night cooling running indicator (for Home Assistant)
+            self.temperatures["night_cooling_active"] = self.system_state.get(
+                "night_cooling_active", False
+            )
 
             # Add operational metrics to temperatures
             self.temperatures["pump_runtime_hours"] = self.system_state.get(
@@ -2606,6 +2659,89 @@ class SolarHeatingSystem:
                                     f"Error creating TaskMaster AI collector cooling stop task: {str(e)}"
                                 )
 
+            # Night cooling logic: dump excess tank heat via the collector.
+            # Temperature-controlled (no clock): runs the primary pump when the
+            # tank is too hot AND the collector is meaningfully colder, so heat
+            # radiates out through the panel. This naturally happens at night.
+            # Only considered when not overheated and not already collector-cooling.
+            night_cooling_enabled = self.control_params.get(
+                "night_cooling_enabled", False
+            )
+            night_cooling_target = self.control_params.get(
+                "night_cooling_tank_temp", 80.0
+            )
+            night_cooling_hyst = self.control_params.get("night_cooling_hysteres", 5.0)
+            night_cooling_dt_min = self.control_params.get("night_cooling_dt_min", 5.0)
+            # How much colder the collector is than the tank (positive = tank warmer)
+            tank_minus_collector = storage_tank - solar_collector
+
+            if (
+                night_cooling_enabled
+                and not self.system_state.get("overheated", False)
+                and not self.system_state.get("collector_cooling_active", False)
+            ):
+                # Activation: tank at/above target and collector cold enough
+                if (
+                    not self.system_state.get("night_cooling_active", False)
+                    and storage_tank >= night_cooling_target
+                    and tank_minus_collector >= night_cooling_dt_min
+                ):
+                    self.system_state["night_cooling_active"] = True
+                    if not self.system_state.get("primary_pump", False):
+                        self.hardware.set_relay_state(1, True)  # Primary pump relay
+                        self.system_state["primary_pump"] = True
+                        self.system_state["last_pump_start"] = time.time()
+                    logger.warning(
+                        f"Night cooling activated: tank {storage_tank:.1f}°C >= {night_cooling_target:.1f}°C, "
+                        f"collector {solar_collector:.1f}°C (tank-collector={tank_minus_collector:.1f}°C >= {night_cooling_dt_min:.1f}°C)"
+                    )
+                    self._save_system_state()
+
+                # Deactivation: tank cooled enough OR collector no longer cold enough
+                elif self.system_state.get("night_cooling_active", False) and (
+                    storage_tank < (night_cooling_target - night_cooling_hyst)
+                    or tank_minus_collector < night_cooling_dt_min
+                ):
+                    self.system_state["night_cooling_active"] = False
+                    if self.system_state.get("primary_pump", False):
+                        self.hardware.set_relay_state(1, False)  # Primary pump relay
+                        self.system_state["primary_pump"] = False
+                        if self.system_state.get("last_pump_start"):
+                            cycle_runtime = (
+                                time.time() - self.system_state["last_pump_start"]
+                            ) / 3600
+                            self.system_state["total_heating_time"] += cycle_runtime
+                            self.system_state["total_heating_time_lifetime"] += (
+                                cycle_runtime
+                            )
+                            self.system_state["pump_runtime_hours"] = round(
+                                self.system_state["total_heating_time"], 2
+                            )
+                    logger.info(
+                        f"Night cooling stopped: tank {storage_tank:.1f}°C, collector {solar_collector:.1f}°C "
+                        f"(tank-collector={tank_minus_collector:.1f}°C)"
+                    )
+                    self._save_system_state()
+            elif self.system_state.get("night_cooling_active", False):
+                # Feature disabled or superseded (overheat/collector cooling):
+                # clear the flag so the indicator reflects reality. Pump control
+                # is handed back to the normal/emergency logic below.
+                self.system_state["night_cooling_active"] = False
+                logger.info(
+                    "Night cooling deactivated (feature off or overridden by higher-priority logic)"
+                )
+
+            # While night cooling is actively running, keep the pump on and skip
+            # the normal dT-based control so it can't fight the cooling cycle.
+            if self.system_state.get("night_cooling_active", False):
+                if not self.system_state.get("primary_pump", False):
+                    self.hardware.set_relay_state(1, True)
+                    self.system_state["primary_pump"] = True
+                    self.system_state["last_pump_start"] = time.time()
+                self.system_state["night_cooling_active"] = True
+                self._update_system_mode()
+                return
+
             # Detect unexpected heating at night (cartridge heater running when it shouldn't be)
             if (
                 not self.system_state.get("primary_pump", False)  # Pump not running
@@ -2737,6 +2873,13 @@ class SolarHeatingSystem:
             elif self.system_state.get("collector_cooling_active", False):
                 new_mode = "collector_cooling"
                 reason = f"Collector cooling: Collector {solar_collector:.1f}°C >= {self.control_params['kylning_kollektor']}°C"
+            elif self.system_state.get("night_cooling_active", False):
+                new_mode = "night_cooling"
+                reason = (
+                    f"Night cooling: dumping tank heat via collector "
+                    f"(tank {storage_tank:.1f}°C >= {self.control_params.get('night_cooling_tank_temp', 80.0):.1f}°C, "
+                    f"collector {solar_collector:.1f}°C)"
+                )
             elif self.system_state.get("primary_pump", False):
                 new_mode = "heating"
                 reason = f"Pump ON: dT={dT:.1f}°C >= {self.control_params['dTStart_tank_1']}°C (collector {solar_collector:.1f}°C, tank {storage_tank:.1f}°C)"
@@ -2961,6 +3104,13 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published overheating risk: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name == "night_cooling_active":
+                        # For night cooling indicator, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published night cooling active: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3008,6 +3158,10 @@ class SolarHeatingSystem:
                 self._publish_switch_state(
                     "cartridge_heater", self.system_state["cartridge_heater"]
                 )
+                self._publish_switch_state(
+                    "night_cooling",
+                    self.control_params.get("night_cooling_enabled", False),
+                )
                 logger.info("Switch states published successfully")
 
             # Publish number states
@@ -3024,6 +3178,10 @@ class SolarHeatingSystem:
                 )
                 self._publish_number_state(
                     "kylning_kollektor", self.control_params["kylning_kollektor"]
+                )
+                self._publish_number_state(
+                    "night_cooling_tank_temp",
+                    self.control_params.get("night_cooling_tank_temp", 80.0),
                 )
                 self._publish_number_state("temp_kok", self.control_params["temp_kok"])
                 self._publish_number_state(
@@ -3173,6 +3331,13 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published overheating risk: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name == "night_cooling_active":
+                        # For night cooling indicator, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published night cooling active: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3231,6 +3396,10 @@ class SolarHeatingSystem:
                 self._publish_switch_state(
                     "cartridge_heater", self.system_state["cartridge_heater"]
                 )
+                self._publish_switch_state(
+                    "night_cooling",
+                    self.control_params.get("night_cooling_enabled", False),
+                )
                 logger.info("Switch states published successfully")
 
             # Publish number states
@@ -3247,6 +3416,10 @@ class SolarHeatingSystem:
                 )
                 self._publish_number_state(
                     "kylning_kollektor", self.control_params["kylning_kollektor"]
+                )
+                self._publish_number_state(
+                    "night_cooling_tank_temp",
+                    self.control_params.get("night_cooling_tank_temp", 80.0),
                 )
                 self._publish_number_state("temp_kok", self.control_params["temp_kok"])
                 self._publish_number_state(
@@ -3400,6 +3573,13 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published overheating risk: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name == "night_cooling_active":
+                        # For night cooling indicator, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published night cooling active: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3446,6 +3626,10 @@ class SolarHeatingSystem:
                 self._publish_switch_state(
                     "cartridge_heater", self.system_state["cartridge_heater"]
                 )
+                self._publish_switch_state(
+                    "night_cooling",
+                    self.control_params.get("night_cooling_enabled", False),
+                )
                 logger.info("Switch states published successfully")
 
             # Publish number states
@@ -3462,6 +3646,10 @@ class SolarHeatingSystem:
                 )
                 self._publish_number_state(
                     "kylning_kollektor", self.control_params["kylning_kollektor"]
+                )
+                self._publish_number_state(
+                    "night_cooling_tank_temp",
+                    self.control_params.get("night_cooling_tank_temp", 80.0),
                 )
                 self._publish_number_state("temp_kok", self.control_params["temp_kok"])
                 self._publish_number_state(
@@ -3570,6 +3758,35 @@ class SolarHeatingSystem:
                         f"Cartridge heater relay {pump_config.cartridge_heater_relay} set to {'ON' if state else 'OFF'}"
                     )
 
+                elif switch_name == "night_cooling":
+                    # This switch only enables/disables the night cooling *feature*.
+                    # It must NOT force the pump on/off directly - the control loop
+                    # decides pump state from the temperature conditions. Undo the
+                    # generic relay write done above so we don't disturb the pump.
+                    self.control_params["night_cooling_enabled"] = state
+                    if not state:
+                        # Feature turned OFF: stop any active cooling cycle now
+                        if self.system_state.get("night_cooling_active", False):
+                            self.system_state["night_cooling_active"] = False
+                            self.hardware.set_relay_state(1, False)
+                            self.system_state["primary_pump"] = False
+                        else:
+                            # Restore relay 1 to the current pump state (the generic
+                            # write above may have flipped it)
+                            self.hardware.set_relay_state(
+                                1, self.system_state.get("primary_pump", False)
+                            )
+                    else:
+                        # Feature turned ON: restore relay 1 to current pump state;
+                        # the control loop will start the pump if conditions are met
+                        self.hardware.set_relay_state(
+                            1, self.system_state.get("primary_pump", False)
+                        )
+                    self._update_system_mode()
+                    logger.info(
+                        f"Night cooling feature {'ENABLED' if state else 'DISABLED'}"
+                    )
+
                 # Publish switch state back to Home Assistant
                 self._publish_switch_state(switch_name, state)
 
@@ -3588,6 +3805,8 @@ class SolarHeatingSystem:
                     self.control_params["dTStop_tank_1"] = value
                 elif number_name == "kylning_kollektor":
                     self.control_params["kylning_kollektor"] = value
+                elif number_name == "night_cooling_tank_temp":
+                    self.control_params["night_cooling_tank_temp"] = value
                 elif number_name == "temp_kok":
                     self.control_params["temp_kok"] = value
                 elif number_name == "temp_kok_hysteres":

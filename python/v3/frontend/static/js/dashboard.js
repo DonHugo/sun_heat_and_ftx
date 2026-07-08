@@ -20,6 +20,9 @@ class SolarHeatingDashboard {
         this.pumpState = false;
         this.heaterLockoutUntil = 0;
         this.heaterLockoutTimer = null;
+        this.nightCoolingToggle = null;
+        this.nightCoolingEnabled = false;
+        this.nightCoolingThresholdEdited = false;
         // Toast tracking so we can clear stale messages (e.g. a lingering
         // "Failed to connect" after the API comes back up).
         this.toastTimer = null;
@@ -99,6 +102,22 @@ class SolarHeatingDashboard {
                 this.controlHeater(action, checked);
             });
         }
+
+        // Night cooling toggle control
+        this.nightCoolingToggle = document.getElementById('night-cooling-toggle');
+        if (this.nightCoolingToggle) {
+            this.nightCoolingToggle.addEventListener('change', (e) => {
+                this.controlNightCooling(e.target.checked);
+            });
+        }
+
+        // Night cooling threshold "Set" button
+        document.getElementById('night-cooling-temp-set')?.addEventListener('click', () => {
+            const input = document.getElementById('night-cooling-temp');
+            if (input) {
+                this.setNightCoolingTemp(Number(input.value));
+            }
+        });
         
         // Control tab buttons
         document.getElementById('control-pump-start')?.addEventListener('click', () => {
@@ -331,6 +350,9 @@ class SolarHeatingDashboard {
         const actualPumpState = Boolean(data.system_state?.primary_pump);
         this.pumpState = actualPumpState;
         this.updatePumpToggle();
+
+        // Update night cooling controls + indicator
+        this.updateNightCoolingUI(data.system_state || {});
         
         // Update hardware status from diagnostics
         if (data.hardware_status) {
@@ -979,6 +1001,71 @@ class SolarHeatingDashboard {
         }
     }
 
+    async controlNightCooling(enable) {
+        const toggle = this.nightCoolingToggle;
+        const prevState = toggle ? toggle.checked : null;
+        if (toggle) {
+            toggle.checked = enable;
+        }
+
+        try {
+            const response = await this.apiRequest('POST', '/control', {
+                action: enable ? 'night_cooling_on' : 'night_cooling_off'
+            });
+
+            if (response && response.success) {
+                this.nightCoolingEnabled = enable;
+                this.showNotification(
+                    response.message || `Night cooling ${enable ? 'enabled' : 'disabled'}`,
+                    'success'
+                );
+                this.loadSystemData();
+            } else {
+                throw new Error(response?.error || 'Night cooling control failed');
+            }
+        } catch (error) {
+            console.error('Error controlling night cooling:', error);
+            this.showNotification(error.message || 'Failed to toggle night cooling', 'error');
+            // Revert toggle on error
+            if (prevState !== null && toggle) {
+                toggle.checked = prevState;
+            }
+        }
+    }
+
+    async setNightCoolingTemp(value) {
+        if (value === null || value === undefined || isNaN(value)) {
+            this.showNotification('Enter a valid tank threshold (°C)', 'warning');
+            return;
+        }
+        if (value < 50 || value > 95) {
+            this.showNotification('Tank threshold must be between 50 and 95°C', 'warning');
+            return;
+        }
+
+        try {
+            const response = await this.apiRequest('POST', '/control', {
+                action: 'night_cooling_set_temp',
+                value: value
+            });
+
+            if (response && response.success) {
+                this.showNotification(
+                    response.message || `Night cooling threshold set to ${value}°C`,
+                    'success'
+                );
+                // Allow the server value to drive the input again on next poll
+                this.nightCoolingThresholdEdited = false;
+                this.loadSystemData();
+            } else {
+                throw new Error(response?.error || 'Failed to set threshold');
+            }
+        } catch (error) {
+            console.error('Error setting night cooling threshold:', error);
+            this.showNotification(error.message || 'Failed to set threshold', 'error');
+        }
+    }
+
     updateHeaterToggle() {
         const toggle = this.heaterToggle;
         if (!toggle) {
@@ -1019,6 +1106,61 @@ class SolarHeatingDashboard {
         
         // Disable toggle in auto mode (not manual)
         toggle.disabled = !this.manualControlEnabled;
+    }
+
+    updateNightCoolingUI(state) {
+        const enabled = Boolean(state.night_cooling_enabled);
+        const active = Boolean(state.night_cooling_active);
+        const threshold = state.night_cooling_tank_temp;
+
+        this.nightCoolingEnabled = enabled;
+
+        // Feature enable/disable toggle (Quick Controls)
+        if (this.nightCoolingToggle) {
+            this.nightCoolingToggle.checked = enabled;
+        }
+
+        // Hint text reflects running vs armed vs off
+        const hint = document.getElementById('night-cooling-hint');
+        if (hint) {
+            if (active) {
+                hint.textContent = 'Running — dumping tank heat via the collector.';
+            } else if (enabled) {
+                hint.textContent = 'Armed — will run when the tank is hot and the collector is colder.';
+            } else {
+                hint.textContent = 'Off. Enable to dump excess tank heat via the collector at night.';
+            }
+        }
+
+        // Threshold input — don't clobber the field while the user is editing it
+        const input = document.getElementById('night-cooling-temp');
+        if (input && threshold !== undefined && threshold !== null &&
+                !this.nightCoolingThresholdEdited && document.activeElement !== input) {
+            input.value = Number(threshold);
+        }
+        // Mark as edited when the user focuses/changes the field so polling
+        // doesn't overwrite their in-progress value
+        if (input && !input.dataset.editListenerBound) {
+            input.addEventListener('input', () => { this.nightCoolingThresholdEdited = true; });
+            input.dataset.editListenerBound = 'true';
+        }
+
+        // Systems tab indicator card
+        const activeBadge = document.getElementById('sys-night-cooling-active');
+        if (activeBadge) {
+            activeBadge.textContent = active ? 'ON' : 'OFF';
+            activeBadge.className = `metric-value status-badge ${active ? 'on' : 'off'}`;
+        }
+        const enabledBadge = document.getElementById('sys-night-cooling-enabled');
+        if (enabledBadge) {
+            enabledBadge.textContent = enabled ? 'ON' : 'OFF';
+            enabledBadge.className = `metric-value status-badge ${enabled ? 'on' : 'off'}`;
+        }
+        const thresholdEl = document.getElementById('sys-night-cooling-threshold');
+        if (thresholdEl) {
+            thresholdEl.textContent = (threshold !== undefined && threshold !== null)
+                ? `${Number(threshold).toFixed(0)} °C` : '-- °C';
+        }
     }
 
     startHeaterLockout(seconds = 5) {

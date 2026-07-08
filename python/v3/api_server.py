@@ -132,6 +132,17 @@ class SolarHeatingAPI:
                 # Get system state from main system
                 system_state = self.solar_system.system_state.copy()
 
+                # Surface night cooling settings (stored in control_params, not
+                # system_state) so the GUI can render the toggle + threshold.
+                if hasattr(self.solar_system, "control_params"):
+                    cp = self.solar_system.control_params
+                    system_state["night_cooling_enabled"] = cp.get(
+                        "night_cooling_enabled", False
+                    )
+                    system_state["night_cooling_tank_temp"] = cp.get(
+                        "night_cooling_tank_temp", 80.0
+                    )
+
                 # Get temperatures from main system
                 # Get temperatures from main system
                 temperatures = {}
@@ -347,7 +358,7 @@ class SolarHeatingAPI:
                 "solar_heating_watchdog": "unknown",
             }
 
-    def control_system(self, action: str) -> Dict[str, Any]:
+    def control_system(self, action: str, value: float = None) -> Dict[str, Any]:
         """Control system actions"""
         with self.lock:
             try:
@@ -549,6 +560,77 @@ class SolarHeatingAPI:
                         "system_state": {"cartridge_heater": heater_on_requested},
                     }
 
+                elif action in ("night_cooling_on", "night_cooling_off"):
+                    # Enable/disable the night cooling *feature*. We only flip the
+                    # control parameter - the main control loop decides the pump
+                    # state from the temperature conditions (single source of
+                    # truth), so the GUI never pokes the relay directly.
+                    enable = action == "night_cooling_on"
+                    if hasattr(self.solar_system, "control_params"):
+                        self.solar_system.control_params["night_cooling_enabled"] = (
+                            enable
+                        )
+
+                    # If turning OFF while a cooling cycle is running, stop it now
+                    if not enable and self.solar_system.system_state.get(
+                        "night_cooling_active", False
+                    ):
+                        self.solar_system.system_state["night_cooling_active"] = False
+                        if (
+                            hasattr(self.solar_system, "hardware")
+                            and self.solar_system.hardware
+                        ):
+                            self.solar_system.hardware.set_relay_state(1, True)  # NC: OFF
+                        self.solar_system.system_state["primary_pump"] = False
+
+                    # Keep Home Assistant's switch entity in sync
+                    self._publish_mqtt(
+                        "homeassistant/switch/solar_heating_night_cooling/state",
+                        "ON" if enable else "OFF",
+                    )
+
+                    return {
+                        "success": True,
+                        "message": f"Night cooling {'enabled' if enable else 'disabled'}",
+                        "system_state": {
+                            "night_cooling_enabled": enable,
+                            "night_cooling_active": self.solar_system.system_state.get(
+                                "night_cooling_active", False
+                            ),
+                        },
+                    }
+
+                elif action == "night_cooling_set_temp":
+                    if value is None:
+                        return {
+                            "success": False,
+                            "error": "night_cooling_set_temp requires a 'value' (°C)",
+                            "error_code": "VALUE_REQUIRED",
+                        }
+                    # Clamp to the same range as the HA number entity (50-95°C)
+                    if value < 50 or value > 95:
+                        return {
+                            "success": False,
+                            "error": f"Tank threshold must be between 50 and 95°C (got {value:.1f})",
+                            "error_code": "VALUE_OUT_OF_RANGE",
+                        }
+                    if hasattr(self.solar_system, "control_params"):
+                        self.solar_system.control_params["night_cooling_tank_temp"] = (
+                            float(value)
+                        )
+
+                    # Keep Home Assistant's number entity in sync
+                    self._publish_mqtt(
+                        "homeassistant/number/solar_heating_night_cooling_tank_temp/state",
+                        str(float(value)),
+                    )
+
+                    return {
+                        "success": True,
+                        "message": f"Night cooling tank threshold set to {value:.1f}°C",
+                        "system_state": {"night_cooling_tank_temp": float(value)},
+                    }
+
                 # Note: No else clause needed - pydantic validation ensures valid action
                 # This code is unreachable due to enum validation (Issue #43)
 
@@ -670,7 +752,7 @@ class ControlAPI(Resource):
         # validated_data is a ControlRequest pydantic model
         # action is already validated to be one of the enum values
         # In pydantic v2, enum fields return the string value directly
-        return api_server.control_system(validated_data.action)
+        return api_server.control_system(validated_data.action, validated_data.value)
 
 
 class ModeAPI(Resource):

@@ -25,6 +25,9 @@ class ControlAction(str, Enum):
     PUMP_STOP = "pump_stop"
     HEATER_START = "heater_start"
     HEATER_STOP = "heater_stop"
+    NIGHT_COOLING_ON = "night_cooling_on"
+    NIGHT_COOLING_OFF = "night_cooling_off"
+    NIGHT_COOLING_SET_TEMP = "night_cooling_set_temp"
 class SystemMode(str, Enum):
     """
     Valid system operating modes
@@ -49,6 +52,13 @@ class ControlRequest(BaseModel):
         ...,  # Required field
         description="Control action to perform",
         example="pump_start"
+    )
+    value: Optional[float] = Field(
+        None,
+        description="Optional numeric value for actions that need one "
+                    "(e.g. night_cooling_set_temp sets the tank threshold in °C)",
+        ge=0,
+        le=200,
     )
     
     class Config:

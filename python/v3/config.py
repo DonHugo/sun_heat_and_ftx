@@ -59,6 +59,22 @@ class SystemConfig(BaseModel):
     kylning_kollektor_hysteres: float = Field(
         default=4.0, description="Collector cooling hysteresis"
     )
+    night_cooling_enabled: bool = Field(
+        default=False,
+        description="Enable night cooling: dump excess tank heat via the collector when the tank is too hot and the collector is colder (typically at night)",
+    )
+    night_cooling_tank_temp: float = Field(
+        default=80.0,
+        description="Tank temperature at/above which night cooling activates (°C)",
+    )
+    night_cooling_hysteres: float = Field(
+        default=5.0,
+        description="Night cooling hysteresis (°C) - stops when tank drops this far below the target",
+    )
+    night_cooling_dt_min: float = Field(
+        default=5.0,
+        description="Minimum tank-minus-collector difference (°C) required to run night cooling, so heat actually radiates away",
+    )
     temp_kok: float = Field(
         default=150.0, description="Boiling temperature threshold (emergency shutdown)"
     )

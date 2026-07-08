@@ -19,6 +19,9 @@ const MockAPI = {
         manual_mode: false,
         mqtt_connected: true,
         ha_connected: false,
+        night_cooling_enabled: false,
+        night_cooling_active: false,
+        night_cooling_tank_temp: 80.0,
     },
     
     // Mock delay to simulate network latency
@@ -43,6 +46,8 @@ const MockAPI = {
             return this.getMqtt();
         } else if (path === '/mode' && method === 'POST') {
             return this.setMode(JSON.parse(options.body));
+        } else if (path === '/control' && method === 'POST') {
+            return this.control(JSON.parse(options.body));
         } else if (path === '/control/pump' && method === 'POST') {
             return this.controlPump(JSON.parse(options.body));
         } else if (path === '/control/heater' && method === 'POST') {
@@ -68,6 +73,9 @@ const MockAPI = {
                     primary_pump: this.state.pump_running,
                     primary_pump_manual: this.state.manual_mode,
                     cartridge_heater: this.state.heater_on,
+                    night_cooling_enabled: this.state.night_cooling_enabled,
+                    night_cooling_active: this.state.night_cooling_active,
+                    night_cooling_tank_temp: this.state.night_cooling_tank_temp,
                 },
                 status: this.state.pump_running ? 'Operating Normally' : 'Idle',
                 energy_status: this.state.pump_running ? 'Collecting' : 'Standby',
@@ -138,6 +146,72 @@ const MockAPI = {
                 message: `Mode set to ${data.mode}`,
                 mode: data.mode
             })
+        };
+    },
+    
+    // Action-based /control endpoint (mirrors the real Flask API)
+    control(data) {
+        const action = data.action;
+
+        if (action === 'night_cooling_on' || action === 'night_cooling_off') {
+            const enable = action === 'night_cooling_on';
+            this.state.night_cooling_enabled = enable;
+            if (!enable) {
+                this.state.night_cooling_active = false;
+            }
+            console.log(`[MOCK] Night cooling ${enable ? 'enabled' : 'disabled'}`);
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                    success: true,
+                    message: `Night cooling ${enable ? 'enabled' : 'disabled'}`,
+                    system_state: {
+                        night_cooling_enabled: enable,
+                        night_cooling_active: this.state.night_cooling_active,
+                    }
+                })
+            };
+        }
+
+        if (action === 'night_cooling_set_temp') {
+            const value = data.value;
+            if (value === undefined || value === null || value < 50 || value > 95) {
+                return {
+                    ok: false,
+                    status: 200,
+                    json: async () => ({
+                        success: false,
+                        error: 'Tank threshold must be between 50 and 95°C',
+                        error_code: 'VALUE_OUT_OF_RANGE'
+                    })
+                };
+            }
+            this.state.night_cooling_tank_temp = value;
+            console.log(`[MOCK] Night cooling threshold set to ${value}°C`);
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                    success: true,
+                    message: `Night cooling tank threshold set to ${value.toFixed(1)}°C`,
+                    system_state: { night_cooling_tank_temp: value }
+                })
+            };
+        }
+
+        // Pump/heater actions delegate to existing handlers
+        if (action === 'pump_start' || action === 'pump_stop') {
+            return this.controlPump({ action: action.replace('pump_', '') });
+        }
+        if (action === 'heater_start' || action === 'heater_stop') {
+            return this.controlHeater({ action });
+        }
+
+        return {
+            ok: false,
+            status: 200,
+            json: async () => ({ success: false, error: `Unknown action: ${action}` })
         };
     },
     
@@ -238,6 +312,23 @@ const MockAPI = {
             // Keep temps in reasonable range
             this.state.tank_temp = Math.max(15, Math.min(85, this.state.tank_temp));
             this.state.collector_temp = Math.max(10, Math.min(95, this.state.collector_temp));
+
+            // Simulate night cooling: active when enabled, tank >= threshold,
+            // and collector is at least 5°C colder than the tank.
+            if (this.state.night_cooling_enabled) {
+                const dt = this.state.tank_temp - this.state.collector_temp;
+                if (this.state.tank_temp >= this.state.night_cooling_tank_temp && dt >= 5) {
+                    this.state.night_cooling_active = true;
+                    this.state.pump_running = true;
+                    // Cooling effect: tank slowly loses heat via the collector
+                    this.state.tank_temp -= 0.15;
+                } else if (this.state.night_cooling_active &&
+                           (this.state.tank_temp < (this.state.night_cooling_tank_temp - 5) || dt < 5)) {
+                    this.state.night_cooling_active = false;
+                }
+            } else {
+                this.state.night_cooling_active = false;
+            }
         }, 2000); // Update every 2 seconds
     }
 };

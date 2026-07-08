@@ -162,6 +162,11 @@ body {
     display: block;
 }
 
+/* Mobile hamburger button - hidden on desktop */
+.mobile-hamburger {
+    display: none;
+}
+
 /* Mobile Responsive - Sidebar */
 @media (max-width: 768px) {
     .sidebar {
@@ -180,21 +185,31 @@ body {
         margin-left: 0;
     }
     
-    /* Add hamburger button for mobile */
-    body::before {
-        content: '☰';
+    /* Real hamburger button for mobile (replaces old body::before pseudo-element) */
+    .mobile-hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         position: fixed;
         top: 20px;
         left: 20px;
-        z-index: 999;
-        font-size: 2rem;
-        color: #64B5F6;
-        cursor: pointer;
-        background: rgba(26, 35, 50, 0.95);
+        z-index: 1001;
+        width: 50px;
+        height: 50px;
         padding: 10px 15px;
-        border-radius: 10px;
+        font-size: 2rem;
+        line-height: 1;
+        color: #64B5F6;
+        background: rgba(26, 35, 50, 0.95);
         border: 1px solid rgba(100, 181, 246, 0.3);
+        border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        cursor: pointer;
+    }
+
+    .mobile-hamburger:focus-visible {
+        outline: 2px solid #64B5F6;
+        outline-offset: 2px;
     }
 }
 
@@ -854,6 +869,26 @@ body {
     .temp-label, .status-label, .label {
         font-size: 1rem;
     }
+
+    /* P1 #4: Prevent MQTT topic strings & toast from overflowing viewport */
+    .notification-toast {
+        left: 20px;
+        right: 20px;
+        width: calc(100vw - 40px);
+        max-width: calc(100vw - 40px);
+        box-sizing: border-box;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .diagnostic-item,
+    .last-message,
+    .message-details {
+        max-width: 100%;
+        overflow-x: hidden;
+        word-break: break-all;
+        overflow-wrap: anywhere;
+    }
 }
 
 @media (max-width: 480px) {
@@ -867,6 +902,19 @@ body {
     
     .card h3 {
         font-size: 1.6rem;
+    }
+
+    /* P1 #4: Tighter margins for very small screens */
+    .notification-toast {
+        left: 10px;
+        right: 10px;
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+        font-size: 0.9rem;
+    }
+
+    .message-details {
+        font-size: 0.8rem;
     }
 }
 
@@ -2180,3 +2228,44 @@ h3 i, h4 i {
     vertical-align: middle;
     filter: drop-shadow(0 0 3px rgba(253, 184, 19, 0.3));
 }
+
+/* Night cooling threshold input row */
+.night-cooling-threshold {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.night-cooling-threshold label {
+    font-size: 0.9rem;
+    color: #cfd8dc;
+}
+
+.night-cooling-threshold input[type="number"] {
+    width: 80px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.btn-small {
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 6px;
+    background: #fdb813;
+    color: #1a1a1a;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.btn-small:hover {
+    background: #ffc93c;
+}
+

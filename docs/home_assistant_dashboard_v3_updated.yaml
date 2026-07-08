@@ -135,6 +135,17 @@ cards:
         unit_of_measurement: "°C"
 
   - type: entities
+    title: Night Cooling
+    entities:
+      - entity: switch.solar_heating_system_v3_night_cooling
+        name: "Night Cooling Enabled"
+      - entity: binary_sensor.solar_heating_system_v3_night_cooling_active
+        name: "Night Cooling Running"
+      - entity: number.solar_heating_system_v3_night_cooling_tank_temperature
+        name: "Night Cooling Tank Temperature"
+        unit_of_measurement: "°C"
+
+  - type: entities
     title: RTD Sensors (Raw Temperature Readings)
     entities:
       - entity: sensor.solar_heating_system_v3_rtd_sensor_0_2

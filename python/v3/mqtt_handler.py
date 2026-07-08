@@ -536,6 +536,7 @@ class MQTTHandler:
                 "primary_pump": 1,
                 "primary_pump_manual": 1,  # Manual control also uses relay 1
                 "cartridge_heater": 2,  # Cartridge heater uses relay 2
+                "night_cooling": 1,  # Night cooling drives the primary pump (relay 1)
             }
 
             if switch_name not in switch_mapping:

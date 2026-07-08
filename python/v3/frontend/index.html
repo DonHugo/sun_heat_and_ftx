@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Heating System v3 - Dashboard</title>
-    <link rel="stylesheet" href="static/css/style.css?v=36">
+    <link rel="stylesheet" href="static/css/style.css?v=37">
     <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 </head>
@@ -263,6 +263,23 @@
                             <div class="lockout-timer-value" id="lockout-timer-countdown">0:05</div>
                         </div>
                     </div>
+
+                    <!-- Night Cooling Toggle Switch -->
+                    <div class="toggle-control-container">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text"><i class="mdi mdi-snowflake-thermometer" aria-hidden="true"></i> Night Cooling</span>
+                            <label class="toggle-switch" for="night-cooling-toggle">
+                                <input type="checkbox" id="night-cooling-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="heater-toggle-hint" id="night-cooling-hint">Dumps excess tank heat via the collector when the tank is hot and the collector is colder.</p>
+                        <div class="night-cooling-threshold">
+                            <label for="night-cooling-temp">Tank threshold (°C):</label>
+                            <input type="number" id="night-cooling-temp" min="50" max="95" step="1" value="80">
+                            <button class="btn btn-small" id="night-cooling-temp-set" type="button">Set</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Mode Selection -->
@@ -514,6 +531,28 @@
                 </div>
 
 
+                <!-- Night Cooling Card -->
+                <div class="system-card night-cooling-card">
+                    <div class="system-header">
+                        <div class="system-icon"><i class="mdi mdi-snowflake-thermometer" aria-hidden="true"></i></div>
+                        <h3>Night Cooling</h3>
+                    </div>
+                    <div class="system-metrics">
+                        <div class="system-metric">
+                            <span class="metric-label">Running</span>
+                            <span class="metric-value status-badge" id="sys-night-cooling-active">OFF</span>
+                        </div>
+                        <div class="system-metric">
+                            <span class="metric-label">Feature</span>
+                            <span class="metric-value status-badge" id="sys-night-cooling-enabled">OFF</span>
+                        </div>
+                        <div class="system-metric">
+                            <span class="metric-label">Tank Threshold</span>
+                            <span class="metric-value" id="sys-night-cooling-threshold">-- °C</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Water Heater Tank Card -->
                 <div class="system-card tank-card">
                     <div class="system-header">
@@ -652,7 +691,7 @@
         </div>
     </div>
 
-    <script src="static/js/dashboard.js?v=26"></script>
+    <script src="static/js/dashboard.js?v=27"></script>
 </body>
 </html>
 <!-- API endpoint reference for testing -->
