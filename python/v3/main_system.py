@@ -970,11 +970,13 @@ class SolarHeatingSystem:
             # identifiers so existing device-level links remain intact.
             # ==================================================================
             HUB_IDENTIFIER = "solar_heating_v3"
+            SW_VERSION = "3.0.0"  # keep in sync with python/v3/__init__.py
             hub_device = {
                 "name": "Solar Heating System v3",
                 "identifiers": [HUB_IDENTIFIER],
                 "manufacturer": "Custom",
                 "model": "Solar Heating System v3",
+                "sw_version": SW_VERSION,
             }
             # Sub-devices link back to the hub via via_device.
             collector_device = {
@@ -982,6 +984,7 @@ class SolarHeatingSystem:
                 "identifiers": ["solar_heating_v3_collector"],
                 "manufacturer": "Custom",
                 "model": "Solar Heating System v3",
+                "sw_version": SW_VERSION,
                 "via_device": HUB_IDENTIFIER,
             }
             tank_device = {
@@ -989,6 +992,7 @@ class SolarHeatingSystem:
                 "identifiers": ["solar_heating_v3_tank"],
                 "manufacturer": "Custom",
                 "model": "Solar Heating System v3",
+                "sw_version": SW_VERSION,
                 "via_device": HUB_IDENTIFIER,
             }
             controls_device = {
@@ -996,6 +1000,7 @@ class SolarHeatingSystem:
                 "identifiers": ["solar_heating_v3_controls"],
                 "manufacturer": "Custom",
                 "model": "Solar Heating System v3",
+                "sw_version": SW_VERSION,
                 "via_device": HUB_IDENTIFIER,
             }
             ftx_device = {
@@ -1003,6 +1008,7 @@ class SolarHeatingSystem:
                 "identifiers": ["solar_heating_v3_ftx"],
                 "manufacturer": "Custom",
                 "model": "Solar Heating System v3",
+                "sw_version": SW_VERSION,
                 "via_device": HUB_IDENTIFIER,
             }
 
