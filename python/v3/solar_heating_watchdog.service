@@ -16,6 +16,7 @@ StandardError=journal
 
 # Environment variables
 Environment=PYTHONPATH=/home/pi/solar_heating/python/v3
+EnvironmentFile=/home/pi/solar_heating/python/v3/.env
 
 # Security settings
 NoNewPrivileges=true

@@ -60,3 +60,6 @@ system_operational_state.json
 config/*.local
 config/*secret*
 config/*password*
+
+# Opencode Memory MCP (per-project SQLite DB)
+.opencode/memory.db
