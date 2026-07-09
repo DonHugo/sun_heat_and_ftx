@@ -614,6 +614,12 @@ class SolarHeatingSystem:
 
             # Publish Home Assistant discovery configuration
             if mqtt_connected and self.mqtt and self.mqtt.is_connected():
+                # One-time: clear stale discovery configs so pre-existing
+                # entities re-register under the new 5-device layout. Runs
+                # before discovery so the re-publish below re-creates them
+                # on the correct devices. No-op after the first successful run.
+                await self._migrate_ha_device_assignments()
+
                 await self._publish_hass_discovery()
 
                 # Publish hourly energy sensors on startup to avoid "Unknown" status
@@ -770,6 +776,172 @@ class SolarHeatingSystem:
         except Exception as e:
             logger.error(f"Error starting system: {e}")
             raise
+
+    async def _migrate_ha_device_assignments(self):
+        """One-time migration: clear stale MQTT discovery configs so entities
+        re-register under their new devices.
+
+        Home Assistant's MQTT integration does NOT re-parent an already
+        registered entity when only the discovery `device` block changes
+        (same unique_id). To move the pre-existing entities from the single
+        hub device onto the new sub-devices (Solar Collector, Storage Tank,
+        Controls & Settings, FTX Ventilation), we publish an empty retained
+        payload to each entity's `.../config` topic. HA then deletes the
+        entity registration; the ordinary discovery that runs immediately
+        afterwards re-creates it on the correct device. Because unique_id is
+        unchanged, entity_id and recorder history are preserved.
+
+        Guarded by a marker file so it only runs once. Newly created entities
+        (e.g. the boiling/cooling booleans) are unaffected either way.
+        """
+        marker_file = "ha_device_migration_v1.done"
+        try:
+            if os.path.exists(marker_file):
+                logger.info(
+                    "HA device migration already done (marker present) - skipping"
+                )
+                return
+
+            if not self.mqtt or not self.mqtt.is_connected():
+                logger.warning(
+                    "MQTT not connected - skipping HA device migration (will retry next start)"
+                )
+                return
+
+            logger.info("=== HA DEVICE MIGRATION STARTED (one-time) ===")
+
+            # Build the full list of (component, entity_id) discovery topics
+            # that existed under the hub device before the 5-device split.
+            # Newly-added entities (boiling_temp_reached, collector_cooling_active)
+            # are intentionally excluded - they were created fresh on the right
+            # device and must not be cleared.
+            sensor_entity_ids = [f"rtd_sensor_{i}" for i in range(8)]
+            sensor_entity_ids += [f"megabas_sensor_{i}" for i in range(1, 9)]
+            sensor_entity_ids += [
+                "solar_collector_temp",
+                "storage_tank_temp",
+                "return_line_temp",
+                "water_heater_bottom",
+                "water_heater_20cm",
+                "water_heater_40cm",
+                "water_heater_60cm",
+                "water_heater_80cm",
+                "water_heater_100cm",
+                "water_heater_120cm",
+                "water_heater_140cm",
+                "water_heater_peak_temp",
+                "water_heater_thermal_mass_top4",
+                "water_heater_thermal_mass_all8",
+                "water_heater_layers_above_70c",
+                "outdoor_air_temp",
+                "exhaust_air_temp",
+                "supply_air_temp",
+                "return_air_temp",
+                "heat_exchanger_in",
+                "heat_exchanger_out",
+                "uteluft",
+                "avluft",
+                "tilluft",
+                "franluft",
+                "heat_exchanger_efficiency",
+                "system_mode",
+                "solar_collector_dt",
+                "water_heater_stratification",
+                "water_heater_gradient_cm",
+                "sensor_health_score",
+                "overheating_risk",
+                "pump_runtime_hours",
+                "pump_runtime_hours_realtime",
+                "heating_cycles_count",
+                "average_heating_duration",
+                "energy_collection_rate_kwh_per_hour",
+                "energy_collected_today_kwh",
+                "energy_collected_hour_kwh",
+                "solar_energy_today_kwh",
+                "cartridge_energy_today_kwh",
+                "pellet_energy_today_kwh",
+                "solar_energy_hour_kwh",
+                "cartridge_energy_hour_kwh",
+                "pellet_energy_hour_kwh",
+                "stored_energy_kwh",
+                "stored_energy_top_kwh",
+                "stored_energy_bottom_kwh",
+                "average_temperature",
+                "energy_change_rate_kw",
+                "temperature_change_rate_c_h",
+            ]
+            binary_sensor_entity_ids = [
+                "is_heating",
+                "water_heater_overheating_risk",
+                "night_cooling_active",
+            ]
+            switch_entity_ids = [
+                "primary_pump",
+                "primary_pump_manual",
+                "cartridge_heater",
+                "night_cooling",
+            ]
+            number_entity_ids = [
+                "set_temp_tank_1",
+                "dTStart_tank_1",
+                "dTStop_tank_1",
+                "kylning_kollektor",
+                "night_cooling_tank_temp",
+                "temp_kok",
+                "temp_kok_hysteres",
+                "morning_peak_target",
+                "evening_peak_target",
+                "pellet_stove_max_temp",
+                "heat_distribution_temp",
+            ]
+
+            topics = []
+            topics += [
+                f"homeassistant/sensor/solar_heating_{e}/config"
+                for e in sensor_entity_ids
+            ]
+            topics += [
+                f"homeassistant/binary_sensor/solar_heating_{e}/config"
+                for e in binary_sensor_entity_ids
+            ]
+            topics += [
+                f"homeassistant/switch/solar_heating_{e}/config"
+                for e in switch_entity_ids
+            ]
+            topics += [
+                f"homeassistant/number/solar_heating_{e}/config"
+                for e in number_entity_ids
+            ]
+
+            cleared = 0
+            for topic in topics:
+                # Empty retained payload deletes the discovery entry in HA
+                if self.mqtt.publish_raw(topic, "", retain=True):
+                    cleared += 1
+                else:
+                    logger.warning(f"Failed to clear discovery topic: {topic}")
+
+            logger.info(
+                f"Cleared {cleared}/{len(topics)} stale discovery configs for re-parenting"
+            )
+
+            # Give HA a moment to process the deletions before discovery
+            # re-publishes the configs on the new devices.
+            await asyncio.sleep(3)
+
+            # Write marker so this never runs again.
+            with open(marker_file, "w") as f:
+                f.write(
+                    "HA device assignment migration (5-device split) completed.\n"
+                    f"Cleared {cleared} discovery topics.\n"
+                )
+            logger.info("=== HA DEVICE MIGRATION COMPLETED (marker written) ===")
+
+        except Exception as e:
+            logger.error(f"Error during HA device migration: {e}")
+            import traceback
+
+            logger.error(f"Migration error traceback: {traceback.format_exc()}")
 
     async def _publish_hass_discovery(self):
         """Publish Home Assistant discovery configuration for all sensors"""
