@@ -63,3 +63,6 @@ config/*password*
 
 # Opencode Memory MCP (per-project SQLite DB)
 .opencode/memory.db
+
+# Opencode local machine-specific overrides (never versioned)
+.opencode/opencode.local.json

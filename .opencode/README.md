@@ -11,7 +11,7 @@ This repository uses the **unified OpenCode agent structure** located at:
 
 ## 📚 Agent Documentation
 
-**Main Guide:** `/Users/hafs/Documents/Github/sun_heat_and_ftx/docs/opencode-agents-guide.md`
+**Main Guide:** `docs/opencode-agents-guide.md`
 
 This comprehensive guide documents:
 - All 13 available agents

@@ -1,5 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "memory": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "github:whenmoon-afk/claude-memory-mcp",
+        "serve",
+        "--stdio"
+      ],
+      "environment": {
+        "MEMORY_DB_PATH": ".opencode/memory.db"
+      },
+      "enabled": true
+    }
+  },
   "agent": {
     "plan": {
       "mode": "primary",
