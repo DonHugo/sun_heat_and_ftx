@@ -786,6 +786,145 @@ class SolarHeatingSystem:
                 return
             logger.info("MQTT connection verified - proceeding with discovery")
 
+            # ==================================================================
+            # Home Assistant Device Registry
+            # ------------------------------------------------------------------
+            # The system is split into 5 logical HA devices for a cleaner UI.
+            # Each entity is grouped under a device based on _device_for(entity_id).
+            # IMPORTANT: entity_id and unique_id are UNCHANGED by this grouping,
+            # so dashboards/automations that reference entity_id keep working and
+            # entity history is preserved. Only the device an entity belongs to
+            # changes. The hub ("solar_heating_v3") keeps its original
+            # identifiers so existing device-level links remain intact.
+            # ==================================================================
+            HUB_IDENTIFIER = "solar_heating_v3"
+            hub_device = {
+                "name": "Solar Heating System v3",
+                "identifiers": [HUB_IDENTIFIER],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3",
+            }
+            # Sub-devices link back to the hub via via_device.
+            collector_device = {
+                "name": "Solar Collector",
+                "identifiers": ["solar_heating_v3_collector"],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3",
+                "via_device": HUB_IDENTIFIER,
+            }
+            tank_device = {
+                "name": "Storage Tank / Water Heater",
+                "identifiers": ["solar_heating_v3_tank"],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3",
+                "via_device": HUB_IDENTIFIER,
+            }
+            controls_device = {
+                "name": "Controls & Settings",
+                "identifiers": ["solar_heating_v3_controls"],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3",
+                "via_device": HUB_IDENTIFIER,
+            }
+            ftx_device = {
+                "name": "FTX Ventilation",
+                "identifiers": ["solar_heating_v3_ftx"],
+                "manufacturer": "Custom",
+                "model": "Solar Heating System v3",
+                "via_device": HUB_IDENTIFIER,
+            }
+
+            # Explicit entity_id -> device map. Anything not listed here (RTD/
+            # MegaBAS raw channels, misc metrics) falls through to the hub.
+            _collector_entities = {
+                "solar_collector_temp",
+                "solar_collector_dt",
+                "return_line_temp",
+                "temperature_change_rate_c_h",
+                "overheating_risk",
+                "boiling_temp_reached",
+                "collector_cooling_active",
+                "night_cooling_active",
+                "water_heater_overheating_risk",
+            }
+            _tank_entities = {
+                "storage_tank_temp",
+                "average_temperature",
+                "water_heater_bottom",
+                "water_heater_20cm",
+                "water_heater_40cm",
+                "water_heater_60cm",
+                "water_heater_80cm",
+                "water_heater_100cm",
+                "water_heater_120cm",
+                "water_heater_140cm",
+                "water_heater_peak_temp",
+                "water_heater_thermal_mass_top4",
+                "water_heater_thermal_mass_all8",
+                "water_heater_layers_above_70c",
+                "water_heater_stratification",
+                "water_heater_gradient_cm",
+                "stored_energy_kwh",
+                "stored_energy_top_kwh",
+                "stored_energy_bottom_kwh",
+            }
+            _ftx_entities = {
+                "outdoor_air_temp",
+                "exhaust_air_temp",
+                "supply_air_temp",
+                "return_air_temp",
+                "uteluft",
+                "avluft",
+                "tilluft",
+                "franluft",
+                "heat_exchanger_in",
+                "heat_exchanger_out",
+                "heat_exchanger_efficiency",
+            }
+            # Controls (switches + number helpers) all live on the controls device.
+            _controls_entities = {
+                # switches
+                "primary_pump",
+                "primary_pump_manual",
+                "cartridge_heater",
+                "night_cooling",
+                # number helpers
+                "set_temp_tank_1",
+                "dTStart_tank_1",
+                "dTStop_tank_1",
+                "kylning_kollektor",
+                "night_cooling_tank_temp",
+                "temp_kok",
+                "temp_kok_hysteres",
+                "morning_peak_target",
+                "evening_peak_target",
+                "pellet_stove_max_temp",
+                "heat_distribution_temp",
+            }
+
+            def _device_for(entity_id: str) -> dict:
+                """Return the HA device dict an entity_id belongs to.
+
+                Unlisted entities (RTD/MegaBAS raw channels, misc system/energy
+                metrics) fall through to the hub device.
+                """
+                if entity_id in _collector_entities:
+                    return collector_device
+                if entity_id in _tank_entities:
+                    return tank_device
+                if entity_id in _ftx_entities:
+                    return ftx_device
+                if entity_id in _controls_entities:
+                    return controls_device
+                return hub_device
+
+            # Raw hardware channels are published but grouped as diagnostic so
+            # they stay tucked away under the hub device.
+            def _is_diagnostic(entity_id: str) -> bool:
+                return entity_id.startswith("rtd_sensor_") or entity_id.startswith(
+                    "megabas_sensor_"
+                )
+
             # Define sensor configurations
             sensors = []
 
@@ -1168,13 +1307,12 @@ class SolarHeatingSystem:
                     "unique_id": f"solar_heating_v3_{sensor['entity_id']}",
                     "unit_of_measurement": sensor["unit_of_measurement"],
                     "state_topic": f"homeassistant/sensor/solar_heating_{sensor['entity_id']}/state",
-                    "device": {
-                        "name": "Solar Heating System v3",
-                        "identifiers": ["solar_heating_v3"],
-                        "manufacturer": "Custom",
-                        "model": "Solar Heating System v3",
-                    },
+                    "device": _device_for(sensor["entity_id"]),
                 }
+
+                # Group raw hardware channels (RTD/MegaBAS) as diagnostic
+                if _is_diagnostic(sensor["entity_id"]):
+                    config["entity_category"] = "diagnostic"
 
                 # Add device_class for temperature sensors
                 if sensor.get("device_class"):
@@ -1225,12 +1363,6 @@ class SolarHeatingSystem:
 
             # Binary sensor for overheating risk
             logger.info("Publishing binary sensor discovery for overheating risk...")
-            device_info = {
-                "name": "Solar Heating System v3",
-                "identifiers": ["solar_heating_v3"],
-                "manufacturer": "Custom",
-                "model": "Solar Heating System v3",
-            }
             overheating_binary_sensors = [
                 {
                     "name": "Water Heater Overheating Risk",
@@ -1246,6 +1378,22 @@ class SolarHeatingSystem:
                     "payload_on": "ON",
                     "payload_off": "OFF",
                 },
+                {
+                    "name": "Boiling Temperature Reached",
+                    "entity_id": "boiling_temp_reached",
+                    "device_class": "heat",
+                    "payload_on": "ON",
+                    "payload_off": "OFF",
+                    "icon": "mdi:thermometer-alert",
+                },
+                {
+                    "name": "Cooling Collector Active",
+                    "entity_id": "collector_cooling_active",
+                    "device_class": "running",
+                    "payload_on": "ON",
+                    "payload_off": "OFF",
+                    "icon": "mdi:snowflake-thermometer",
+                },
             ]
 
             for binary_sensor in overheating_binary_sensors:
@@ -1257,8 +1405,10 @@ class SolarHeatingSystem:
                     "device_class": binary_sensor.get("device_class", None),
                     "payload_on": binary_sensor.get("payload_on", "ON"),
                     "payload_off": binary_sensor.get("payload_off", "OFF"),
-                    "device": device_info,
+                    "device": _device_for(binary_sensor["entity_id"]),
                 }
+                if binary_sensor.get("icon"):
+                    config["icon"] = binary_sensor["icon"]
                 success = self.mqtt.publish(topic, config, retain=True)
                 if success:
                     logger.info(
@@ -1280,12 +1430,7 @@ class SolarHeatingSystem:
                     "unique_id": f"solar_heating_v3_{sensor['entity_id']}",
                     "device_class": sensor["device_class"],
                     "state_topic": f"homeassistant/binary_sensor/solar_heating_{sensor['entity_id']}/state",
-                    "device": {
-                        "name": "Solar Heating System v3",
-                        "identifiers": ["solar_heating_v3"],
-                        "manufacturer": "Custom",
-                        "model": "Solar Heating System v3",
-                    },
+                    "device": _device_for(sensor["entity_id"]),
                 }
 
                 topic = f"homeassistant/binary_sensor/solar_heating_{sensor['entity_id']}/config"
@@ -1341,12 +1486,7 @@ class SolarHeatingSystem:
                     "state_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/state",
                     "command_topic": f"homeassistant/switch/solar_heating_{switch['entity_id']}/set",
                     "icon": switch["icon"],
-                    "device": {
-                        "name": "Solar Heating System v3",
-                        "identifiers": ["solar_heating_v3"],
-                        "manufacturer": "Custom",
-                        "model": "Solar Heating System v3",
-                    },
+                    "device": _device_for(switch["entity_id"]),
                 }
 
                 topic = (
@@ -1470,12 +1610,7 @@ class SolarHeatingSystem:
                     "max": number["max_value"],
                     "step": number["step"],
                     "icon": number["icon"],
-                    "device": {
-                        "name": "Solar Heating System v3",
-                        "identifiers": ["solar_heating_v3"],
-                        "manufacturer": "Custom",
-                        "model": "Solar Heating System v3",
-                    },
+                    "device": _device_for(number["entity_id"]),
                 }
 
                 topic = (
@@ -1878,6 +2013,17 @@ class SolarHeatingSystem:
             # Night cooling running indicator (for Home Assistant)
             self.temperatures["night_cooling_active"] = self.system_state.get(
                 "night_cooling_active", False
+            )
+
+            # Boiling / cooling collector status booleans (for Home Assistant).
+            # These mirror the internal control-loop flags and follow the same
+            # hysteresis, so they stay ON for the whole event rather than
+            # pulsing. Sourced from system_state set in _control_pump_logic().
+            self.temperatures["boiling_temp_reached"] = self.system_state.get(
+                "overheated", False
+            )
+            self.temperatures["collector_cooling_active"] = self.system_state.get(
+                "collector_cooling_active", False
             )
 
             # Add operational metrics to temperatures
@@ -3063,6 +3209,8 @@ class SolarHeatingSystem:
                 if self.mqtt and self.mqtt.is_connected():
                     # Publish to Home Assistant compatible topic
                     topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    # Default: no plain-sensor publish unless a branch sets message.
+                    message = None
 
                     # Determine if this is a temperature sensor or other type
                     if sensor_name == "heat_exchanger_efficiency":
@@ -3111,6 +3259,16 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published night cooling active: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name in (
+                        "boiling_temp_reached",
+                        "collector_cooling_active",
+                    ):
+                        # Boiling / cooling collector status, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published {sensor_name}: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3138,8 +3296,12 @@ class SolarHeatingSystem:
                             f"Published temperature sensor: {sensor_name} = {value}"
                         )
 
-                    # Send raw number, not quoted string
-                    self.mqtt.publish_raw(topic, message)
+                    # Send raw number, not quoted string.
+                    # Binary-sensor branches above set message=None and publish
+                    # to their own binary_sensor topic, so skip the sensor topic
+                    # for them (avoids leaking a stale value to a sensor topic).
+                    if message is not None:
+                        self.mqtt.publish_raw(topic, message)
 
             logger.info(f"Published {sensor_count} sensors to Home Assistant")
 
@@ -3290,6 +3452,8 @@ class SolarHeatingSystem:
                 if self.mqtt and self.mqtt.is_connected():
                     # Publish to Home Assistant compatible topic
                     topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    # Default: no plain-sensor publish unless a branch sets message.
+                    message = None
 
                     # Determine if this is a temperature sensor or other type
                     if sensor_name == "heat_exchanger_efficiency":
@@ -3338,6 +3502,16 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published night cooling active: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name in (
+                        "boiling_temp_reached",
+                        "collector_cooling_active",
+                    ):
+                        # Boiling / cooling collector status, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published {sensor_name}: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3377,8 +3551,12 @@ class SolarHeatingSystem:
                             f"Published temperature sensor: {sensor_name} = {value}"
                         )
 
-                    # Send raw number, not quoted string
-                    self.mqtt.publish_raw(topic, message)
+                    # Send raw number, not quoted string.
+                    # Binary-sensor branches above set message=None and publish
+                    # to their own binary_sensor topic, so skip the sensor topic
+                    # for them (avoids leaking a stale value to a sensor topic).
+                    if message is not None:
+                        self.mqtt.publish_raw(topic, message)
 
             logger.info(
                 f"🕐 Published {sensor_count} sensors with complete hourly aggregation"
@@ -3532,6 +3710,8 @@ class SolarHeatingSystem:
 
                     # Publish to Home Assistant compatible topic
                     topic = f"homeassistant/sensor/solar_heating_{sensor_name}/state"
+                    # Default: no plain-sensor publish unless a branch sets message.
+                    message = None
 
                     # Determine if this is a temperature sensor or other type
                     if sensor_name == "heat_exchanger_efficiency":
@@ -3580,6 +3760,16 @@ class SolarHeatingSystem:
                         self.mqtt.publish_raw(binary_topic, binary_message)
                         logger.info(f"Published night cooling active: {binary_message}")
                         sensor_count += 1
+                    elif sensor_name in (
+                        "boiling_temp_reached",
+                        "collector_cooling_active",
+                    ):
+                        # Boiling / cooling collector status, publish as binary sensor
+                        binary_topic = f"homeassistant/binary_sensor/solar_heating_{sensor_name}/state"
+                        binary_message = "ON" if value else "OFF"
+                        self.mqtt.publish_raw(binary_topic, binary_message)
+                        logger.info(f"Published {sensor_name}: {binary_message}")
+                        sensor_count += 1
                     elif sensor_name in [
                         "stored_energy_kwh",
                         "stored_energy_top_kwh",
@@ -3607,8 +3797,12 @@ class SolarHeatingSystem:
                             f"Published temperature sensor: {sensor_name} = {value}"
                         )
 
-                    # Send raw number, not quoted string
-                    self.mqtt.publish_raw(topic, message)
+                    # Send raw number, not quoted string.
+                    # Binary-sensor branches above set message=None and publish
+                    # to their own binary_sensor topic, so skip the sensor topic
+                    # for them (avoids leaking a stale value to a sensor topic).
+                    if message is not None:
+                        self.mqtt.publish_raw(topic, message)
 
             logger.info(
                 f"Published {sensor_count} sensors to Home Assistant (excluding hourly energy)"
