@@ -30,11 +30,38 @@ git pull origin $BRANCH
 
 echo "🔄 Updated to version: $(git log --oneline -1)"
 
-# Update v3 dependencies if v3 directory exists
-if [ -d "$PROJECT_DIR/python/v3" ]; then
-    echo "🔧 Updating v3 dependencies..."
+# ---------------------------------------------------------------------------
+# CRITICAL: sync v3 code to the runtime directory (/opt/solar_heating_v3).
+# The systemd service runs from /opt (a root-owned copy), NOT from this git
+# repo. A `git pull` alone does not change what runs — the files must be
+# copied into /opt or the service keeps executing the old code after restart.
+# ---------------------------------------------------------------------------
+OPT_DIR="/opt/solar_heating_v3"
+if [ -d "$OPT_DIR" ]; then
+    echo "🔧 Syncing v3 code to runtime dir: $OPT_DIR ..."
+    # Back up the current runtime main file (rollback point)
+    if [ -f "$OPT_DIR/main_system.py" ]; then
+        sudo cp -p "$OPT_DIR/main_system.py" \
+            "$OPT_DIR/main_system.py.bak-$(date +%Y%m%d_%H%M%S)"
+    fi
+    # Copy all v3 python modules from repo -> /opt (preserve root ownership)
+    sudo cp "$PROJECT_DIR"/python/v3/*.py "$OPT_DIR"/
+    sudo chown root:root "$OPT_DIR"/*.py
+    echo "✅ v3 code synced to $OPT_DIR"
+else
+    echo "⚠️  Runtime dir $OPT_DIR not found - skipping /opt sync"
+    echo "    (If the service runs from the repo venv instead, this is expected.)"
+fi
+
+# Update v3 dependencies in the PRODUCTION venv (/opt/solar_heating_v3/bin).
+# NOTE: the repo-local python/v3/venv is legacy and generally unused.
+if [ -f "$OPT_DIR/bin/pip3" ] && [ -f "$PROJECT_DIR/python/v3/requirements.txt" ]; then
+    echo "🔧 Updating v3 dependencies in production venv..."
+    sudo "$OPT_DIR/bin/pip3" install -r "$PROJECT_DIR/python/v3/requirements.txt" --break-system-packages
+    echo "✅ v3 dependencies updated"
+elif [ -d "$PROJECT_DIR/python/v3" ]; then
+    echo "🔧 Updating v3 dependencies (legacy repo venv)..."
     cd "$PROJECT_DIR/python/v3"
-    
     if [ -f "venv/bin/activate" ]; then
         source venv/bin/activate
         pip install -r requirements.txt

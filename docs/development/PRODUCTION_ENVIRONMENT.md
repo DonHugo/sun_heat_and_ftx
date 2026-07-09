@@ -89,27 +89,47 @@ ssh pi@192.168.0.18 "/opt/solar_heating_v3/bin/pip3 show flask"
 ## 📁 Directory Structure
 
 ### Code Location
+
+> ⚠️ **Two locations — do not confuse them.**
+> - **Git repo (source):** `/home/pi/solar_heating/` — where `git pull` runs.
+> - **Runtime (executed):** `/opt/solar_heating_v3/` — a **root-owned copy**
+>   (NOT a git checkout) that the systemd service actually runs. After every
+>   `git pull` you MUST copy changed files from the repo into `/opt`, or the
+>   service keeps running the old code even after a restart.
+
 ```
+# GIT REPO (source of truth for code) — git pull here
 /home/pi/solar_heating/
 ├── python/
 │   └── v3/
-│       ├── main_system.py       # Main service entry point
+│       ├── main_system.py       # Main service entry point (source)
 │       ├── api_server.py         # Flask API server
-│       ├── api_models.py         # Pydantic validation models
 │       ├── config.py             # Configuration
 │       ├── hardware_interface.py # Hardware abstraction
 │       ├── mqtt_handler.py       # MQTT client
 │       ├── requirements.txt      # Python dependencies
-│       ├── tests/                # Test suite
-│       └── docs/                 # Documentation
+│       └── ...
 ├── scripts/                      # Utility scripts
 └── docs/                         # Project documentation
+
+# RUNTIME (what actually executes) — copy files here after git pull
+/opt/solar_heating_v3/
+├── main_system.py                # root-owned COPY the service runs
+├── bin/python3                   # production venv interpreter
+└── ...                           # copies of the other v3 modules
+```
+
+**Sync after pull (required):**
+```bash
+sudo cp ~/solar_heating/python/v3/<changed-file>.py /opt/solar_heating_v3/
+sudo chown root:root /opt/solar_heating_v3/<changed-file>.py
 ```
 
 ### Important Paths
-- **Code:** `~/solar_heating/python/v3`
+- **Code (git source):** `~/solar_heating/python/v3`
+- **Code (runtime, executed):** `/opt/solar_heating_v3` ⚠️ copy here after pull
 - **Logs:** `/tmp/solar_heating/logs/`
-- **Config:** `~/solar_heating/python/v3/config.py`
+- **Config:** `~/solar_heating/python/v3/config.py` (copy to `/opt` like other files)
 - **Venv:** `/opt/solar_heating_v3`
 
 ---
@@ -121,7 +141,8 @@ ssh pi@192.168.0.18 "/opt/solar_heating_v3/bin/pip3 show flask"
 - **Unit File:** `/etc/systemd/system/solar_heating_v3.service`
 - **Type:** Simple (long-running process)
 - **User:** pi
-- **Working Directory:** `/home/pi/solar_heating/python/v3`
+- **Working Directory:** `/opt/solar_heating_v3` ⚠️ (runs the copy in `/opt`, NOT the git repo)
+- **ExecStart:** `/opt/solar_heating_v3/bin/python3 main_system.py`
 - **Python:** `/opt/solar_heating_v3/bin/python3`
 
 ### Service Commands
@@ -298,17 +319,23 @@ ssh pi@192.168.0.18 "sudo journalctl -u solar_heating_v3.service --since '1 hour
 
 ## 🔙 Rollback Procedure
 
-### Quick Rollback
+> ⚠️ **The service runs from `/opt/solar_heating_v3/`**, so a rollback must
+> restore the file(s) there. Resetting only the git repo does NOT change what
+> runs — you must copy the rolled-back files into `/opt`.
+
+### Quick Rollback (from git)
 ```bash
 # 1. SSH to Pi
 ssh pi@192.168.0.18
 
-# 2. Go to code directory
+# 2. Roll the git repo back to a previous commit
 cd ~/solar_heating
-
-# 3. Rollback to previous commit
-git log --oneline -5  # Find commit to rollback to
+git log --oneline -5              # find commit to roll back to
 git checkout <commit-hash> python/v3/
+
+# 3. CRITICAL: copy the rolled-back file(s) into /opt (the running location)
+sudo cp ~/solar_heating/python/v3/main_system.py /opt/solar_heating_v3/main_system.py
+sudo chown root:root /opt/solar_heating_v3/main_system.py
 
 # 4. Restart service
 sudo systemctl restart solar_heating_v3.service
@@ -317,9 +344,19 @@ sudo systemctl restart solar_heating_v3.service
 sudo systemctl status solar_heating_v3.service
 ```
 
+### Fastest Rollback (from a `.bak` file)
+If the deploy created a timestamped backup in `/opt` (recommended in the
+runbook), just restore it — no git needed:
+```bash
+ssh pi@192.168.0.18 "ls -la /opt/solar_heating_v3/main_system.py.bak-*"
+ssh pi@192.168.0.18 "sudo cp -p /opt/solar_heating_v3/main_system.py.bak-<TIMESTAMP> /opt/solar_heating_v3/main_system.py && sudo systemctl restart solar_heating_v3.service"
+```
+
 ### Full Repository Rollback
 ```bash
-ssh pi@192.168.0.18 "cd ~/solar_heating && git reset --hard <commit-hash> && sudo systemctl restart solar_heating_v3.service"
+# Reset repo AND re-sync to /opt (both steps required)
+ssh pi@192.168.0.18 "cd ~/solar_heating && git reset --hard <commit-hash>"
+ssh pi@192.168.0.18 "sudo cp ~/solar_heating/python/v3/main_system.py /opt/solar_heating_v3/main_system.py && sudo chown root:root /opt/solar_heating_v3/main_system.py && sudo systemctl restart solar_heating_v3.service"
 ```
 
 ---

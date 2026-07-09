@@ -138,18 +138,53 @@ ssh pi@192.168.0.18 "cd ~/solar_heating && git stash pop"
 
 ---
 
-#### Step 2.3: Verify Deployed Code
-```bash
-# Verify correct commit is deployed
-ssh pi@192.168.0.18 "cd ~/solar_heating && git log --oneline -1"
+#### Step 2.3: Sync Code to Runtime Directory (`/opt`) ⚠️ CRITICAL
 
-# Quick syntax check (for major changes)
-ssh pi@192.168.0.18 "cd ~/solar_heating/python/v3 && /opt/solar_heating_v3/bin/python3 -m py_compile main_system.py"
+> **IMPORTANT — the service does NOT run from the git repo.**
+> The systemd unit runs from `/opt/solar_heating_v3/` (see `WorkingDirectory`
+> and `ExecStart` in the unit file), which holds a **root-owned copy** of the
+> code — it is NOT a git checkout. `git pull` in `~/solar_heating` only updates
+> the repo; you MUST copy changed files into `/opt/solar_heating_v3/` or the
+> running service keeps executing the old code (a restart alone changes nothing).
+
+```bash
+# Back up the current runtime file first (rollback point)
+ssh pi@192.168.0.18 "sudo cp -p /opt/solar_heating_v3/main_system.py /opt/solar_heating_v3/main_system.py.bak-$(date +%Y%m%d_%H%M%S)"
+
+# Copy the changed file(s) from repo -> /opt (preserve root ownership)
+ssh pi@192.168.0.18 "sudo cp ~/solar_heating/python/v3/main_system.py /opt/solar_heating_v3/main_system.py && sudo chown root:root /opt/solar_heating_v3/main_system.py"
 ```
 
-**Expected:** Commit hash matches what you deployed, no syntax errors
+**Copy every file your change touched** (e.g. `config.py`, `mqtt_handler.py`,
+`hardware_interface.py`, `api_server.py`). To see what changed:
 
-✅ **Checkpoint:** [ ] Deployed code verified
+```bash
+ssh pi@192.168.0.18 "cd ~/solar_heating && git diff --name-only HEAD~1 -- python/v3/"
+```
+
+> **Note on dependencies:** the production venv also lives at
+> `/opt/solar_heating_v3/bin/`. If `requirements.txt` changed, install into it
+> (see Phase 3) — NOT into `~/solar_heating/python/v3/venv`, which is unused.
+
+✅ **Checkpoint:** [ ] Changed files copied to `/opt/solar_heating_v3/`
+
+---
+
+#### Step 2.4: Verify Deployed Code
+```bash
+# Verify correct commit is deployed in the repo
+ssh pi@192.168.0.18 "cd ~/solar_heating && git log --oneline -1"
+
+# Syntax check the file that ACTUALLY runs (in /opt), using the production venv
+ssh pi@192.168.0.18 "/opt/solar_heating_v3/bin/python3 -m py_compile /opt/solar_heating_v3/main_system.py"
+
+# Confirm /opt matches the repo (no diff = copy succeeded)
+ssh pi@192.168.0.18 "diff ~/solar_heating/python/v3/main_system.py /opt/solar_heating_v3/main_system.py && echo 'IN SYNC' || echo 'MISMATCH - re-copy'"
+```
+
+**Expected:** Commit hash matches what you deployed, no syntax errors, `IN SYNC`
+
+✅ **Checkpoint:** [ ] Deployed code verified in `/opt`
 
 ---
 
@@ -354,12 +389,27 @@ ssh pi@192.168.0.18 "sudo systemctl stop solar_heating_v3.service"
 ---
 
 #### Step 6.2: Rollback Code
-```bash
-# Rollback to last known good commit
-ssh pi@192.168.0.18 "cd ~/solar_heating && git reset --hard <last-good-commit>"
 
-# Verify rollback
+> **Remember:** the service runs from `/opt/solar_heating_v3/`, so a rollback
+> must restore the file(s) there — resetting only the git repo is not enough.
+
+**Option A — fastest: restore the `.bak` backup taken in Step 2.3**
+```bash
+# List available runtime backups
+ssh pi@192.168.0.18 "ls -la /opt/solar_heating_v3/main_system.py.bak-*"
+
+# Restore the pre-deploy backup (pick the right timestamp)
+ssh pi@192.168.0.18 "sudo cp -p /opt/solar_heating_v3/main_system.py.bak-<TIMESTAMP> /opt/solar_heating_v3/main_system.py && sudo chown root:root /opt/solar_heating_v3/main_system.py"
+```
+
+**Option B — from git: reset the repo, then re-sync to `/opt`**
+```bash
+# Roll the repo back to the last known good commit
+ssh pi@192.168.0.18 "cd ~/solar_heating && git reset --hard <last-good-commit>"
 ssh pi@192.168.0.18 "cd ~/solar_heating && git log --oneline -1"
+
+# CRITICAL: copy the rolled-back file(s) into /opt (repo reset alone does nothing)
+ssh pi@192.168.0.18 "sudo cp ~/solar_heating/python/v3/main_system.py /opt/solar_heating_v3/main_system.py && sudo chown root:root /opt/solar_heating_v3/main_system.py"
 ```
 
 **Rollback to Commit:** `<from Step 1.3>`
